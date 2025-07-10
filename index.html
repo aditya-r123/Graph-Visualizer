@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Creator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Graph Creator</h1>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="vertexSize">Vertex Size:</label>
+                    <input type="range" id="vertexSize" min="10" max="50" value="20">
+                    <span id="vertexSizeValue">20</span>
+                </div>
+                <div class="control-group">
+                    <label for="edgeWeight">Edge Weight:</label>
+                    <input type="number" id="edgeWeight" placeholder="No weight" min="0" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label for="edgeType">Edge Type:</label>
+                    <select id="edgeType">
+                        <option value="straight">Straight</option>
+                        <option value="curved">Curved</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <button id="calculateDistance">Calculate Distance</button>
+                    <button id="clearGraph">Clear Graph</button>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <div class="canvas-container">
+                <canvas id="graphCanvas" width="1200" height="600"></canvas>
+                <div class="instructions">
+                    <p><strong>Instructions:</strong></p>
+                    <ul>
+                        <li>Click anywhere to add a vertex (automatically labeled)</li>
+                        <li>Drag vertices to move them around</li>
+                        <li>Click two vertices quickly to create an edge</li>
+                        <li>Use controls above to customize appearance</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h3>Graph Information</h3>
+                <div id="graphInfo">
+                    <p>Vertices: <span id="vertexCount">0</span></p>
+                    <p>Edges: <span id="edgeCount">0</span></p>
+                    <p id="distanceInfo"></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
