@@ -21,11 +21,62 @@
                     <h1>Graph Creator Pro</h1>
                 </div>
                 <button id="themeToggle" class="theme-toggle" title="Toggle theme">
-                    <i class="fas fa-moon"></i>
+                    <div class="theme-icon">
+                        <!-- Sun (visible in dark theme) -->
+                        <svg class="sun-icon" width="32" height="32" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="6" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
+                            <!-- Sun rays -->
+                            <line x1="10" y1="2" x2="10" y2="0" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="10" y1="18" x2="10" y2="20" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="2" y1="10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="18" y1="10" x2="20" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="3" y1="3" x2="1.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="17" y1="17" x2="18.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="3" y1="17" x2="1.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="17" y1="3" x2="18.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                            <!-- Eye sockets -->
+                            <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <!-- Eyes (white) -->
+                            <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                            <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                            <!-- Pupils -->
+                            <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                            <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                            <!-- Smile -->
+                            <path d="M 6 12 Q 10 15 14 12" stroke="#1f2937" stroke-width="1.5" fill="none"/>
+                        </svg>
+                        <!-- Moon (visible in light theme) -->
+                        <svg class="moon-icon" width="32" height="32" viewBox="0 0 20 20">
+                            <!-- Moon shape - light gray/whitish -->
+                            <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
+                            <!-- Eye sockets -->
+                            <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <!-- Eyes (white) -->
+                            <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                            <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                            <!-- Pupils -->
+                            <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                            <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                            <!-- Smile - thinner and less creepy -->
+                            <path d="M 6.5 12 Q 10 14 13.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
+                            <!-- Moon craters for realism -->
+                            <circle cx="8" cy="5" r="0.8" fill="#9ca3af" opacity="0.6"/>
+                            <circle cx="12" cy="6" r="0.5" fill="#9ca3af" opacity="0.6"/>
+                            <circle cx="6" cy="10" r="0.6" fill="#9ca3af" opacity="0.6"/>
+                        </svg>
+                    </div>
                 </button>
             </div>
             
             <div class="sidebar-content">
+                <div class="scroll-indicator" id="scrollIndicator">
+                    <div class="scroll-arrow">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <span class="scroll-text">More options</span>
+                </div>
                 <div class="info-section" id="infoSection">
                     <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
                     <div class="stats-compact">
@@ -318,13 +369,11 @@
             </div>
             <div class="status-item">
                 <i class="fas fa-code"></i>
-                <span>Made by <strong>Aditya Rao</strong></span>
+                <span>Made by <a href="https://www.linkedin.com/in/-aditya-rao/" target="_blank" class="linkedin-link"><strong>Aditya Rao</strong></a></span>
             </div>
-            <div class="status-item contact-item">
-                <button id="contactBtn" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-envelope"></i>
-                    Contact
-                </button>
+            <div class="status-item contact-status-item">
+                <i class="fas fa-envelope"></i>
+                <span id="contactBtn" class="contact-link">Contact</span>
             </div>
         </div>
         
@@ -375,13 +424,13 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i>
-                        Cancel
-                    </button>
                     <button type="submit" form="contactForm" class="btn btn-primary">
                         <i class="fas fa-paper-plane"></i>
                         Send Message
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                        Cancel
                     </button>
                 </div>
             </div>

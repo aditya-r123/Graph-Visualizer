@@ -45,4 +45,85 @@ document.addEventListener('DOMContentLoaded', () => {
         // Auto-dismiss after 10 seconds
         setTimeout(hideInstructionsModal, 10000);
     }
+    
+    // Eye tracking for sun and moon
+    const themeToggle = document.getElementById('themeToggle');
+    const sunPupils = document.querySelectorAll('.sun-icon .pupil');
+    const moonPupils = document.querySelectorAll('.moon-icon .pupil');
+    
+    function updateEyePosition(e) {
+        const rect = themeToggle.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        // Calculate distance from center
+        const deltaX = e.clientX - centerX;
+        const deltaY = e.clientY - centerY;
+        
+        // Track eyes across the entire screen with constrained movement
+        // Keep pupils within the eye socket boundaries (eye radius = 1.1, pupil radius = 0.6)
+        // Maximum movement = eye radius - pupil radius = 1.1 - 0.6 = 0.5
+        const maxMove = 0.5; // Constrain to stay within eye socket
+        const sensitivity = 0.008; // Reduced sensitivity for smoother movement
+        
+        // Calculate movement with constraints
+        const moveX = Math.max(-maxMove, Math.min(maxMove, deltaX * sensitivity));
+        const moveY = Math.max(-maxMove, Math.min(maxMove, deltaY * sensitivity));
+        
+        // Apply movement to all pupils
+        const allPupils = [...sunPupils, ...moonPupils];
+        allPupils.forEach(pupil => {
+            pupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+    }
+    
+    // Track mouse movement
+    document.addEventListener('mousemove', updateEyePosition);
+    
+    // Reset eyes when mouse leaves window
+    document.addEventListener('mouseleave', () => {
+        const allPupils = [...sunPupils, ...moonPupils];
+        allPupils.forEach(pupil => {
+            pupil.style.transform = 'translate(0px, 0px)';
+        });
+    });
+    
+    // Scroll indicator logic
+    const sidebarContent = document.querySelector('.sidebar-content');
+    const scrollIndicator = document.getElementById('scrollIndicator');
+    
+    function checkScrollIndicator() {
+        if (sidebarContent && scrollIndicator) {
+            const hasScrollableContent = sidebarContent.scrollHeight > sidebarContent.clientHeight;
+            const isScrolledToBottom = sidebarContent.scrollTop + sidebarContent.clientHeight >= sidebarContent.scrollHeight - 10;
+            
+            if (hasScrollableContent && !isScrolledToBottom) {
+                scrollIndicator.classList.add('show');
+            } else {
+                scrollIndicator.classList.remove('show');
+            }
+        }
+    }
+    
+    // Check on load and resize
+    checkScrollIndicator();
+    window.addEventListener('resize', checkScrollIndicator);
+    
+    // Check on scroll
+    if (sidebarContent) {
+        sidebarContent.addEventListener('scroll', checkScrollIndicator);
+    }
+    
+    // Scroll to bottom and hide indicator when clicked
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', () => {
+            if (sidebarContent) {
+                sidebarContent.scrollTo({
+                    top: sidebarContent.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+            scrollIndicator.classList.remove('show');
+        });
+    }
 });

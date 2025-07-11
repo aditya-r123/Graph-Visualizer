@@ -171,7 +171,7 @@ export class GraphCreator {
         // Clear target button - this is handled in setupResetTargetBtn()
         
         // Contact button
-        document.getElementById('contactBtn').addEventListener('click', () => {
+        document.querySelector('.contact-status-item').addEventListener('click', () => {
             this.showContactModal();
         });
         
@@ -189,8 +189,8 @@ export class GraphCreator {
         if (saveGraphBtn) {
             saveGraphBtn.addEventListener('click', () => {
                 console.log('Save Graph button clicked');
-                this.saveGraph();
-            });
+            this.saveGraph();
+        });
         } else {
             console.error('Save Graph button not found!');
         }
@@ -198,8 +198,8 @@ export class GraphCreator {
         if (loadGraphBtn) {
             loadGraphBtn.addEventListener('click', () => {
                 console.log('Load Graph button clicked');
-                this.showLoadConfirmation();
-            });
+            this.showLoadConfirmation();
+        });
         } else {
             console.error('Load Graph button not found!');
         }
@@ -207,8 +207,8 @@ export class GraphCreator {
         if (takeScreenshotBtn) {
             takeScreenshotBtn.addEventListener('click', () => {
                 console.log('Take Screenshot button clicked');
-                this.takeScreenshot();
-            });
+            this.takeScreenshot();
+        });
         } else {
             console.error('Take Screenshot button not found!');
         }
@@ -383,7 +383,7 @@ export class GraphCreator {
             this.updateStatus('No graph to save');
             return;
         }
-
+        
         // If editing a loaded/saved graph, update it; otherwise, create new
         let currentId = this.currentGraphId;
         let name;
@@ -397,10 +397,10 @@ export class GraphCreator {
             const existing = this.savedGraphs.find(g => g.id === currentId);
             name = existing ? existing.name : this.getTimestampString();
         }
-
+        
         const graphData = this.exportGraph();
         const timestamp = new Date().toISOString();
-
+        
         const savedGraph = {
             id: currentId,
             name: name,
@@ -409,20 +409,20 @@ export class GraphCreator {
             vertices: this.vertices.length,
             edges: this.edges.length
         };
-
+        
         // Check if updating existing
         const idx = this.savedGraphs.findIndex(g => g.id === currentId);
         if (idx !== -1) {
             this.savedGraphs[idx] = savedGraph;
         } else {
-            this.savedGraphs.unshift(savedGraph);
+        this.savedGraphs.unshift(savedGraph);
         }
-
+        
         // Keep only last 10 saved graphs
         if (this.savedGraphs.length > 10) {
             this.savedGraphs = this.savedGraphs.slice(0, 10);
         }
-
+        
         try {
             localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
             this.updateSavedGraphsList();
@@ -433,7 +433,7 @@ export class GraphCreator {
             
             // Only show status message for manual saves, not auto-saves
             if (!isAutoSave) {
-                this.updateStatus(`Graph "${name}" saved successfully!`);
+            this.updateStatus(`Graph "${name}" saved successfully!`);
             }
         } catch (error) {
             console.error('Failed to save graph:', error);
@@ -481,7 +481,7 @@ export class GraphCreator {
             
             this.updateStatus(`Loaded graph: "${savedGraph.name}"`);
             console.log('Graph loaded successfully');
-        } catch (error) {
+            } catch (error) {
             console.error('Failed to load saved graph:', error);
             this.updateStatus('Failed to load saved graph');
         }
@@ -553,22 +553,22 @@ export class GraphCreator {
         console.log('Number of edges:', this.edges.length);
         
         try {
-            // Create a temporary canvas for the screenshot
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
+        // Create a temporary canvas for the screenshot
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
             
             console.log('Created temporary canvas');
-            
-            // Set canvas size
-            tempCanvas.width = this.canvas.width;
-            tempCanvas.height = this.canvas.height;
+        
+        // Set canvas size
+        tempCanvas.width = this.canvas.width;
+        tempCanvas.height = this.canvas.height;
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
-            
-            // Fill background
+        
+        // Fill background
             tempCtx.fillStyle = '#ffffff';
-            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
             console.log('Filled background');
             
             // Draw edges first (so they appear behind vertices)
@@ -588,21 +588,21 @@ export class GraphCreator {
             console.log('Starting blob conversion...');
             
             // Convert to blob and download as JPG
-            tempCanvas.toBlob((blob) => {
+        tempCanvas.toBlob((blob) => {
                 console.log('Blob callback executed, blob:', blob);
                 if (blob) {
                     console.log('Blob size:', blob.size, 'bytes');
-                    const url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
                     console.log('Created object URL:', url);
-                    const a = document.createElement('a');
-                    a.href = url;
+            const a = document.createElement('a');
+            a.href = url;
                     a.download = `graph-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.jpg`;
                     a.style.display = 'none';
-                    document.body.appendChild(a);
+            document.body.appendChild(a);
                     console.log('Triggering download...');
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
                     this.updateStatus('Screenshot saved as JPG!');
                     console.log('Screenshot downloaded successfully');
                 } else {
@@ -1260,9 +1260,9 @@ export class GraphCreator {
                 this.updateStatus('Cannot create edge to same vertex');
                 this.selectedVertices = [];
                 this.draw(); // Redraw to clear highlighting
-                return;
-            }
-            
+            return;
+        }
+        
             // Check if edge already exists
             const existingEdge = this.edges.find(edge => 
                 (edge.from.id === vertex1.id && edge.to.id === vertex2.id) ||
