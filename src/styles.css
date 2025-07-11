@@ -163,46 +163,50 @@ body {
     position: relative;
     width: 32px;
     height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sun-icon,
 .moon-icon {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     transition: var(--transition);
 }
 
 .sun-icon {
     opacity: 0;
-    transform: scale(0.8);
+    transform: translate(-50%, -50%) scale(0.8);
 }
 
 .moon-icon {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
 }
 
 /* Dark theme - show moon (default) */
 [data-theme="dark"] .sun-icon {
     opacity: 0;
-    transform: scale(0.8);
+    transform: translate(-50%, -50%) scale(0.8);
 }
 
 [data-theme="dark"] .moon-icon {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
 }
 
 /* Light theme - show sun */
 [data-theme="light"] .sun-icon {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
 }
 
 [data-theme="light"] .moon-icon {
     opacity: 0;
-    transform: scale(0.8);
+    transform: translate(-50%, -50%) scale(0.8);
 }
 
 /* Eye tracking animation */
