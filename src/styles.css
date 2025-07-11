@@ -38,7 +38,7 @@
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
     
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Light Theme */
@@ -52,17 +52,17 @@
     --warning-color: #f59e0b;
     --info-color: #3b82f6;
     
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #e2e8f0;
-    --bg-card: rgba(248, 250, 252, 0.9);
+    --bg-primary: #87ceeb;
+    --bg-secondary: #b0e0e6;
+    --bg-tertiary: #add8e6;
+    --bg-card: rgba(176, 224, 230, 0.9);
     
     --text-primary: #1e293b;
     --text-secondary: #475569;
     --text-muted: #64748b;
     
-    --border-color: #cbd5e1;
-    --border-light: #e2e8f0;
+    --border-color: #87cefa;
+    --border-light: #b0e0e6;
     
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
