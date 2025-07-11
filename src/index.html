@@ -146,56 +146,73 @@
                 </div>
                 
                 <div class="control-section" id="searchSection">
-                    <h3><i class="fas fa-search"></i> Search Algorithms</h3>
-                    <div class="control-group">
-                        <label for="searchRoot">
-                            <i class="fas fa-arrow-up"></i>
-                            Root Node
-                        </label>
-                        <select id="searchRoot">
-                            <option value="">(Auto: Most Upward)</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label for="searchTarget">
-                            <i class="fas fa-bullseye"></i>
-                            Target Vertex
-                        </label>
-                        <div class="target-vertex-display" style="position: relative;">
-                            <div id="targetVertexDisplay" class="target-display">
-                                <span class="target-placeholder">No target selected</span>
+                    <h3 class="expandable-header" id="searchSectionHeader">
+                        <i class="fas fa-search"></i> Search Algorithms
+                        <i class="fas fa-chevron-down expand-icon" id="searchExpandIcon"></i>
+                    </h3>
+                    <div class="expandable-content" id="searchSectionContent" style="display: none;">
+                        <div class="control-group">
+                            <label for="searchRoot">
+                                <i class="fas fa-arrow-up"></i>
+                                Root Node
+                            </label>
+                            <select id="searchRoot">
+                                <option value="">(Auto: Most Upward)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="searchTarget">
+                                <i class="fas fa-bullseye"></i>
+                                Target Vertex
+                            </label>
+                            <div class="target-vertex-display" style="position: relative;">
+                                <div id="targetVertexDisplay" class="target-display">
+                                    <span class="target-placeholder">No target selected</span>
+                                </div>
+                                <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
+                                    <i class="fas fa-recycle"></i>
+                                </button>
                             </div>
-                            <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
-                                <i class="fas fa-recycle"></i>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button id="runBFS" class="btn btn-primary">
+                                <i class="fas fa-bread-slice"></i>
+                                Run BFS
+                            </button>
+                            <button id="runDFS" class="btn btn-primary">
+                                <i class="fas fa-tree"></i>
+                                Run DFS
+                            </button>
+                            <button id="stopSearch" class="btn btn-warning" disabled>
+                                <i class="fas fa-stop"></i>
+                                Stop Search
+                            </button>
+                            <button id="calculateDistance" class="btn btn-primary">
+                                <i class="fas fa-ruler"></i>
+                                Calculate Distance
                             </button>
                         </div>
+                        <div id="distanceInfo" class="distance-info"></div>
+                        <div id="pathInfo" class="path-info"></div>
+                        <div id="searchInfo" class="search-info"></div>
                     </div>
-                    
-                    <div class="button-group">
-                        <button id="runBFS" class="btn btn-primary">
-                            <i class="fas fa-bread-slice"></i>
-                            Run BFS
-                        </button>
-                        <button id="runDFS" class="btn btn-primary">
-                            <i class="fas fa-tree"></i>
-                            Run DFS
-                        </button>
-                        <button id="stopSearch" class="btn btn-warning" disabled>
-                            <i class="fas fa-stop"></i>
-                            Stop Search
-                        </button>
-                        <button id="calculateDistance" class="btn btn-primary">
-                            <i class="fas fa-ruler"></i>
-                            Calculate Distance
-                        </button>
-                    </div>
-                    <div id="distanceInfo" class="distance-info"></div>
-                    <div id="pathInfo" class="path-info"></div>
-                    <div id="searchInfo" class="search-info"></div>
                 </div>
                 
                 <div class="control-section" id="saveLoadSection">
                     <h3><i class="fas fa-save"></i> Save & Load</h3>
+                    
+                    <div class="control-group">
+                        <label class="switch-label" for="autosaveToggle">
+                            <i class="fas fa-magic"></i>
+                            Auto-Save
+                            <div class="switch-container">
+                                <input type="checkbox" id="autosaveToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                        <small>Automatically save changes when adding vertices/edges</small>
+                    </div>
                     
                     <div class="button-group">
                         <button id="saveGraph" class="btn btn-success">
@@ -220,15 +237,11 @@
                     </div>
                 </div>
                 
-                <div class="control-section" id="toolsSection">
-                    <h3><i class="fas fa-tools"></i> Tools</h3>
-                    
-                    <div class="button-group">
-                        <button id="clearGraph" class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                            Clear Graph
-                        </button>
-                    </div>
+                <div class="control-section" id="clearSection">
+                    <button id="clearGraph" class="btn btn-danger w-100">
+                        <i class="fas fa-trash"></i>
+                        Clear Graph
+                    </button>
                 </div>
             </div>
         </aside>
@@ -302,6 +315,75 @@
             <div class="status-item">
                 <i class="fas fa-clock"></i>
                 <span id="currentTime"></span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-code"></i>
+                <span>Made by <strong>Aditya Rao</strong></span>
+            </div>
+            <div class="status-item">
+                <button id="contactBtn" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-envelope"></i>
+                    Contact
+                </button>
+            </div>
+        </div>
+        
+
+    </div>
+    
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contactModalLabel">
+                        <i class="fas fa-envelope"></i>
+                        Contact Aditya Rao
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="contactForm">
+                        <div class="mb-3">
+                            <label for="contactName" class="form-label">
+                                <i class="fas fa-user"></i>
+                                Name
+                            </label>
+                            <input type="text" class="form-control" id="contactName" placeholder="Your name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactEmail" class="form-label">
+                                <i class="fas fa-envelope"></i>
+                                Email
+                            </label>
+                            <input type="email" class="form-control" id="contactEmail" placeholder="your.email@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactSubject" class="form-label">
+                                <i class="fas fa-tag"></i>
+                                Subject
+                            </label>
+                            <input type="text" class="form-control" id="contactSubject" placeholder="What's this about?" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactMessage" class="form-label">
+                                <i class="fas fa-comment"></i>
+                                Message
+                            </label>
+                            <textarea class="form-control" id="contactMessage" rows="4" placeholder="Your message here..." required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" form="contactForm" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Send Message
+                    </button>
+                </div>
             </div>
         </div>
     </div>

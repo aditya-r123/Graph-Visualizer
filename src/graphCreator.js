@@ -23,6 +23,7 @@ export class GraphCreator {
         this.autoSaveInterval = null;
         this.editingVertex = null;
         this.lastSavedState = null;
+        this.autosaveEnabled = true;
         
         // Target selection properties
         this.selectedTargetVertex = null;
@@ -81,6 +82,9 @@ export class GraphCreator {
 
         // In constructor, after DOMContentLoaded, call this.setupMinimalEditModeEvents();
         this.setupMinimalEditModeEvents();
+        
+        // Setup expandable sections
+        this.setupExpandableSections();
     }
     
     initializeCanvas() {
@@ -136,6 +140,12 @@ export class GraphCreator {
             this.clearGraph();
         });
         
+        // Auto-save toggle
+        document.getElementById('autosaveToggle').addEventListener('change', (e) => {
+            this.autosaveEnabled = e.target.checked;
+            this.updateStatus(`Auto-save ${this.autosaveEnabled ? 'enabled' : 'disabled'}`);
+        });
+        
         document.getElementById('hideInstructions').addEventListener('click', () => {
             this.hideInstructions();
         });
@@ -159,6 +169,17 @@ export class GraphCreator {
         });
         
         // Clear target button - this is handled in setupResetTargetBtn()
+        
+        // Contact button
+        document.getElementById('contactBtn').addEventListener('click', () => {
+            this.showContactModal();
+        });
+        
+        // Contact form submission
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleContactSubmit();
+        });
         
         // Save/Load controls
         const saveGraphBtn = document.getElementById('saveGraph');
@@ -314,31 +335,32 @@ export class GraphCreator {
                     <button class="edit-name-btn" title="Edit graph name">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="load-btn" title="Load graph">
-                        <i class="fas fa-download"></i>
-                    </button>
                     <button class="delete-btn" title="Delete saved graph">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             `;
-            // Add event listeners
+            
+            // Make the entire item clickable to load the graph
+            item.addEventListener('click', () => {
+                this.loadSavedGraphWithConfirmation(savedGraph);
+            });
+            
+            // Add event listeners for action buttons (with stopPropagation to prevent loading)
             const editNameBtn = item.querySelector('.edit-name-btn');
-            const loadBtn = item.querySelector('.load-btn');
             const deleteBtn = item.querySelector('.delete-btn');
             const nameElement = item.querySelector('.saved-graph-name');
+            
             editNameBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.editSavedGraphName(index, nameElement);
             });
-            loadBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.loadSavedGraphWithConfirmation(savedGraph);
-            });
+            
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.deleteSavedGraph(savedGraph.id);
             });
+            
             container.appendChild(item);
         });
     }
@@ -355,8 +377,8 @@ export class GraphCreator {
     }
 
     // Save the current graph (update if editing, otherwise new)
-    saveGraph() {
-        console.log('saveGraph function called');
+    saveGraph(isAutoSave = false) {
+        console.log('saveGraph function called', isAutoSave ? '(auto-save)' : '(manual)');
         if (this.vertices.length === 0) {
             this.updateStatus('No graph to save');
             return;
@@ -408,7 +430,11 @@ export class GraphCreator {
                 vertices: this.vertices.map(v => ({ id: v.id, x: v.x, y: v.y, label: v.label })),
                 edges: this.edges.map(e => ({ from: e.from.id, to: e.to.id, weight: e.weight, type: e.type }))
             });
-            this.updateStatus(`Graph "${name}" saved successfully!`);
+            
+            // Only show status message for manual saves, not auto-saves
+            if (!isAutoSave) {
+                this.updateStatus(`Graph "${name}" saved successfully!`);
+            }
         } catch (error) {
             console.error('Failed to save graph:', error);
             this.updateStatus('Failed to save graph');
@@ -1683,6 +1709,11 @@ export class GraphCreator {
         // Clear custom label input
         document.getElementById('vertexLabel').value = '';
         this.updateRootDropdown();
+        
+        // Auto-save if enabled
+        if (this.autosaveEnabled) {
+            this.saveGraph(true);
+        }
     }
     
     findNextAvailableLabel() {
@@ -1716,9 +1747,21 @@ export class GraphCreator {
             // Remove control point for curved edges (always use fixed curve)
             // No edge.controlPoint
             this.edges.push(edge);
+            
+            // Update status with edge creation message
+            const weightText = weight ? ` (weight: ${weight})` : '';
+            this.updateStatus(`Edge created between vertices "${vertex1.label}" and "${vertex2.label}"${weightText}`);
+        } else {
+            // Edge already exists
+            this.updateStatus(`Edge already exists between vertices "${vertex1.label}" and "${vertex2.label}"`);
         }
         this.draw();
         this.updateInfo();
+        
+        // Auto-save if enabled
+        if (this.autosaveEnabled) {
+            this.saveGraph(true);
+        }
     }
     
     getAdjacencyList() {
@@ -3026,6 +3069,33 @@ export class GraphCreator {
         });
     }
     
+    // Setup expandable sections
+    setupExpandableSections() {
+        const searchHeader = document.getElementById('searchSectionHeader');
+        const searchContent = document.getElementById('searchSectionContent');
+        const searchIcon = document.getElementById('searchExpandIcon');
+        
+        if (searchHeader && searchContent && searchIcon) {
+            searchHeader.addEventListener('click', () => {
+                const isExpanded = searchHeader.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    // Collapse
+                    searchContent.style.display = 'none';
+                    searchContent.classList.remove('show');
+                    searchHeader.classList.remove('expanded');
+                    searchIcon.style.transform = 'rotate(0deg)';
+                } else {
+                    // Expand
+                    searchContent.style.display = 'block';
+                    searchContent.classList.add('show');
+                    searchHeader.classList.add('expanded');
+                    searchIcon.style.transform = 'rotate(180deg)';
+                }
+            });
+        }
+    }
+    
     // Delete a saved graph by id
     deleteSavedGraph(id) {
         if (!confirm('Are you sure you want to delete this saved graph?')) return;
@@ -3041,5 +3111,37 @@ export class GraphCreator {
                 this.updateStatus('Failed to delete saved graph');
             }
         }
+    }
+    
+    // Contact modal functionality
+    showContactModal() {
+        // Reset form
+        document.getElementById('contactForm').reset();
+        
+        // Show modal using Bootstrap
+        const contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
+        contactModal.show();
+    }
+    
+    handleContactSubmit() {
+        const formData = {
+            name: document.getElementById('contactName').value,
+            email: document.getElementById('contactEmail').value,
+            subject: document.getElementById('contactSubject').value,
+            message: document.getElementById('contactMessage').value
+        };
+        
+        // For now, just log the data and show a success message
+        console.log('Contact form submitted:', formData);
+        
+        // Show success message
+        this.updateStatus('Thank you for your message! I\'ll get back to you soon.');
+        
+        // Close modal
+        const contactModal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
+        contactModal.hide();
+        
+        // Reset form
+        document.getElementById('contactForm').reset();
     }
 } 
