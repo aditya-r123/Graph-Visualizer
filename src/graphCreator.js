@@ -24,6 +24,9 @@ export class GraphCreator {
         this.editingVertex = null;
         this.lastSavedState = null;
         
+        // Target selection properties
+        this.selectedTargetVertex = null;
+        
         // Edge dragging properties
         this.draggedEdge = null;
         this.isDraggingEdge = false;
@@ -38,6 +41,15 @@ export class GraphCreator {
         this.shakeAnimation = null;
         this.shakeOffset = 0;
         this.shakeDirection = 1;
+        
+        // Apply to all properties
+        this.applyToAllVertices = false;
+        this.applyToAllEdges = false;
+        
+        // Flash effect properties
+        this.flashingVertices = new Set();
+        this.distanceFlashingVertices = null;
+        this.flashTimer = null;
         
         // Styling properties
         this.vertexColor = '#1e293b';
@@ -54,14 +66,21 @@ export class GraphCreator {
         
         this.initializeCanvas();
         this.initializeEventListeners();
-        this.loadSavedGraphs();
         this.startAutoSave();
+        this.loadSavedGraphs();
         this.updateInfo();
-        this.updateStatus('Ready to create your graph!');
         this.updateTime();
+        this.updateTargetVertexDisplay();
         
         // Update time every second
         setInterval(() => this.updateTime(), 1000);
+        
+        // Add event listener for the reset button after DOM is loaded
+        // (call this in constructor or after DOMContentLoaded)
+        this.setupResetTargetBtn();
+
+        // In constructor, after DOMContentLoaded, call this.setupMinimalEditModeEvents();
+        this.setupMinimalEditModeEvents();
     }
     
     initializeCanvas() {
@@ -139,18 +158,39 @@ export class GraphCreator {
             this.stopSearch();
         });
         
+        // Clear target button - this is handled in setupResetTargetBtn()
+        
         // Save/Load controls
-        document.getElementById('saveGraph').addEventListener('click', () => {
-            this.saveGraph();
-        });
+        const saveGraphBtn = document.getElementById('saveGraph');
+        const loadGraphBtn = document.getElementById('loadGraph');
+        const takeScreenshotBtn = document.getElementById('takeScreenshot');
         
-        document.getElementById('loadGraph').addEventListener('click', () => {
-            this.showLoadConfirmation();
-        });
+        if (saveGraphBtn) {
+            saveGraphBtn.addEventListener('click', () => {
+                console.log('Save Graph button clicked');
+                this.saveGraph();
+            });
+        } else {
+            console.error('Save Graph button not found!');
+        }
         
-        document.getElementById('takeScreenshot').addEventListener('click', () => {
-            this.takeScreenshot();
-        });
+        if (loadGraphBtn) {
+            loadGraphBtn.addEventListener('click', () => {
+                console.log('Load Graph button clicked');
+                this.showLoadConfirmation();
+            });
+        } else {
+            console.error('Load Graph button not found!');
+        }
+        
+        if (takeScreenshotBtn) {
+            takeScreenshotBtn.addEventListener('click', () => {
+                console.log('Take Screenshot button clicked');
+                this.takeScreenshot();
+            });
+        } else {
+            console.error('Take Screenshot button not found!');
+        }
         
         // File input for loading
         document.getElementById('loadFileInput').addEventListener('change', (e) => {
@@ -182,142 +222,11 @@ export class GraphCreator {
             }
         });
         
-        // Edit mode controls
-        document.getElementById('exitEditMode').addEventListener('click', () => {
-            this.exitEditMode();
-        });
+        // Edit mode controls - these are handled in setupMinimalEditModeEvents()
         
-        document.getElementById('deleteSelectedElement').addEventListener('click', () => {
-            this.deleteSelectedElement();
-        });
+        // Edit mode styling controls - removed as these elements don't exist in HTML
         
-        // Edit mode styling controls
-        document.getElementById('editVertexColor').addEventListener('change', (e) => {
-            if (this.editModeElement && this.editModeType === 'vertex') {
-                this.editModeElement.color = e.target.value;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editVertexBorderColor').addEventListener('change', (e) => {
-            if (this.editModeElement && this.editModeType === 'vertex') {
-                this.editModeElement.borderColor = e.target.value;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editVertexFontSize').addEventListener('input', (e) => {
-            if (this.editModeElement && this.editModeType === 'vertex') {
-                this.editModeElement.fontSize = parseInt(e.target.value);
-                document.getElementById('editVertexFontSizeValue').textContent = this.editModeElement.fontSize;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editVertexFontFamily').addEventListener('change', (e) => {
-            if (this.editModeElement && this.editModeType === 'vertex') {
-                this.editModeElement.fontFamily = e.target.value;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editVertexFontColor').addEventListener('change', (e) => {
-            if (this.editModeElement && this.editModeType === 'vertex') {
-                this.editModeElement.fontColor = e.target.value;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editEdgeColor').addEventListener('change', (e) => {
-            if (this.editModeElement && this.editModeType === 'edge') {
-                this.editModeElement.color = e.target.value;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editEdgeWidth').addEventListener('input', (e) => {
-            if (this.editModeElement && this.editModeType === 'edge') {
-                this.editModeElement.width = parseInt(e.target.value);
-                document.getElementById('editEdgeWidthValue').textContent = this.editModeElement.width;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editEdgeFontSize').addEventListener('input', (e) => {
-            if (this.editModeElement && this.editModeType === 'edge') {
-                this.editModeElement.fontSize = parseInt(e.target.value);
-                document.getElementById('editEdgeFontSizeValue').textContent = this.editModeElement.fontSize;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editEdgeFontFamily').addEventListener('change', (e) => {
-            if (this.editModeElement && this.editModeType === 'edge') {
-                this.editModeElement.fontFamily = e.target.value;
-                this.draw();
-            }
-        });
-        
-        document.getElementById('editEdgeFontColor').addEventListener('change', (e) => {
-            if (this.editModeElement && this.editModeType === 'edge') {
-                this.editModeElement.fontColor = e.target.value;
-                this.draw();
-            }
-        });
-        
-        // Original styling controls (for global styling)
-        document.getElementById('vertexColor').addEventListener('change', (e) => {
-            this.vertexColor = e.target.value;
-            this.draw();
-        });
-        
-        document.getElementById('vertexBorderColor').addEventListener('change', (e) => {
-            this.vertexBorderColor = e.target.value;
-            this.draw();
-        });
-        
-        document.getElementById('vertexFontSize').addEventListener('input', (e) => {
-            this.vertexFontSize = parseInt(e.target.value);
-            document.getElementById('vertexFontSizeValue').textContent = this.vertexFontSize;
-            this.draw();
-        });
-        
-        document.getElementById('vertexFontFamily').addEventListener('change', (e) => {
-            this.vertexFontFamily = e.target.value;
-            this.draw();
-        });
-        
-        document.getElementById('vertexFontColor').addEventListener('change', (e) => {
-            this.vertexFontColor = e.target.value;
-            this.draw();
-        });
-        
-        document.getElementById('edgeColor').addEventListener('change', (e) => {
-            this.edgeColor = e.target.value;
-            this.draw();
-        });
-        
-        document.getElementById('edgeWidth').addEventListener('input', (e) => {
-            this.edgeWidth = parseInt(e.target.value);
-            document.getElementById('edgeWidthValue').textContent = this.edgeWidth;
-            this.draw();
-        });
-        
-        document.getElementById('edgeFontSize').addEventListener('input', (e) => {
-            this.edgeFontSize = parseInt(e.target.value);
-            document.getElementById('edgeFontSizeValue').textContent = this.edgeFontSize;
-            this.draw();
-        });
-        
-        document.getElementById('edgeFontFamily').addEventListener('change', (e) => {
-            this.edgeFontFamily = e.target.value;
-            this.draw();
-        });
-        
-        document.getElementById('edgeFontColor').addEventListener('change', (e) => {
-            this.edgeFontColor = e.target.value;
-            this.draw();
-        });
+        // Original styling controls - removed as these elements don't exist in HTML
         
         // Prevent default context menu
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -392,7 +301,6 @@ export class GraphCreator {
     updateSavedGraphsList() {
         const container = document.getElementById('savedGraphsList');
         container.innerHTML = '';
-        
         this.savedGraphs.slice(0, 5).forEach((savedGraph, index) => {
             const item = document.createElement('div');
             item.className = 'saved-graph-item';
@@ -414,59 +322,85 @@ export class GraphCreator {
                     </button>
                 </div>
             `;
-            
             // Add event listeners
             const editNameBtn = item.querySelector('.edit-name-btn');
             const loadBtn = item.querySelector('.load-btn');
             const deleteBtn = item.querySelector('.delete-btn');
             const nameElement = item.querySelector('.saved-graph-name');
-            
             editNameBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.editSavedGraphName(index, nameElement);
             });
-            
             loadBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.loadSavedGraphWithConfirmation(savedGraph);
             });
-            
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.deleteSavedGraph(index);
+                this.deleteSavedGraph(savedGraph.id);
             });
-            
             container.appendChild(item);
         });
     }
     
+    // Helper to get a timestamp string
+    getTimestampString() {
+        const now = new Date();
+        return now.getFullYear() + '-' +
+            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+            String(now.getDate()).padStart(2, '0') + ' ' +
+            String(now.getHours()).padStart(2, '0') + ':' +
+            String(now.getMinutes()).padStart(2, '0') + ':' +
+            String(now.getSeconds()).padStart(2, '0');
+    }
+
+    // Save the current graph (update if editing, otherwise new)
     saveGraph() {
+        console.log('saveGraph function called');
         if (this.vertices.length === 0) {
             this.updateStatus('No graph to save');
             return;
         }
-        
-        const name = prompt('Enter a name for this graph:', `Graph ${new Date().toLocaleDateString()}`);
-        if (!name) return;
-        
+
+        // If editing a loaded/saved graph, update it; otherwise, create new
+        let currentId = this.currentGraphId;
+        let name;
+        if (!currentId) {
+            // New graph: assign id and name as timestamp
+            currentId = Date.now();
+            this.currentGraphId = currentId;
+            name = this.getTimestampString();
+        } else {
+            // Existing graph: find its name
+            const existing = this.savedGraphs.find(g => g.id === currentId);
+            name = existing ? existing.name : this.getTimestampString();
+        }
+
         const graphData = this.exportGraph();
         const timestamp = new Date().toISOString();
-        
+
         const savedGraph = {
+            id: currentId,
             name: name,
             data: graphData,
             timestamp: timestamp,
             vertices: this.vertices.length,
             edges: this.edges.length
         };
-        
-        this.savedGraphs.unshift(savedGraph);
-        
+
+        // Check if updating existing
+        const idx = this.savedGraphs.findIndex(g => g.id === currentId);
+        if (idx !== -1) {
+            this.savedGraphs[idx] = savedGraph;
+        } else {
+            this.savedGraphs.unshift(savedGraph);
+        }
+
         // Keep only last 10 saved graphs
         if (this.savedGraphs.length > 10) {
             this.savedGraphs = this.savedGraphs.slice(0, 10);
         }
-        
+
         try {
             localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
             this.updateSavedGraphsList();
@@ -481,49 +415,8 @@ export class GraphCreator {
         }
     }
     
-    loadSavedGraph(savedGraph) {
-        try {
-            this.importGraph(savedGraph.data);
-            this.updateStatus(`Loaded graph "${savedGraph.name}"`);
-        } catch (error) {
-            console.error('Failed to load graph:', error);
-            this.updateStatus('Failed to load graph');
-        }
-    }
-    
-    deleteSavedGraph(index) {
-        if (confirm('Are you sure you want to delete this saved graph?')) {
-            this.savedGraphs.splice(index, 1);
-            try {
-                localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
-                this.updateSavedGraphsList();
-                this.updateStatus('Saved graph deleted');
-            } catch (error) {
-                console.error('Failed to delete saved graph:', error);
-            }
-        }
-    }
-    
-    editSavedGraphName(index, nameElement) {
-        const savedGraph = this.savedGraphs[index];
-        const newName = prompt('Enter new name for this graph:', savedGraph.name);
-        
-        if (newName && newName.trim() !== '' && newName.trim() !== savedGraph.name) {
-            savedGraph.name = newName.trim();
-            savedGraph.timestamp = new Date().toISOString();
-            
-            try {
-                localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
-                this.updateSavedGraphsList();
-                this.updateStatus(`Graph renamed to "${newName.trim()}"`);
-            } catch (error) {
-                console.error('Failed to update saved graph:', error);
-                this.updateStatus('Failed to rename graph');
-            }
-        }
-    }
-    
     loadSavedGraphWithConfirmation(savedGraph) {
+        console.log('loadSavedGraphWithConfirmation called', savedGraph);
         // Always auto-save current graph if there are changes, then load the new graph
         if (this.hasUnsavedChanges()) {
             this.saveCurrentGraphAndLoadSpecific(savedGraph);
@@ -532,13 +425,50 @@ export class GraphCreator {
         }
     }
     
+    loadSavedGraph(savedGraph) {
+        console.log('loadSavedGraph called', savedGraph);
+        try {
+            // Clear current graph
+            this.vertices = [];
+            this.edges = [];
+            this.nextVertexId = 1;
+            this.selectedVertices = [];
+            this.draggedVertex = null;
+            this.isDragging = false;
+            this.distanceModeVertices = [];
+            this.isDistanceMode = false;
+            this.visitedVertices.clear();
+            this.pathVertices.clear();
+            this.isSearching = false;
+            this.editingVertex = null;
+            this.selectedTargetVertex = null;
+            this.currentGraphId = savedGraph.id;
+            
+            // Import the saved graph data
+            this.importGraph(savedGraph.data);
+            
+            // Update UI
+            this.updateTargetVertexDisplay();
+            this.updateInfo();
+            this.updateRootDropdown();
+            this.draw();
+            
+            this.updateStatus(`Loaded graph: "${savedGraph.name}"`);
+            console.log('Graph loaded successfully');
+        } catch (error) {
+            console.error('Failed to load saved graph:', error);
+            this.updateStatus('Failed to load saved graph');
+        }
+    }
+    
     saveCurrentGraphAndLoadSpecific(targetGraph) {
         // First save the current graph
         const graphData = this.exportGraph();
         const timestamp = new Date().toISOString();
-        const name = `Graph ${new Date().toLocaleDateString()}`;
+        const name = this.getTimestampString();
         
         const savedGraph = {
+            id: Date.now(), // New graph gets a unique id
             name: name,
             data: graphData,
             timestamp: timestamp,
@@ -573,12 +503,12 @@ export class GraphCreator {
     handleFileLoad(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const graphData = JSON.parse(e.target.result);
                 this.importGraph(graphData);
+                this.currentGraphId = null; // New graph, not linked to savedGraphs
                 this.updateStatus(`Loaded graph from file: ${file.name}`);
             } catch (error) {
                 console.error('Failed to parse graph file:', error);
@@ -586,39 +516,336 @@ export class GraphCreator {
             }
         };
         reader.readAsText(file);
-        
         // Reset file input
         event.target.value = '';
     }
     
     takeScreenshot() {
-        // Create a temporary canvas for the screenshot
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
+        console.log('takeScreenshot function called');
+        console.log('Canvas dimensions:', this.canvas.width, 'x', this.canvas.height);
+        console.log('Number of vertices:', this.vertices.length);
+        console.log('Number of edges:', this.edges.length);
         
-        // Set canvas size
-        tempCanvas.width = this.canvas.width;
-        tempCanvas.height = this.canvas.height;
+        try {
+            // Create a temporary canvas for the screenshot
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            console.log('Created temporary canvas');
+            
+            // Set canvas size
+            tempCanvas.width = this.canvas.width;
+            tempCanvas.height = this.canvas.height;
+            
+            console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
+            
+            // Fill background
+            tempCtx.fillStyle = '#ffffff';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            console.log('Filled background');
+            
+            // Draw edges first (so they appear behind vertices)
+            console.log('Drawing edges...');
+            this.edges.forEach((edge, index) => {
+                console.log(`Drawing edge ${index}:`, edge.from.label, '->', edge.to.label);
+                this.drawSimpleEdge(tempCtx, edge);
+            });
+            
+            // Draw vertices on top
+            console.log('Drawing vertices...');
+            this.vertices.forEach((vertex, index) => {
+                console.log(`Drawing vertex ${index}:`, vertex.label, 'at', vertex.x, vertex.y);
+                this.drawSimpleVertex(tempCtx, vertex);
+            });
+            
+            console.log('Starting blob conversion...');
+            
+            // Convert to blob and download as JPG
+            tempCanvas.toBlob((blob) => {
+                console.log('Blob callback executed, blob:', blob);
+                if (blob) {
+                    console.log('Blob size:', blob.size, 'bytes');
+                    const url = URL.createObjectURL(blob);
+                    console.log('Created object URL:', url);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `graph-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.jpg`;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    console.log('Triggering download...');
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    this.updateStatus('Screenshot saved as JPG!');
+                    console.log('Screenshot downloaded successfully');
+                } else {
+                    console.error('Failed to create blob for screenshot');
+                    this.updateStatus('Failed to create screenshot');
+                }
+            }, 'image/jpeg', 0.9); // Save as JPG with 90% quality
+            
+            console.log('toBlob called, waiting for callback...');
+        } catch (error) {
+            console.error('Error taking screenshot:', error);
+            console.error('Error stack:', error.stack);
+            this.updateStatus('Error taking screenshot');
+        }
+    }
+    
+    drawSimpleEdge(ctx, edge) {
+        // Simple edge drawing - just a line between vertices
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(edge.from.x, edge.from.y);
+        ctx.lineTo(edge.to.x, edge.to.y);
+        ctx.stroke();
         
-        // Fill background
-        tempCtx.fillStyle = this.currentTheme === 'dark' ? '#0f172a' : '#ffffff';
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        // Draw arrow for directed edges
+        if (edge.direction !== 'undirected') {
+            this.drawSimpleArrow(ctx, edge);
+        }
         
-        // Draw the graph
-        this.drawOnCanvas(tempCtx, tempCanvas.width, tempCanvas.height);
+        // Draw weight if exists
+        if (edge.weight !== null && edge.weight !== '') {
+            const midX = (edge.from.x + edge.to.x) / 2;
+            const midY = (edge.from.y + edge.to.y) / 2;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(midX - 15, midY - 8, 30, 16);
+            
+            ctx.fillStyle = '#000000';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(edge.weight.toString(), midX, midY);
+        }
+    }
+    
+    drawSimpleArrow(ctx, edge) {
+        const arrowLength = 10;
+        const arrowAngle = Math.PI / 6; // 30 degrees
         
-        // Convert to blob and download
-        tempCanvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `graph-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            this.updateStatus('Screenshot saved!');
-        }, 'image/png');
+        const dx = edge.to.x - edge.from.x;
+        const dy = edge.to.y - edge.from.y;
+        const angle = Math.atan2(dy, dx);
+        
+        // Determine arrow direction
+        let endX, endY;
+        if (edge.direction === 'directed-backward') {
+            angle += Math.PI;
+            endX = edge.from.x;
+            endY = edge.from.y;
+        } else {
+            endX = edge.to.x;
+            endY = edge.to.y;
+        }
+        
+        // Calculate arrow position
+        const vertexRadius = this.vertexSize;
+        const arrowDistance = vertexRadius + 3;
+        
+        const arrowX = endX - arrowDistance * Math.cos(angle);
+        const arrowY = endY - arrowDistance * Math.sin(angle);
+        
+        // Draw arrow
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        
+        ctx.beginPath();
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(
+            arrowX - arrowLength * Math.cos(angle - arrowAngle),
+            arrowY - arrowLength * Math.sin(angle - arrowAngle)
+        );
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(
+            arrowX - arrowLength * Math.cos(angle + arrowAngle),
+            arrowY - arrowLength * Math.sin(angle + arrowAngle)
+        );
+        ctx.stroke();
+    }
+    
+    drawSimpleVertex(ctx, vertex) {
+        // Simple vertex drawing - just a circle with label
+        const size = this.vertexSize;
+        
+        // Draw vertex circle
+        ctx.beginPath();
+        ctx.arc(vertex.x, vertex.y, size, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw vertex label
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(vertex.label, vertex.x, vertex.y);
+    }
+    
+    drawEdgeForScreenshot(ctx, edge) {
+        // Read edge data and recreate appearance
+        const edgeColor = edge.color || this.edgeColor;
+        const edgeWidth = edge.width || this.edgeWidth;
+        const edgeFontSize = edge.fontSize || this.edgeFontSize;
+        const edgeFontFamily = edge.fontFamily || this.edgeFontFamily;
+        const edgeFontColor = edge.fontColor || this.edgeFontColor;
+        
+        // Draw the edge line
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = edgeWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        
+        if (edge.type === 'curved') {
+            // Draw curved edge
+            const controlPoint = {
+                x: (edge.from.x + edge.to.x) / 2,
+                y: (edge.from.y + edge.to.y) / 2 - 40
+            };
+            ctx.moveTo(edge.from.x, edge.from.y);
+            ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, edge.to.x, edge.to.y);
+        } else {
+            // Draw straight edge
+            ctx.moveTo(edge.from.x, edge.from.y);
+            ctx.lineTo(edge.to.x, edge.to.y);
+        }
+        ctx.stroke();
+        
+        // Draw arrow for directed edges
+        if (edge.direction !== 'undirected') {
+            this.drawArrowForScreenshot(ctx, edge);
+        }
+        
+        // Draw weight if exists
+        if (edge.weight !== null && edge.weight !== '') {
+            let midX, midY;
+            if (edge.type === 'curved') {
+                midX = (edge.from.x + edge.to.x) / 2;
+                midY = (edge.from.y + edge.to.y) / 2 - 60;
+            } else {
+                midX = (edge.from.x + edge.to.x) / 2;
+                midY = (edge.from.y + edge.to.y) / 2;
+            }
+            
+            // Background for weight text
+            ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+            ctx.fillRect(midX - 20, midY - 12, 40, 24);
+            
+            // Weight text
+            ctx.fillStyle = edgeFontColor;
+            ctx.font = `bold ${edgeFontSize}px ${edgeFontFamily}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(edge.weight.toString(), midX, midY);
+        }
+    }
+    
+    drawArrowForScreenshot(ctx, edge) {
+        const arrowLength = 15;
+        const arrowAngle = Math.PI / 6; // 30 degrees
+        
+        let endX, endY;
+        let angle;
+        
+        if (edge.type === 'curved') {
+            // For curved edges, calculate angle at the end point
+            const controlPoint = {
+                x: (edge.from.x + edge.to.x) / 2,
+                y: (edge.from.y + edge.to.y) / 2 - 40
+            };
+            const dx = edge.to.x - controlPoint.x;
+            const dy = edge.to.y - controlPoint.y;
+            angle = Math.atan2(dy, dx);
+        } else {
+            // For straight edges
+            const dx = edge.to.x - edge.from.x;
+            const dy = edge.to.y - edge.from.y;
+            angle = Math.atan2(dy, dx);
+        }
+        
+        // Determine arrow direction
+        if (edge.direction === 'directed-backward') {
+            angle += Math.PI;
+            endX = edge.from.x;
+            endY = edge.from.y;
+        } else {
+            endX = edge.to.x;
+            endY = edge.to.y;
+        }
+        
+        // Calculate arrow position
+        const vertexRadius = edge.from.size || this.vertexSize;
+        const arrowDistance = vertexRadius + 5;
+        
+        const arrowX = endX - arrowDistance * Math.cos(angle);
+        const arrowY = endY - arrowDistance * Math.sin(angle);
+        
+        // Draw arrow
+        ctx.strokeStyle = edge.color || this.edgeColor;
+        ctx.lineWidth = edge.width || this.edgeWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        ctx.beginPath();
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(
+            arrowX - arrowLength * Math.cos(angle - arrowAngle),
+            arrowY - arrowLength * Math.sin(angle - arrowAngle)
+        );
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(
+            arrowX - arrowLength * Math.cos(angle + arrowAngle),
+            arrowY - arrowLength * Math.sin(angle + arrowAngle)
+        );
+        ctx.stroke();
+    }
+    
+    drawVertexForScreenshot(ctx, vertex) {
+        // Read vertex data and recreate appearance
+        const fillColor = vertex.color || this.vertexColor;
+        const borderColor = vertex.borderColor || this.vertexBorderColor;
+        const fontSize = vertex.fontSize || this.vertexFontSize;
+        const fontFamily = vertex.fontFamily || this.vertexFontFamily;
+        const fontColor = vertex.fontColor || this.vertexFontColor;
+        const size = vertex.size || this.vertexSize;
+        
+        // Draw vertex circle
+        ctx.beginPath();
+        ctx.arc(vertex.x, vertex.y, size, 0, 2 * Math.PI);
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw vertex label
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Add text shadow for better readability
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        
+        ctx.fillText(vertex.label, vertex.x, vertex.y);
+        
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
     }
     
     drawOnCanvas(ctx, width, height) {
@@ -633,96 +860,163 @@ export class GraphCreator {
     }
     
     drawEdgeOnCanvas(ctx, edge) {
-        ctx.strokeStyle = '#6366f1';
-        ctx.lineWidth = 3;
+        // Use individual edge styling or fall back to global styling
+        const edgeColor = edge.color || this.edgeColor;
+        const edgeWidth = edge.width || this.edgeWidth;
+        const edgeFontSize = edge.fontSize || this.edgeFontSize;
+        const edgeFontFamily = edge.fontFamily || this.edgeFontFamily;
+        const edgeFontColor = edge.fontColor || this.edgeFontColor;
+        
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = edgeWidth;
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         ctx.beginPath();
         
         if (edge.type === 'curved') {
-            const midX = (edge.from.x + edge.to.x) / 2;
-            const midY = (edge.from.y + edge.to.y) / 2 - 40;
-            
+            // Draw curved edge with quadratic Bézier curve using fixed control point
+            const controlPoint = {
+                x: (edge.from.x + edge.to.x) / 2,
+                y: (edge.from.y + edge.to.y) / 2 - 40
+            };
             ctx.moveTo(edge.from.x, edge.from.y);
-            ctx.quadraticCurveTo(midX, midY, edge.to.x, edge.to.y);
+            ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, edge.to.x, edge.to.y);
         } else {
+            // Draw straight edge
             ctx.moveTo(edge.from.x, edge.from.y);
             ctx.lineTo(edge.to.x, edge.to.y);
         }
         
         ctx.stroke();
         
+        // Draw arrow for directed edges
+        if (edge.direction !== 'undirected') {
+            this.drawArrowOnCanvas(ctx, edge);
+        }
+        
+        // Draw weight if exists
         if (edge.weight !== null && edge.weight !== '') {
-            const midX = (edge.from.x + edge.to.x) / 2;
-            const midY = (edge.from.y + edge.to.y) / 2;
-            
+            let midX, midY;
             if (edge.type === 'curved') {
-                midY -= 20;
+                // For curved edges, position weight near the fixed control point
+                midX = (edge.from.x + edge.to.x) / 2;
+                midY = (edge.from.y + edge.to.y) / 2 - 60;
+            } else {
+                // For straight edges, position weight at midpoint
+                midX = (edge.from.x + edge.to.x) / 2;
+                midY = (edge.from.y + edge.to.y) / 2;
             }
             
+            // Background for weight text
             ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
             ctx.fillRect(midX - 20, midY - 12, 40, 24);
             
-            ctx.fillStyle = '#06b6d4';
-            ctx.font = 'bold 14px Inter';
+            // Weight text
+            ctx.fillStyle = edgeFontColor;
+            ctx.font = `bold ${edgeFontSize}px ${edgeFontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(edge.weight.toString(), midX, midY);
         }
     }
     
-    drawVertexOnCanvas(ctx, vertex) {
-        let fillColor = '#1e293b';
-        let borderColor = '#475569';
+    drawArrowOnCanvas(ctx, edge) {
+        const arrowLength = 15;
+        const arrowAngle = Math.PI / 6; // 30 degrees
         
-        if (this.pathVertices.has(vertex)) {
-            fillColor = '#10b981';
-            borderColor = '#059669';
-        } else if (this.visitedVertices.has(vertex)) {
-            fillColor = '#f59e0b';
-            borderColor = '#d97706';
-        } else if (this.selectedVertices.includes(vertex)) {
-            fillColor = '#6366f1';
-            borderColor = '#4f46e5';
-        } else if (this.distanceModeVertices.includes(vertex)) {
-            fillColor = '#f59e0b';
-            borderColor = '#d97706';
-        } else if (vertex === this.draggedVertex) {
-            fillColor = '#10b981';
-            borderColor = '#059669';
+        let endX, endY;
+        let angle;
+        
+        if (edge.type === 'curved' && edge.controlPoint) {
+            // For curved edges, calculate the angle at the end point using control point
+            const controlPoint = edge.controlPoint;
+            
+            // Calculate the tangent at the end point
+            const dx = edge.to.x - controlPoint.x;
+            const dy = edge.to.y - controlPoint.y;
+            angle = Math.atan2(dy, dx);
+        } else {
+            // For straight edges
+            const dx = edge.to.x - edge.from.x;
+            const dy = edge.to.y - edge.from.y;
+            angle = Math.atan2(dy, dx);
         }
         
-        if (this.currentTheme === 'light') {
-            if (fillColor === '#1e293b') {
-                fillColor = '#e2e8f0';
-                borderColor = '#cbd5e1';
-            }
+        // Determine arrow direction based on edge direction setting
+        if (edge.direction === 'directed-backward') {
+            angle += Math.PI; // Reverse the arrow
+            endX = edge.from.x;
+            endY = edge.from.y;
+        } else {
+            // directed-forward or default
+            endX = edge.to.x;
+            endY = edge.to.y;
         }
         
-        const gradient = ctx.createRadialGradient(
-            vertex.x - this.vertexSize * 0.3, 
-            vertex.y - this.vertexSize * 0.3, 
-            0,
-            vertex.x, 
-            vertex.y, 
-            this.vertexSize
-        );
-        gradient.addColorStop(0, fillColor);
-        gradient.addColorStop(1, this.adjustColor(fillColor, -20));
+        // Calculate arrow position (slightly inside the vertex)
+        const vertexRadius = edge.from.size || this.vertexSize;
+        const arrowDistance = vertexRadius + 5;
         
-        ctx.fillStyle = gradient;
+        const arrowX = endX - arrowDistance * Math.cos(angle);
+        const arrowY = endY - arrowDistance * Math.sin(angle);
+        
+        // Draw arrow
+        ctx.strokeStyle = edge.color || this.edgeColor;
+        ctx.lineWidth = edge.width || this.edgeWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
         ctx.beginPath();
-        ctx.arc(vertex.x, vertex.y, this.vertexSize, 0, 2 * Math.PI);
-        ctx.fill();
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(
+            arrowX - arrowLength * Math.cos(angle - arrowAngle),
+            arrowY - arrowLength * Math.sin(angle - arrowAngle)
+        );
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(
+            arrowX - arrowLength * Math.cos(angle + arrowAngle),
+            arrowY - arrowLength * Math.sin(angle + arrowAngle)
+        );
+        ctx.stroke();
+    }
+    
+    drawVertexOnCanvas(ctx, vertex) {
+        // Use individual vertex styling or fall back to global styling
+        const fillColor = vertex.color || this.vertexColor;
+        const borderColor = vertex.borderColor || this.vertexBorderColor;
+        const fontSize = vertex.fontSize || this.vertexFontSize;
+        const fontFamily = vertex.fontFamily || this.vertexFontFamily;
+        const fontColor = vertex.fontColor || this.vertexFontColor;
+        const size = vertex.size || this.vertexSize;
         
+        // Draw vertex circle
+        ctx.beginPath();
+        ctx.arc(vertex.x, vertex.y, size, 0, 2 * Math.PI);
+        ctx.fillStyle = fillColor;
+        ctx.fill();
         ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.stroke();
         
-        ctx.fillStyle = this.currentTheme === 'dark' ? '#ffffff' : '#1e293b';
-        ctx.font = `bold ${Math.max(14, this.vertexSize / 2)}px Inter`;
+        // Draw vertex label
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = fontColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(vertex.label.toString(), vertex.x, vertex.y);
+        
+        // Add a subtle text shadow for better readability
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        
+        ctx.fillText(vertex.label, vertex.x, vertex.y);
+        
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
     }
     
     exportGraph() {
@@ -771,7 +1065,7 @@ export class GraphCreator {
     }
     
     importGraph(graphData) {
-        // Clear current graph
+        console.log('importGraph called', graphData);
         this.vertices = [];
         this.edges = [];
         this.selectedVertices = [];
@@ -779,8 +1073,6 @@ export class GraphCreator {
         this.visitedVertices.clear();
         this.pathVertices.clear();
         this.editingVertex = null;
-        
-        // Import vertices
         this.vertices = graphData.vertices.map(v => ({
             id: v.id,
             x: v.x,
@@ -792,8 +1084,6 @@ export class GraphCreator {
             fontFamily: v.fontFamily,
             fontColor: v.fontColor
         }));
-        
-        // Import edges
         this.edges = graphData.edges.map(e => {
             const fromVertex = this.vertices.find(v => v.id === e.from);
             const toVertex = this.vertices.find(v => v.id === e.to);
@@ -811,56 +1101,25 @@ export class GraphCreator {
                 fontColor: e.fontColor
             };
         });
-        
-        // Import settings
         this.nextVertexId = graphData.nextVertexId || this.vertices.length + 1;
         this.vertexSize = graphData.vertexSize || 25;
         this.edgeType = graphData.edgeType || 'straight';
         this.edgeDirection = graphData.edgeDirection || 'undirected';
-        
-        // Import styling properties (with fallbacks)
         this.vertexColor = graphData.vertexColor || '#1e293b';
         this.vertexBorderColor = graphData.vertexBorderColor || '#475569';
         this.vertexFontSize = graphData.vertexFontSize || 14;
         this.vertexFontFamily = graphData.vertexFontFamily || 'Inter';
         this.vertexFontColor = graphData.vertexFontColor || '#ffffff';
-        
         this.edgeColor = graphData.edgeColor || '#6366f1';
         this.edgeWidth = graphData.edgeWidth || 3;
         this.edgeFontSize = graphData.edgeFontSize || 14;
         this.edgeFontFamily = graphData.edgeFontFamily || 'Inter';
         this.edgeFontColor = graphData.edgeFontColor || '#06b6d4';
-        
-        // Update UI
-        document.getElementById('vertexSize').value = this.vertexSize;
-        document.getElementById('vertexSizeValue').textContent = this.vertexSize;
-        document.getElementById('edgeType').value = this.edgeType;
-        document.getElementById('edgeDirection').value = this.edgeDirection;
-        
-        // Update styling UI
-        document.getElementById('vertexColor').value = this.vertexColor;
-        document.getElementById('vertexBorderColor').value = this.vertexBorderColor;
-        document.getElementById('vertexFontSize').value = this.vertexFontSize;
-        document.getElementById('vertexFontSizeValue').textContent = this.vertexFontSize;
-        document.getElementById('vertexFontFamily').value = this.vertexFontFamily;
-        document.getElementById('vertexFontColor').value = this.vertexFontColor;
-        
-        document.getElementById('edgeColor').value = this.edgeColor;
-        document.getElementById('edgeWidth').value = this.edgeWidth;
-        document.getElementById('edgeWidthValue').textContent = this.edgeWidth;
-        document.getElementById('edgeFontSize').value = this.edgeFontSize;
-        document.getElementById('edgeFontSizeValue').textContent = this.edgeFontSize;
-        document.getElementById('edgeFontFamily').value = this.edgeFontFamily;
-        document.getElementById('edgeFontColor').value = this.edgeFontColor;
-        
-        // Update theme if different
         if (graphData.theme && graphData.theme !== this.currentTheme) {
             this.currentTheme = graphData.theme;
             document.documentElement.setAttribute('data-theme', this.currentTheme);
-            
             const themeToggle = document.getElementById('themeToggle');
             const icon = themeToggle.querySelector('i');
-            
             if (this.currentTheme === 'light') {
                 icon.className = 'fas fa-sun';
                 themeToggle.title = 'Switch to dark mode';
@@ -869,11 +1128,7 @@ export class GraphCreator {
                 themeToggle.title = 'Switch to light mode';
             }
         }
-        
-        // Hide edit label interface
         document.getElementById('editLabelGroup').style.display = 'none';
-        
-        // Reset saved state since we're loading a new graph
         this.lastSavedState = JSON.stringify({
             vertices: this.vertices.map(v => ({ id: v.id, x: v.x, y: v.y, label: v.label })),
             edges: this.edges.map(e => ({ from: e.from.id, to: e.to.id, weight: e.weight, type: e.type, direction: e.direction, controlPoint: e.controlPoint })),
@@ -891,11 +1146,8 @@ export class GraphCreator {
             edgeFontFamily: this.edgeFontFamily,
             edgeFontColor: this.edgeFontColor
         });
-        
         this.updateInfo();
         this.draw();
-        
-        // Update root node dropdown
         this.updateRootDropdown();
     }
     
@@ -939,8 +1191,10 @@ export class GraphCreator {
             return;
         }
 
-        // Only allow left-clicking a node to do something in distance mode or edit mode
+        // Automatically set target vertex when clicking on a vertex
         if (clickedVertex) {
+            this.selectTargetVertex(clickedVertex);
+            
             if (this.isDistanceMode) {
                 this.handleDistanceModeClick(clickedVertex);
             } else if (this.editModeElement === clickedVertex && this.editModeType === 'vertex') {
@@ -960,7 +1214,56 @@ export class GraphCreator {
         const clickedVertex = this.getVertexAt(pos.x, pos.y);
         
         if (clickedVertex) {
+            // Handle edge creation logic (double-click two vertices)
             this.handleVertexRightClick(clickedVertex);
+            return;
+        }
+    }
+    
+    handleVertexRightClick(vertex) {
+        // Edge creation logic - double-click two vertices to create edge
+        if (this.selectedVertices.length === 0) {
+            this.selectedVertices.push(vertex);
+            this.updateStatus(`Selected vertex "${vertex.label}" - right-click another vertex to create edge`);
+            this.draw(); // Redraw to show purple highlighting
+        } else if (this.selectedVertices.length === 1) {
+            const vertex1 = this.selectedVertices[0];
+            const vertex2 = vertex;
+            
+            if (vertex1.id === vertex2.id) {
+                this.updateStatus('Cannot create edge to same vertex');
+                this.selectedVertices = [];
+                this.draw(); // Redraw to clear highlighting
+                return;
+            }
+            
+            // Check if edge already exists
+            const existingEdge = this.edges.find(edge => 
+                (edge.from.id === vertex1.id && edge.to.id === vertex2.id) ||
+                (edge.from.id === vertex2.id && edge.to.id === vertex1.id)
+            );
+            
+            if (existingEdge) {
+                this.updateStatus('Edge already exists between these vertices');
+                this.selectedVertices = [];
+                this.draw(); // Redraw to clear highlighting
+                return;
+            }
+            
+            // Add second vertex to selection for visual feedback
+            this.selectedVertices.push(vertex2);
+            this.draw(); // Redraw to show both vertices in purple
+            
+            // Get edge weight from input
+            const weightInput = document.getElementById('edgeWeight');
+            const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
+            
+            // Create the edge
+            this.addEdge(vertex1, vertex2, weight);
+            this.selectedVertices = [];
+            
+            // Flash the vertices briefly
+            this.flashVertices(vertex1, vertex2);
         }
     }
     
@@ -972,34 +1275,13 @@ export class GraphCreator {
         // Otherwise, do nothing
     }
     
-    handleVertexRightClick(vertex) {
-        if (this.isDistanceMode) {
-            this.handleDistanceModeClick(vertex);
-            return;
-        }
-        
-        // Add to selection for edge creation
-        if (!this.selectedVertices.includes(vertex)) {
-            this.selectedVertices.push(vertex);
-        }
-        
-        // Create edge if we have two vertices selected
-        if (this.selectedVertices.length === 2) {
-            const weight = document.getElementById('edgeWeight').value || this.defaultEdgeWeight;
-            this.addEdge(this.selectedVertices[0], this.selectedVertices[1], weight);
-            this.selectedVertices = [];
-            this.updateStatus('Edge created successfully!');
-        } else {
-            this.updateStatus(`Right-click another vertex to create an edge (${this.selectedVertices.length}/2)`);
-        }
-        
-        this.draw();
-    }
-    
     handleDistanceModeClick(vertex) {
         this.distanceModeVertices.push(vertex);
         
         if (this.distanceModeVertices.length === 2) {
+            // Flash the second vertex in blue before calculating distance
+            this.flashDistanceVertices(this.distanceModeVertices[0], this.distanceModeVertices[1]);
+            
             const { distance, path } = this.calculateShortestPathDistance(this.distanceModeVertices[0], this.distanceModeVertices[1]);
             this.showDistanceInfo(distance, path);
             this.distanceModeVertices = [];
@@ -1052,36 +1334,24 @@ export class GraphCreator {
     handleMouseDown(e) {
         const pos = this.getMousePos(e);
         const vertex = this.getVertexAt(pos.x, pos.y);
-        const edge = this.getEdgeAt(pos.x, pos.y);
-        
-        // Clear any existing long-press timer
-        if (this.longPressTimer) {
-            clearTimeout(this.longPressTimer);
-            this.longPressTimer = null;
-        }
         
         if (vertex) {
-            // Start long-press timer for vertex
+            // Start long-press timer for edit mode
             this.longPressTimer = setTimeout(() => {
-                this.enterEditMode(vertex, 'vertex');
-            }, this.longPressDuration);
+                this.enterEditMode(vertex);
+                this.updateStatus(`Editing vertex "${vertex.label}"`);
+            }, 500); // 500ms hold time
             
+            // Set up for dragging
             this.draggedVertex = vertex;
             this.isDragging = true;
             this.dragStartX = pos.x;
             this.dragStartY = pos.y;
             this.canvas.style.cursor = 'grabbing';
-            this.updateStatus('Dragging vertex...');
-        } else if (edge && edge.type === 'curved' && edge.controlPoint) {
-            // Start long-press timer for edge
-            this.longPressTimer = setTimeout(() => {
-                this.enterEditMode(edge, 'edge');
-            }, this.longPressDuration);
+            // Remove status message for dragging
             
-            this.draggedEdge = edge;
-            this.isDraggingEdge = true;
-            this.canvas.style.cursor = 'grabbing';
-            this.updateStatus('Dragging edge curve...');
+            // Set the dragged vertex as the target
+            this.selectTargetVertex(vertex);
         }
     }
     
@@ -1090,11 +1360,16 @@ export class GraphCreator {
             const pos = this.getMousePos(e);
             this.draggedVertex.x = pos.x;
             this.draggedVertex.y = pos.y;
+            
+            // Update edit mode info in real-time if dragging in edit mode
+            if (this.editModeElement === this.draggedVertex && this.editModeType === 'vertex') {
+                this.updateEditModeInfo();
+            }
+            
             this.draw();
         } else if (this.isDraggingEdge && this.draggedEdge) {
             const pos = this.getMousePos(e);
-            this.draggedEdge.controlPoint.x = pos.x;
-            this.draggedEdge.controlPoint.y = pos.y;
+            this.draggedEdge.controlPoint = { x: pos.x, y: pos.y };
             this.draw();
         } else {
             const pos = this.getMousePos(e);
@@ -1103,7 +1378,7 @@ export class GraphCreator {
             
             if (vertex) {
                 this.canvas.style.cursor = 'grab';
-            } else if (edge && edge.type === 'curved' && edge.controlPoint) {
+            } else if (edge && edge.type === 'curved') {
                 this.canvas.style.cursor = 'grab';
             } else {
                 this.canvas.style.cursor = 'crosshair';
@@ -1112,30 +1387,24 @@ export class GraphCreator {
     }
     
     handleMouseUp(e) {
-        // Clear long-press timer
+        // Clear long-press timer if mouse is released before hold time
         if (this.longPressTimer) {
             clearTimeout(this.longPressTimer);
             this.longPressTimer = null;
         }
         
-        if (this.isDragging) {
-            const pos = this.getMousePos(e);
-            const dragDistance = Math.sqrt((pos.x - this.dragStartX) ** 2 + (pos.y - this.dragStartY) ** 2);
-            
+        if (this.isDragging && this.draggedVertex) {
             this.isDragging = false;
             this.draggedVertex = null;
             this.canvas.style.cursor = 'crosshair';
-            
-            if (dragDistance >= 5) {
-                this.updateStatus('Vertex moved successfully!');
-            } else {
-                this.updateStatus('Vertex selected');
-            }
-        } else if (this.isDraggingEdge) {
+            // Remove status message for vertex movement
+        }
+        
+        if (this.isDraggingEdge && this.draggedEdge) {
             this.isDraggingEdge = false;
             this.draggedEdge = null;
             this.canvas.style.cursor = 'crosshair';
-            this.updateStatus('Edge curve adjusted!');
+            this.updateStatus('Edge curve adjusted');
         }
     }
     
@@ -1242,10 +1511,21 @@ export class GraphCreator {
             searchSection.style.display = 'block';
         }
         
+        // Reset apply-to-all checkboxes
+        document.getElementById('applyToAllVertices').checked = false;
+        document.getElementById('applyToAllEdges').checked = false;
+        this.applyToAllVertices = false;
+        this.applyToAllEdges = false;
+        
         // Populate edit mode info
         const editModeInfo = document.getElementById('editModeInfo');
         if (editModeInfo) {
             if (this.editModeType === 'vertex') {
+                // Count connected edges
+                const connectedEdges = this.edges.filter(edge => 
+                    edge.from.id === this.editModeElement.id || edge.to.id === this.editModeElement.id
+                ).length;
+                
                 editModeInfo.innerHTML = `
                     <div class="edit-mode-item">
                         <i class="fas fa-circle"></i>
@@ -1254,6 +1534,10 @@ export class GraphCreator {
                     <div class="edit-mode-item">
                         <i class="fas fa-map-marker-alt"></i>
                         <strong>Position:</strong> (${Math.round(this.editModeElement.x)}, ${Math.round(this.editModeElement.y)})
+                    </div>
+                    <div class="edit-mode-item">
+                        <i class="fas fa-link"></i>
+                        <strong>Connected Edges:</strong> ${connectedEdges}
                     </div>
                 `;
                 
@@ -1264,10 +1548,13 @@ export class GraphCreator {
                 // Populate current values
                 document.getElementById('editVertexColor').value = this.editModeElement.color || this.vertexColor;
                 document.getElementById('editVertexBorderColor').value = this.editModeElement.borderColor || this.vertexBorderColor;
+                document.getElementById('editVertexSize').value = this.editModeElement.size || this.vertexSize;
+                document.getElementById('editVertexSizeValue').textContent = this.editModeElement.size || this.vertexSize;
                 document.getElementById('editVertexFontSize').value = this.editModeElement.fontSize || this.vertexFontSize;
                 document.getElementById('editVertexFontSizeValue').textContent = this.editModeElement.fontSize || this.vertexFontSize;
                 document.getElementById('editVertexFontFamily').value = this.editModeElement.fontFamily || this.vertexFontFamily;
                 document.getElementById('editVertexFontColor').value = this.editModeElement.fontColor || this.vertexFontColor;
+                document.getElementById('editVertexLabel').value = this.editModeElement.label;
                 
             } else if (this.editModeType === 'edge') {
                 editModeInfo.innerHTML = `
@@ -1278,6 +1565,14 @@ export class GraphCreator {
                     <div class="edit-mode-item">
                         <i class="fas fa-weight-hanging"></i>
                         <strong>Weight:</strong> ${this.editModeElement.weight || 'None'}
+                    </div>
+                    <div class="edit-mode-item">
+                        <i class="fas fa-wave-square"></i>
+                        <strong>Type:</strong> ${this.editModeElement.type || 'straight'}
+                    </div>
+                    <div class="edit-mode-item">
+                        <i class="fas fa-arrow-right"></i>
+                        <strong>Direction:</strong> ${this.editModeElement.direction || 'undirected'}
                     </div>
                 `;
                 
@@ -1382,6 +1677,9 @@ export class GraphCreator {
         this.draw();
         this.updateStatus(`Vertex "${label}" added!`);
         
+        // Set the newly created vertex as the target
+        this.selectTargetVertex(vertex);
+        
         // Clear custom label input
         document.getElementById('vertexLabel').value = '';
         this.updateRootDropdown();
@@ -1420,6 +1718,7 @@ export class GraphCreator {
             this.edges.push(edge);
         }
         this.draw();
+        this.updateInfo();
     }
     
     getAdjacencyList() {
@@ -1449,21 +1748,19 @@ export class GraphCreator {
     }
     
     async runBFS() {
-        const targetLabel = document.getElementById('searchTarget').value.trim();
+        if (!this.selectedTargetVertex) {
+            this.updateStatus('Please select a target vertex first');
+            return;
+        }
+        
         const rootLabel = document.getElementById('searchRoot').value;
-        if (!targetLabel) {
-            this.updateStatus('Please enter a target vertex label');
-            return;
-        }
-        const targetVertex = this.findVertexByLabel(targetLabel);
-        if (!targetVertex) {
-            this.updateStatus(`Vertex "${targetLabel}" not found`);
-            return;
-        }
+        const targetVertex = this.selectedTargetVertex;
+        
         if (this.vertices.length === 0) {
             this.updateStatus('No vertices to search');
             return;
         }
+        
         let startVertex;
         if (rootLabel) {
             startVertex = this.findVertexByLabel(rootLabel);
@@ -1474,32 +1771,32 @@ export class GraphCreator {
         } else {
             startVertex = this.findMostUpwardVertex();
         }
+        
         // Check if root node is connected to at least one other node
         const adjacencyList = this.getAdjacencyList();
         if (!adjacencyList[startVertex.id] || adjacencyList[startVertex.id].length === 0) {
             this.updateStatus('Root node must be connected to at least one other node');
             return;
         }
+        
         this.startSearch();
         await this.animateBFS(targetVertex, startVertex);
     }
     
     async runDFS() {
-        const targetLabel = document.getElementById('searchTarget').value.trim();
+        if (!this.selectedTargetVertex) {
+            this.updateStatus('Please select a target vertex first');
+            return;
+        }
+        
         const rootLabel = document.getElementById('searchRoot').value;
-        if (!targetLabel) {
-            this.updateStatus('Please enter a target vertex label');
-            return;
-        }
-        const targetVertex = this.findVertexByLabel(targetLabel);
-        if (!targetVertex) {
-            this.updateStatus(`Vertex "${targetLabel}" not found`);
-            return;
-        }
+        const targetVertex = this.selectedTargetVertex;
+        
         if (this.vertices.length === 0) {
             this.updateStatus('No vertices to search');
             return;
         }
+        
         let startVertex;
         if (rootLabel) {
             startVertex = this.findVertexByLabel(rootLabel);
@@ -1510,12 +1807,14 @@ export class GraphCreator {
         } else {
             startVertex = this.findMostUpwardVertex();
         }
+        
         // Check if root node is connected to at least one other node
         const adjacencyList = this.getAdjacencyList();
         if (!adjacencyList[startVertex.id] || adjacencyList[startVertex.id].length === 0) {
             this.updateStatus('Root node must be connected to at least one other node');
             return;
         }
+        
         this.startSearch();
         await this.animateDFS(targetVertex, startVertex);
     }
@@ -1749,6 +2048,7 @@ export class GraphCreator {
     }
     
     showLoadConfirmation() {
+        console.log('showLoadConfirmation function called');
         if (!this.hasUnsavedChanges()) {
             this.showLoadDialog();
             return;
@@ -1796,9 +2096,10 @@ export class GraphCreator {
         // First save the current graph
         const graphData = this.exportGraph();
         const timestamp = new Date().toISOString();
-        const name = `Graph ${new Date().toLocaleDateString()}`;
+        const name = this.getTimestampString();
         
         const savedGraph = {
+            id: Date.now(), // New graph gets a unique id
             name: name,
             data: graphData,
             timestamp: timestamp,
@@ -1958,33 +2259,27 @@ export class GraphCreator {
         this.pathVertices.clear();
         this.isSearching = false;
         this.editingVertex = null;
-        
-        // Reset styling properties to defaults
+        this.selectedTargetVertex = null;
+        this.updateTargetVertexDisplay();
         this.vertexColor = '#1e293b';
         this.vertexBorderColor = '#475569';
         this.vertexFontSize = 14;
         this.vertexFontFamily = 'Inter';
         this.vertexFontColor = '#ffffff';
-        
         this.edgeColor = '#6366f1';
         this.edgeWidth = 3;
         this.edgeFontSize = 14;
         this.edgeFontFamily = 'Inter';
         this.edgeFontColor = '#06b6d4';
-        
         document.getElementById('distanceInfo').classList.remove('show');
         document.getElementById('searchInfo').classList.remove('show');
         document.getElementById('calculateDistance').classList.remove('active');
         document.getElementById('runBFS').disabled = false;
         document.getElementById('runDFS').disabled = false;
         document.getElementById('stopSearch').disabled = true;
-        
-        // Hide edit label interface
         document.getElementById('editLabelGroup').style.display = 'none';
-        
-        // Reset saved state since we're clearing the graph
         this.lastSavedState = null;
-        
+        this.currentGraphId = null; // Clear id
         this.updateInfo();
         this.draw();
         this.updateStatus('Graph cleared!');
@@ -2108,98 +2403,76 @@ export class GraphCreator {
     }
     
     drawVertex(vertex) {
-        // Apply shaking animation if this vertex is in edit mode
-        let drawX = vertex.x;
-        let drawY = vertex.y;
-        if (this.editModeElement === vertex && this.editModeType === 'vertex') {
-            drawX += this.shakeOffset;
-        }
-        // Determine vertex color based on state and individual styling
+        const ctx = this.ctx;
+        const size = vertex.size || this.vertexSize;
+        
+        // Check if this vertex is selected for edge creation
+        const isSelectedForEdge = this.selectedVertices.includes(vertex);
+        
+        // Check if this vertex is flashing (after edge creation)
+        const isFlashing = this.flashingVertices.has(vertex);
+        
+        // Check if this vertex is flashing for distance calculation
+        const isDistanceFlashing = this.distanceFlashingVertices && this.distanceFlashingVertices.has(vertex);
+        
+        // Set colors based on selection state
         let fillColor = vertex.color || this.vertexColor;
         let borderColor = vertex.borderColor || this.vertexBorderColor;
-        let fontColor = vertex.fontColor || this.vertexFontColor;
-        let fontSize = vertex.fontSize || this.vertexFontSize;
-        let fontFamily = vertex.fontFamily || this.vertexFontFamily;
-        if (this.pathVertices.has(vertex)) {
-            fillColor = '#10b981';
-            borderColor = '#059669';
-            fontColor = '#ffffff';
+        
+        if (isSelectedForEdge || isFlashing) {
+            // Purple for vertices selected for edge creation or flashing after edge creation
+            fillColor = '#8b5cf6'; // Purple
+            borderColor = '#a855f7'; // Lighter purple
+        } else if (isDistanceFlashing) {
+            // Blue flash for distance calculation vertices
+            fillColor = '#3b82f6'; // Blue
+            borderColor = '#60a5fa'; // Lighter blue
         } else if (this.visitedVertices.has(vertex)) {
-            fillColor = '#f59e0b';
-            borderColor = '#d97706';
-            fontColor = '#ffffff';
-        } else if (this.editingVertex === vertex) {
-            fillColor = '#06b6d4';
-            borderColor = '#0891b2';
-            fontColor = '#ffffff';
-        } else if (this.selectedVertices.includes(vertex)) {
-            fillColor = '#6366f1';
-            borderColor = '#4f46e5';
-            fontColor = '#ffffff';
-        } else if (this.distanceModeVertices.includes(vertex)) {
-            fillColor = '#f59e0b';
-            borderColor = '#d97706';
-            fontColor = '#ffffff';
-        } else if (vertex === this.draggedVertex) {
+            // Green for visited vertices during search
             fillColor = '#10b981';
-            borderColor = '#059669';
-            fontColor = '#ffffff';
+            borderColor = '#34d399';
+        } else if (this.pathVertices.has(vertex)) {
+            // Orange for path vertices during search
+            fillColor = '#f59e0b';
+            borderColor = '#fbbf24';
+        } else if (this.distanceModeVertices.includes(vertex)) {
+            // Blue for distance mode vertices
+            fillColor = '#3b82f6';
+            borderColor = '#60a5fa';
         }
-        // Remove special red highlight for edit mode (no longer force red)
-        // Adjust colors for light theme
-        if (this.currentTheme === 'light') {
-            if (fillColor === this.vertexColor) {
-                fillColor = '#e2e8f0';
-                borderColor = '#cbd5e1';
-                fontColor = '#1e293b';
-            }
-        }
-        // Draw vertex circle with gradient
-        const gradient = this.ctx.createRadialGradient(
-            drawX - this.vertexSize * 0.3, 
-            drawY - this.vertexSize * 0.3, 
-            0,
-            drawX, 
-            drawY, 
-            this.vertexSize
-        );
-        gradient.addColorStop(0, fillColor);
-        gradient.addColorStop(1, this.adjustColor(fillColor, -20));
-        this.ctx.fillStyle = gradient;
-        this.ctx.beginPath();
-        this.ctx.arc(drawX, drawY, this.vertexSize, 0, 2 * Math.PI);
-        this.ctx.fill();
-        // Draw border
-        this.ctx.strokeStyle = borderColor;
-        this.ctx.lineWidth = 3;
-        this.ctx.stroke();
-        // Draw label
-        this.ctx.fillStyle = fontColor;
-        this.ctx.font = `bold ${Math.max(fontSize, this.vertexSize / 2)}px ${fontFamily}`;
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(vertex.label.toString(), drawX, drawY);
-        // Add glow effect for selected vertices
-        if (this.selectedVertices.includes(vertex)) {
-            this.ctx.shadowColor = '#6366f1';
-            this.ctx.shadowBlur = 15;
-            this.ctx.stroke();
-            this.ctx.shadowBlur = 0;
-        }
-        // Add special glow effect for editing vertex
-        if (this.editingVertex === vertex) {
-            this.ctx.shadowColor = '#06b6d4';
-            this.ctx.shadowBlur = 20;
-            this.ctx.stroke();
-            this.ctx.shadowBlur = 0;
-        }
-        // Add special glow effect for edit mode (no color override)
-        if (this.editModeElement === vertex && this.editModeType === 'vertex') {
-            this.ctx.shadowColor = '#ef4444';
-            this.ctx.shadowBlur = 25;
-            this.ctx.stroke();
-            this.ctx.shadowBlur = 0;
-        }
+        
+        // Draw vertex circle
+        ctx.beginPath();
+        ctx.arc(vertex.x, vertex.y, size, 0, 2 * Math.PI);
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw vertex label
+        const fontSize = vertex.fontSize || this.vertexFontSize;
+        const fontFamily = vertex.fontFamily || this.vertexFontFamily;
+        const fontColor = vertex.fontColor || this.vertexFontColor;
+        
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Add a subtle text shadow for better readability
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        
+        ctx.fillText(vertex.label, vertex.x, vertex.y);
+        
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
     }
     
     drawArrow(edge) {
@@ -2291,6 +2564,482 @@ export class GraphCreator {
             rootDropdown.value = current;
         } else {
             rootDropdown.value = '';
+        }
+    }
+    
+    // Setup reset target button
+    setupResetTargetBtn() {
+        const resetBtn = document.getElementById('resetTargetBtn');
+        console.log('Reset button found:', resetBtn); // Debug
+        if (resetBtn) {
+            resetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Reset button clicked'); // Debug
+                this.clearTargetVertex();
+            });
+        } else {
+            console.error('Reset target button not found!');
+        }
+    }
+    
+    // Target Selection Methods
+    selectTargetVertex(vertex) {
+        this.selectedTargetVertex = vertex;
+        
+        // Update the display
+        this.updateTargetVertexDisplay();
+        
+        // Remove status message for target updates
+    }
+    
+    updateTargetVertexDisplay() {
+        const display = document.getElementById('targetVertexDisplay');
+        
+        if (this.selectedTargetVertex) {
+            display.innerHTML = `
+                <div class="target-vertex-info">
+                    <div class="target-vertex-icon">${this.selectedTargetVertex.label}</div>
+                    <span class="target-vertex-label">Vertex ${this.selectedTargetVertex.label}</span>
+                    <span class="target-vertex-coords">(${Math.round(this.selectedTargetVertex.x)}, ${Math.round(this.selectedTargetVertex.y)})</span>
+                </div>
+            `;
+            display.classList.add('has-target');
+        } else {
+            display.innerHTML = '<span class="target-placeholder">Click on any vertex to set as target</span>';
+            display.classList.remove('has-target');
+        }
+    }
+    
+    clearTargetVertex() {
+        this.selectedTargetVertex = null;
+        this.updateTargetVertexDisplay();
+        // Remove status message for clearing target
+    }
+    
+    // Edit Mode Application Methods
+    applyVertexEdit(property, value) {
+        if (this.editModeType !== 'vertex') return;
+        
+        if (this.applyToAllVertices) {
+            // Apply to all vertices
+            this.vertices.forEach(vertex => {
+                if (property === 'size') {
+                    vertex.size = value;
+                } else if (property === 'label') {
+                    // For labels, ensure uniqueness
+                    if (value && value.trim()) {
+                        const existingVertex = this.vertices.find(v => v.id !== vertex.id && v.label === value.trim());
+                        if (!existingVertex) {
+                            vertex.label = value.trim();
+                        }
+                    }
+                } else {
+                    vertex[property] = value;
+                }
+            });
+            this.updateStatus(`Applied ${property} to all vertices`);
+        } else {
+            // Apply to selected vertex only
+            if (property === 'size') {
+                this.editModeElement.size = value;
+            } else if (property === 'label') {
+                // For labels, ensure uniqueness
+                if (value && value.trim()) {
+                    const existingVertex = this.vertices.find(v => v.id !== this.editModeElement.id && v.label === value.trim());
+                    if (!existingVertex) {
+                        this.editModeElement.label = value.trim();
+                    } else {
+                        this.updateStatus(`Label "${value.trim()}" already exists!`);
+                        return;
+                    }
+                }
+            } else {
+                this.editModeElement[property] = value;
+            }
+            this.updateStatus(`Updated vertex ${property}`);
+        }
+        
+        this.draw();
+        this.updateEditModeInfo();
+        this.updateRootDropdown();
+    }
+    
+    applyEdgeEdit(property, value) {
+        if (this.editModeType !== 'edge') return;
+        
+        if (this.applyToAllEdges) {
+            // Apply to all edges
+            this.edges.forEach(edge => {
+                edge[property] = value;
+            });
+            this.updateStatus(`Applied ${property} to all edges`);
+        } else {
+            // Apply to selected edge only
+            this.editModeElement[property] = value;
+            this.updateStatus(`Updated edge ${property}`);
+        }
+        
+        this.draw();
+        this.updateEditModeInfo();
+    }
+    
+    // Save and exit edit mode
+    saveAndExitEditMode() {
+        if (this.editModeElement && this.editModeType) {
+            this.updateStatus(`${this.editModeType === 'vertex' ? 'Vertex' : 'Edge'} changes saved`);
+            this.exitEditMode();
+        }
+    }
+    
+    updateEditModeInfo() {
+        if (!this.editModeElement || !this.editModeType) return;
+        
+        const editModeInfo = document.getElementById('editModeInfo');
+        if (!editModeInfo) return;
+        
+        if (this.editModeType === 'vertex') {
+            const applyAllWarning = this.applyToAllVertices ? 
+                '<div class="edit-mode-item" style="color: var(--warning-color); font-weight: 600;"><i class="fas fa-exclamation-triangle"></i> <strong>⚠️ APPLYING TO ALL VERTICES</strong></div>' : '';
+            
+            editModeInfo.innerHTML = `
+                ${applyAllWarning}
+                <div class="edit-mode-item">
+                    <i class="fas fa-circle"></i>
+                    <strong>Vertex:</strong> ${this.editModeElement.label}
+                </div>
+                <div class="edit-mode-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <strong>Position:</strong> (${Math.round(this.editModeElement.x)}, ${Math.round(this.editModeElement.y)})
+                </div>
+                <div class="edit-mode-item">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                    <strong>Size:</strong> ${this.editModeElement.size || this.vertexSize}
+                </div>
+            `;
+        } else if (this.editModeType === 'edge') {
+            const applyAllWarning = this.applyToAllEdges ? 
+                '<div class="edit-mode-item" style="color: var(--warning-color); font-weight: 600;"><i class="fas fa-exclamation-triangle"></i> <strong>⚠️ APPLYING TO ALL EDGES</strong></div>' : '';
+            
+            editModeInfo.innerHTML = `
+                ${applyAllWarning}
+                <div class="edit-mode-item">
+                    <i class="fas fa-minus"></i>
+                    <strong>Edge:</strong> ${this.editModeElement.from.label} → ${this.editModeElement.to.label}
+                </div>
+                <div class="edit-mode-item">
+                    <i class="fas fa-weight-hanging"></i>
+                    <strong>Weight:</strong> ${this.editModeElement.weight || 'None'}
+                </div>
+            `;
+        }
+    }
+
+    // --- Minimal Vertex Edit Mode Implementation ---
+    enterEditMode(vertex) {
+        console.log('[EditMode] Entering edit mode for vertex:', vertex.label);
+        this.exitEditMode();
+        this.editModeElement = vertex;
+        this.editModeType = 'vertex';
+        
+        // Store original values for cancellation
+        this.originalLabel = vertex.label;
+        this.originalSize = vertex.size || this.vertexSize;
+        console.log('[EditMode] Original values stored - label:', this.originalLabel, 'size:', this.originalSize);
+        
+        // Show the edit controls section
+        const editSection = document.getElementById('editControlsSection');
+        if (editSection) {
+            editSection.style.display = 'block';
+            console.log('[EditMode] Edit section displayed');
+        } else {
+            console.error('[EditMode] Edit section not found!');
+        }
+        
+        // Hide other control sections
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'editControlsSection') section.style.display = 'none';
+        });
+        
+        // Update the section title to show which vertex is being edited
+        const editTitle = editSection.querySelector('h3');
+        if (editTitle) {
+            editTitle.innerHTML = `<i class="fas fa-edit"></i> Edit Vertex "${vertex.label}"`;
+            console.log('[EditMode] Title updated to show vertex:', vertex.label);
+        }
+        
+        // Populate form with current values
+        const labelInput = document.getElementById('editVertexLabel');
+        const sizeInput = document.getElementById('editVertexSize');
+        const sizeValue = document.getElementById('editVertexSizeValue');
+        
+        if (labelInput && sizeInput && sizeValue) {
+            labelInput.value = vertex.label;
+            sizeInput.value = vertex.size || this.vertexSize;
+            sizeValue.textContent = vertex.size || this.vertexSize;
+            console.log('[EditMode] Form populated - label:', vertex.label, 'size:', vertex.size || this.vertexSize);
+        } else {
+            console.error('[EditMode] Form elements not found!');
+        }
+        
+        // Clear any previous validation styling
+        labelInput.style.borderColor = '';
+        labelInput.style.boxShadow = '';
+        const warningMsg = document.getElementById('editVertexLabelWarning');
+        if (warningMsg) warningMsg.textContent = '';
+        
+        // Focus on the label input for immediate editing
+        setTimeout(() => {
+            if (labelInput) {
+                labelInput.focus();
+                labelInput.select();
+                console.log('[EditMode] Label input focused and selected');
+            }
+        }, 100);
+    }
+
+    exitEditMode() {
+        this.editModeElement = null;
+        this.editModeType = null;
+        this.originalLabel = null;
+        this.originalSize = null;
+        // Hide edit controls
+        const editSection = document.getElementById('editControlsSection');
+        if (editSection) editSection.style.display = 'none';
+        // Show all other control sections
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'editControlsSection') section.style.display = 'block';
+        });
+        // Reset the edit section title
+        const editTitle = editSection?.querySelector('h3');
+        if (editTitle) {
+            editTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Vertex';
+        }
+        this.draw();
+    }
+
+    setupMinimalEditModeEvents() {
+        // Label input: immediate update with no validation blocking
+        const labelInput = document.getElementById('editVertexLabel');
+        const saveBtn = document.getElementById('saveVertexEdit');
+        
+        // Create warning message element if it doesn't exist
+        let warningMsg = document.getElementById('editVertexLabelWarning');
+        if (!warningMsg) {
+            warningMsg = document.createElement('div');
+            warningMsg.id = 'editVertexLabelWarning';
+            warningMsg.style.color = 'var(--danger-color)';
+            warningMsg.style.fontSize = '0.8rem';
+            warningMsg.style.marginTop = '0.25rem';
+            warningMsg.style.fontWeight = '500';
+            labelInput.parentElement.appendChild(warningMsg);
+        }
+        
+        labelInput.addEventListener('input', (e) => {
+            console.log('[EditMode] Label input event fired');
+            if (this.editModeElement) {
+                const newLabel = e.target.value;
+                console.log('[EditMode] New label:', newLabel);
+                
+                // Always update the vertex label for immediate visual feedback
+                this.editModeElement.label = newLabel;
+                this.draw();
+                this.updateRootDropdown();
+                
+                // Show validation warnings but don't block updates
+                const trimmed = newLabel.trim();
+                let error = '';
+                if (!trimmed) {
+                    error = 'Label cannot be empty.';
+                } else if (this.vertices.some(v => v !== this.editModeElement && v.label === trimmed)) {
+                    error = `Label "${trimmed}" already exists!`;
+                }
+                
+                // Update UI based on validation (show warnings but don't disable save)
+                if (error) {
+                    labelInput.style.borderColor = 'var(--danger-color)';
+                    labelInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+                    warningMsg.textContent = error;
+                    console.log('[EditMode] Validation warning:', error);
+                } else {
+                    labelInput.style.borderColor = '';
+                    labelInput.style.boxShadow = '';
+                    warningMsg.textContent = '';
+                    console.log('[EditMode] Label valid');
+                }
+            } else {
+                console.log('[EditMode] No editModeElement set');
+            }
+        });
+        
+        // Size slider: immediate update
+        document.getElementById('editVertexSize').addEventListener('input', (e) => {
+            const newSize = parseInt(e.target.value);
+            document.getElementById('editVertexSizeValue').textContent = newSize;
+            if (this.editModeElement) {
+                this.editModeElement.size = newSize;
+                this.draw();
+            }
+        });
+        
+        // Save button: just exit edit mode (changes already applied)
+        saveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.editModeElement) {
+                console.log('[EditMode] Save clicked - exiting edit mode');
+                this.exitEditMode();
+                this.updateStatus('Vertex updated successfully!');
+            }
+        });
+        
+        // Cancel button: restore original values
+        document.getElementById('cancelVertexEdit').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.editModeElement && this.originalLabel !== null) {
+                // Restore original values
+                this.editModeElement.label = this.originalLabel;
+                this.editModeElement.size = this.originalSize;
+                
+                // Clear any error styling
+                labelInput.style.borderColor = '';
+                labelInput.style.boxShadow = '';
+                warningMsg.textContent = '';
+                
+                this.exitEditMode();
+                this.updateRootDropdown();
+                this.draw();
+                this.updateStatus('Edit cancelled - changes reverted.');
+                console.log('[EditMode] Cancel clicked, reverted to original values');
+            }
+        });
+        
+        // Form submit: same as save button
+        document.getElementById('vertexEditForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveBtn.click();
+        });
+    }
+
+    // --- END Minimal Vertex Edit Mode ---
+
+    // In constructor, after DOMContentLoaded, call this.setupMinimalEditModeEvents();
+
+    // Flash effect for vertices after edge creation
+    flashVertices(vertex1, vertex2) {
+        // Add vertices to flashing set
+        this.flashingVertices.add(vertex1);
+        this.flashingVertices.add(vertex2);
+        
+        // Redraw to show flash
+        this.draw();
+        
+        // Clear flash after 1 second
+        this.flashTimer = setTimeout(() => {
+            this.flashingVertices.clear();
+            this.draw();
+        }, 1000);
+    }
+    
+    // Flash effect for vertices during distance calculation
+    flashDistanceVertices(vertex1, vertex2) {
+        // Add vertices to distance flashing set
+        this.distanceFlashingVertices = new Set([vertex1, vertex2]);
+        
+        // Redraw to show flash
+        this.draw();
+        
+        // Clear flash after 1 second
+        setTimeout(() => {
+            this.distanceFlashingVertices = null;
+            this.draw();
+        }, 1000);
+    }
+
+    // Edit the name of a saved graph
+    editSavedGraphName(index, nameElement) {
+        const savedGraph = this.savedGraphs[index];
+        if (!savedGraph) return;
+        
+        // Create input field
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = savedGraph.name;
+        input.style.cssText = `
+            width: 100%;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--primary-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+        `;
+        
+        // Replace the name element with input
+        const originalContent = nameElement.innerHTML;
+        nameElement.innerHTML = '';
+        nameElement.appendChild(input);
+        input.focus();
+        input.select();
+        
+        // Handle save on Enter or blur
+        const saveName = () => {
+            const newName = input.value.trim();
+            if (newName && newName !== savedGraph.name) {
+                // Check for duplicate names
+                const isDuplicate = this.savedGraphs.some((g, i) => i !== index && g.name === newName);
+                if (isDuplicate) {
+                    this.updateStatus(`Name "${newName}" already exists!`);
+                    return;
+                }
+                
+                // Update the saved graph name
+                savedGraph.name = newName;
+                
+                // Save to localStorage
+                try {
+                    localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                    this.updateSavedGraphsList();
+                    this.updateStatus(`Graph renamed to "${newName}"`);
+                } catch (error) {
+                    console.error('Failed to save graph name:', error);
+                    this.updateStatus('Failed to save graph name');
+                }
+            } else {
+                // Restore original content if no change or empty
+                nameElement.innerHTML = originalContent;
+            }
+        };
+        
+        // Handle cancel on Escape
+        const cancelEdit = () => {
+            nameElement.innerHTML = originalContent;
+        };
+        
+        input.addEventListener('blur', saveName);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                saveName();
+            } else if (e.key === 'Escape') {
+                cancelEdit();
+            }
+        });
+    }
+    
+    // Delete a saved graph by id
+    deleteSavedGraph(id) {
+        if (!confirm('Are you sure you want to delete this saved graph?')) return;
+        const idx = this.savedGraphs.findIndex(g => g.id === id);
+        if (idx !== -1) {
+            this.savedGraphs.splice(idx, 1);
+            try {
+                localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                this.updateSavedGraphsList();
+                this.updateStatus('Saved graph deleted');
+            } catch (error) {
+                console.error('Failed to delete saved graph:', error);
+                this.updateStatus('Failed to delete saved graph');
+            }
         }
     }
 } 

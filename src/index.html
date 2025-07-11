@@ -8,9 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-container container-fluid">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -24,6 +26,20 @@
             </div>
             
             <div class="sidebar-content">
+                <div class="info-section" id="infoSection">
+                    <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="vertexCount">0</div>
+                            <div class="stat-label">Vertices</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="edgeCount">0</div>
+                            <div class="stat-label">Edges</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="control-section" id="basicControlsSection">
                     <h3><i class="fas fa-sliders-h"></i> Controls</h3>
                     
@@ -99,139 +115,34 @@
                 </div>
                 
                 <div class="control-section" id="editControlsSection" style="display: none;">
-                    <h3><i class="fas fa-edit"></i> Edit Mode</h3>
-                    
-                    <div class="edit-mode-info">
-                        <div id="editModeInfo" class="edit-mode-info-text">
-                            <!-- Edit mode info will be populated here -->
-                        </div>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button id="exitEditMode" class="btn btn-secondary">
-                            <i class="fas fa-times"></i>
-                            Save Edits and Exit
-                        </button>
-                        <button id="deleteSelectedElement" class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                            Delete
-                        </button>
-                    </div>
-                    
-                    <!-- Vertex-specific edit controls -->
-                    <div id="vertexEditControls" style="display: none;">
-                        <h4><i class="fas fa-circle"></i> Vertex Styling</h4>
-                        
+                    <h3><i class="fas fa-edit"></i> Edit Vertex</h3>
+                    <form id="vertexEditForm" autocomplete="off">
                         <div class="control-group">
-                            <label for="editVertexColor">
-                                <i class="fas fa-circle"></i>
-                                Vertex Color
+                            <label for="editVertexLabel">
+                                <i class="fas fa-tag"></i>
+                                Label
                             </label>
-                            <input type="color" id="editVertexColor" value="#1e293b">
+                            <input type="text" id="editVertexLabel" maxlength="10" required>
                         </div>
-                        
                         <div class="control-group">
-                            <label for="editVertexBorderColor">
-                                <i class="fas fa-circle-notch"></i>
-                                Border Color
-                            </label>
-                            <input type="color" id="editVertexBorderColor" value="#475569">
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="editVertexFontSize">
-                                <i class="fas fa-text-height"></i>
-                                Font Size
+                            <label for="editVertexSize">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                                Size
                             </label>
                             <div class="slider-container">
-                                <input type="range" id="editVertexFontSize" min="10" max="24" value="14">
-                                <span id="editVertexFontSizeValue">14</span>
+                                <input type="range" id="editVertexSize" min="15" max="60" value="25">
+                                <span id="editVertexSizeValue">25</span>
                             </div>
                         </div>
-                        
-                        <div class="control-group">
-                            <label for="editVertexFontFamily">
-                                <i class="fas fa-font"></i>
-                                Font Family
-                            </label>
-                            <select id="editVertexFontFamily">
-                                <option value="Inter">Inter</option>
-                                <option value="Arial">Arial</option>
-                                <option value="Helvetica">Helvetica</option>
-                                <option value="Times New Roman">Times New Roman</option>
-                                <option value="Courier New">Courier New</option>
-                                <option value="Georgia">Georgia</option>
-                                <option value="Verdana">Verdana</option>
-                            </select>
+                        <div class="button-group mt-3">
+                            <button type="submit" id="saveVertexEdit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Save
+                            </button>
+                            <button type="button" id="cancelVertexEdit" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
                         </div>
-                        
-                        <div class="control-group">
-                            <label for="editVertexFontColor">
-                                <i class="fas fa-palette"></i>
-                                Font Color
-                            </label>
-                            <input type="color" id="editVertexFontColor" value="#ffffff">
-                        </div>
-                    </div>
-                    
-                    <!-- Edge-specific edit controls -->
-                    <div id="edgeEditControls" style="display: none;">
-                        <h4><i class="fas fa-minus"></i> Edge Styling</h4>
-                        
-                        <div class="control-group">
-                            <label for="editEdgeColor">
-                                <i class="fas fa-minus"></i>
-                                Edge Color
-                            </label>
-                            <input type="color" id="editEdgeColor" value="#6366f1">
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="editEdgeWidth">
-                                <i class="fas fa-grip-lines"></i>
-                                Edge Width
-                            </label>
-                            <div class="slider-container">
-                                <input type="range" id="editEdgeWidth" min="1" max="8" value="3">
-                                <span id="editEdgeWidthValue">3</span>
-                            </div>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="editEdgeFontSize">
-                                <i class="fas fa-text-height"></i>
-                                Font Size
-                            </label>
-                            <div class="slider-container">
-                                <input type="range" id="editEdgeFontSize" min="10" max="20" value="14">
-                                <span id="editEdgeFontSizeValue">14</span>
-                            </div>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="editEdgeFontFamily">
-                                <i class="fas fa-font"></i>
-                                Font Family
-                            </label>
-                            <select id="editEdgeFontFamily">
-                                <option value="Inter">Inter</option>
-                                <option value="Arial">Arial</option>
-                                <option value="Helvetica">Helvetica</option>
-                                <option value="Times New Roman">Times New Roman</option>
-                                <option value="Courier New">Courier New</option>
-                                <option value="Georgia">Georgia</option>
-                                <option value="Verdana">Verdana</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="editEdgeFontColor">
-                                <i class="fas fa-palette"></i>
-                                Font Color
-                            </label>
-                            <input type="color" id="editEdgeFontColor" value="#06b6d4">
-                        </div>
-                    </div>
+                    </form>
                 </div>
                 
                 <div class="control-section" id="searchSection">
@@ -250,7 +161,14 @@
                             <i class="fas fa-bullseye"></i>
                             Target Vertex
                         </label>
-                        <input type="text" id="searchTarget" placeholder="Enter vertex label" maxlength="10">
+                        <div class="target-vertex-display" style="position: relative;">
+                            <div id="targetVertexDisplay" class="target-display">
+                                <span class="target-placeholder">No target selected</span>
+                            </div>
+                            <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
+                                <i class="fas fa-recycle"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="button-group">
@@ -266,7 +184,14 @@
                             <i class="fas fa-stop"></i>
                             Stop Search
                         </button>
+                        <button id="calculateDistance" class="btn btn-primary">
+                            <i class="fas fa-ruler"></i>
+                            Calculate Distance
+                        </button>
                     </div>
+                    <div id="distanceInfo" class="distance-info"></div>
+                    <div id="pathInfo" class="path-info"></div>
+                    <div id="searchInfo" class="search-info"></div>
                 </div>
                 
                 <div class="control-section" id="saveLoadSection">
@@ -295,145 +220,15 @@
                     </div>
                 </div>
                 
-                <div class="control-section" id="stylingSection">
-                    <h3><i class="fas fa-palette"></i> Styling</h3>
-                    
-                    <div class="control-group">
-                        <label for="vertexColor">
-                            <i class="fas fa-circle"></i>
-                            Vertex Color
-                        </label>
-                        <input type="color" id="vertexColor" value="#1e293b">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="vertexBorderColor">
-                            <i class="fas fa-circle-notch"></i>
-                            Vertex Border Color
-                        </label>
-                        <input type="color" id="vertexBorderColor" value="#475569">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="vertexFontSize">
-                            <i class="fas fa-text-height"></i>
-                            Vertex Font Size
-                        </label>
-                        <div class="slider-container">
-                            <input type="range" id="vertexFontSize" min="10" max="24" value="14">
-                            <span id="vertexFontSizeValue">14</span>
-                        </div>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="vertexFontFamily">
-                            <i class="fas fa-font"></i>
-                            Vertex Font Family
-                        </label>
-                        <select id="vertexFontFamily">
-                            <option value="Inter">Inter</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Helvetica">Helvetica</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                            <option value="Courier New">Courier New</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Verdana">Verdana</option>
-                        </select>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="vertexFontColor">
-                            <i class="fas fa-palette"></i>
-                            Vertex Font Color
-                        </label>
-                        <input type="color" id="vertexFontColor" value="#ffffff">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="edgeColor">
-                            <i class="fas fa-minus"></i>
-                            Edge Color
-                        </label>
-                        <input type="color" id="edgeColor" value="#6366f1">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="edgeWidth">
-                            <i class="fas fa-grip-lines"></i>
-                            Edge Width
-                        </label>
-                        <div class="slider-container">
-                            <input type="range" id="edgeWidth" min="1" max="8" value="3">
-                            <span id="edgeWidthValue">3</span>
-                        </div>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="edgeFontSize">
-                            <i class="fas fa-text-height"></i>
-                            Edge Font Size
-                        </label>
-                        <div class="slider-container">
-                            <input type="range" id="edgeFontSize" min="10" max="20" value="14">
-                            <span id="edgeFontSizeValue">14</span>
-                        </div>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="edgeFontFamily">
-                            <i class="fas fa-font"></i>
-                            Edge Font Family
-                        </label>
-                        <select id="edgeFontFamily">
-                            <option value="Inter">Inter</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Helvetica">Helvetica</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                            <option value="Courier New">Courier New</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Verdana">Verdana</option>
-                        </select>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="edgeFontColor">
-                            <i class="fas fa-palette"></i>
-                            Edge Font Color
-                        </label>
-                        <input type="color" id="edgeFontColor" value="#06b6d4">
-                    </div>
-                </div>
-                
                 <div class="control-section" id="toolsSection">
                     <h3><i class="fas fa-tools"></i> Tools</h3>
                     
                     <div class="button-group">
-                        <button id="calculateDistance" class="btn btn-primary">
-                            <i class="fas fa-ruler"></i>
-                            Calculate Distance
-                        </button>
                         <button id="clearGraph" class="btn btn-danger">
                             <i class="fas fa-trash"></i>
                             Clear Graph
                         </button>
                     </div>
-                </div>
-                
-                <div class="info-section" id="infoSection">
-                    <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value" id="vertexCount">0</div>
-                            <div class="stat-label">Vertices</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="edgeCount">0</div>
-                            <div class="stat-label">Edges</div>
-                        </div>
-                    </div>
-                    <div id="distanceInfo" class="distance-info"></div>
-                    <div id="pathInfo" class="path-info"></div>
-                    <div id="searchInfo" class="search-info"></div>
                 </div>
             </div>
         </aside>
@@ -443,88 +238,56 @@
             <div class="canvas-container">
                 <canvas id="graphCanvas"></canvas>
                 
-                <!-- Instructions Overlay -->
-                <div class="instructions-overlay" id="instructionsOverlay">
-                    <div class="instructions-content">
-                        <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
-                        <div class="instruction-grid">
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-mouse-pointer"></i>
+                <!-- Instructions Overlay as Bootstrap Modal -->
+                <div class="modal fade show" id="instructionsOverlay" tabindex="-1" aria-modal="true" role="dialog" style="display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.95);" data-autodismiss="10">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content instructions-content p-3" style="max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
+                            <button type="button" class="btn-close position-absolute end-0 top-0 m-2" id="closeInstructionsX" aria-label="Close"></button>
+                            <h3 class="modal-title text-center mb-3"><i class="fas fa-lightbulb"></i> How to Use</h3>
+                            <div class="instruction-grid mb-3">
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-mouse-pointer"></i></div>
+                                    <div class="instruction-text"><strong>Add Vertex:</strong> Left-click on canvas</div>
                                 </div>
-                                <div class="instruction-text">
-                                    <strong>Add Vertex:</strong> Left-click anywhere on canvas
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-hand-pointer"></i></div>
+                                    <div class="instruction-text"><strong>Move Vertex:</strong> Drag to reposition</div>
                                 </div>
-                            </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-hand-pointer"></i>
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-mouse"></i></div>
+                                    <div class="instruction-text"><strong>Create Edge:</strong> Double-click two vertices</div>
                                 </div>
-                                <div class="instruction-text">
-                                    <strong>Move Vertex:</strong> Drag vertices around
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-edit"></i></div>
+                                    <div class="instruction-text"><strong>Edit Elements:</strong> Right-click vertices/edges</div>
                                 </div>
-                            </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-mouse"></i>
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-sliders-h"></i></div>
+                                    <div class="instruction-text"><strong>Customize:</strong> Adjust size, colors, fonts</div>
                                 </div>
-                                <div class="instruction-text">
-                                    <strong>Create Edge:</strong> Right-click two vertices consecutively
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-search"></i></div>
+                                    <div class="instruction-text"><strong>Search:</strong> Run BFS/DFS algorithms</div>
                                 </div>
-                            </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-tag"></i>
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-ruler"></i></div>
+                                    <div class="instruction-text"><strong>Calculate:</strong> Measure distances between vertices</div>
                                 </div>
-                                <div class="instruction-text">
-                                    <strong>Custom Labels:</strong> Set label in sidebar before adding vertex (all labels must be unique)
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-save"></i></div>
+                                    <div class="instruction-text"><strong>Save/Load:</strong> Save and load graphs</div>
                                 </div>
-                            </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-edit"></i>
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-camera"></i></div>
+                                    <div class="instruction-text"><strong>Screenshot:</strong> Capture your graph</div>
                                 </div>
-                                <div class="instruction-text">
-                                    <strong>Edit Labels:</strong> Left-click any vertex to edit its label (Enter to save, Escape to cancel)
-                                </div>
-                            </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-hand-paper"></i>
-                                </div>
-                                <div class="instruction-text">
-                                    <strong>Edit Mode:</strong> Long-press (2 seconds) on any vertex or edge to enter edit mode
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-moon"></i></div>
+                                    <div class="instruction-text"><strong>Theme:</strong> Toggle dark/light mode</div>
                                 </div>
                             </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-palette"></i>
-                                </div>
-                                <div class="instruction-text">
-                                    <strong>Custom Styling:</strong> Use edit mode to customize colors, fonts, and sizes for individual elements
-                                </div>
-                            </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-search"></i>
-                                </div>
-                                <div class="instruction-text">
-                                    <strong>Search:</strong> Enter target vertex and run BFS/DFS
-                                </div>
-                            </div>
-                            <div class="instruction-item">
-                                <div class="instruction-icon">
-                                    <i class="fas fa-save"></i>
-                                </div>
-                                <div class="instruction-text">
-                                    <strong>Save/Load:</strong> Save graphs with unique names and switch between them safely
-                                </div>
-                            </div>
+                            <button class="btn btn-secondary w-100" id="hideInstructions"><i class="fas fa-times"></i> Got it!</button>
                         </div>
-                        <button class="btn btn-secondary" id="hideInstructions">
-                            <i class="fas fa-times"></i>
-                            Got it!
-                        </button>
                     </div>
                 </div>
             </div>
@@ -545,5 +308,7 @@
     
     <!-- Hidden file input for loading graphs -->
     <input type="file" id="loadFileInput" accept=".json" style="display: none;">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html> 
