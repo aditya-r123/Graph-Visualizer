@@ -969,7 +969,7 @@ body {
     grid-column: 1 / -1;
     background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
     border-top: 1px solid var(--border-color);
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -978,6 +978,7 @@ body {
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+    gap: 2rem;
 }
 
 .status-bar::before {
@@ -994,9 +995,24 @@ body {
 .status-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     position: relative;
     z-index: 1;
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    flex: 1;
+    justify-content: center;
+    min-height: 40px;
+}
+
+.status-item:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .status-item i {
@@ -1024,6 +1040,16 @@ body {
 .contact-item {
     flex-shrink: 0;
     margin-left: auto;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.contact-item:hover {
+    background: transparent !important;
+    border: none !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .contact-item .btn {
@@ -1032,6 +1058,7 @@ body {
     height: 32px;
     font-size: 0.8rem;
     padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-md);
 }
 
 /* Responsive Design */
@@ -1639,11 +1666,13 @@ body {
     .status-bar {
         padding: 0.75rem 1rem;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 1rem;
     }
     
     .status-item {
         font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+        min-height: 36px;
     }
     
     .app-container {
@@ -1653,14 +1682,22 @@ body {
 
 @media (max-width: 480px) {
     .status-bar {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
         flex-direction: column;
-        gap: 0.5rem;
-        align-items: center;
+        gap: 0.75rem;
+        align-items: stretch;
     }
     
     .status-item {
         font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        min-height: 40px;
+        justify-content: center;
+    }
+    
+    .contact-item {
+        margin-left: 0;
+        align-self: center;
     }
     
     .btn-outline-primary {
