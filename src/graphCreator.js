@@ -1286,13 +1286,18 @@ export class GraphCreator {
 
         // Handle vertex clicks
         if (clickedVertex) {
-            // Set target vertex
-            this.selectTargetVertex(clickedVertex);
-            
-            if (this.isDistanceMode) {
-                this.handleDistanceModeClick(clickedVertex);
+            // Check if this is a drag (if we've moved significantly, don't create edges)
+            if (this.hasDragged) {
+                // This was a drag, just set target vertex
+                this.selectTargetVertex(clickedVertex);
+                if (this.isDistanceMode) {
+                    this.handleDistanceModeClick(clickedVertex);
+                }
+                return;
             }
-            // Otherwise, do nothing
+            
+            // This is a single click - handle edge creation
+            this.handleVertexClick(clickedVertex);
             return;
         }
 
@@ -1308,26 +1313,25 @@ export class GraphCreator {
             return;
         }
         
-        // Prevent edge creation during edit mode or delete mode
-        if (this.editModeElement || this.isDeleteMode) {
-            return;
-        }
-        
-        const pos = this.getMousePos(e);
-        const clickedVertex = this.getVertexAt(pos.x, pos.y);
-        
-        if (clickedVertex) {
-            // Handle edge creation logic (double-click two vertices)
-            this.handleVertexRightClick(clickedVertex);
-            return;
-        }
+        // Right-click is now reserved for future features
+        // Currently no action on right-click
     }
     
-    handleVertexRightClick(vertex) {
-        // Edge creation logic - double-click two vertices to create edge
+
+    
+    handleVertexClick(vertex) {
+        // Set target vertex
+        this.selectTargetVertex(vertex);
+        
+        if (this.isDistanceMode) {
+            this.handleDistanceModeClick(vertex);
+            return;
+        }
+        
+        // Handle edge creation logic - click two vertices to create edge
         if (this.selectedVertices.length === 0) {
             this.selectedVertices.push(vertex);
-            this.updateStatus(`Selected vertex "${vertex.label}" - right-click another vertex to create edge`);
+            this.updateStatus(`Selected vertex "${vertex.label}" - click another vertex to create edge`);
             this.draw(); // Redraw to show purple highlighting
         } else if (this.selectedVertices.length === 1) {
             const vertex1 = this.selectedVertices[0];
@@ -1337,9 +1341,9 @@ export class GraphCreator {
                 this.updateStatus('Cannot create edge to same vertex');
                 this.selectedVertices = [];
                 this.draw(); // Redraw to clear highlighting
-            return;
-        }
-        
+                return;
+            }
+            
             // Check if edge already exists
             const existingEdge = this.edges.find(edge => 
                 (edge.from.id === vertex1.id && edge.to.id === vertex2.id) ||
@@ -1368,14 +1372,6 @@ export class GraphCreator {
             // Flash the vertices briefly
             this.flashVertices(vertex1, vertex2);
         }
-    }
-    
-    handleVertexClick(vertex) {
-        // Only allow label/font/color editing in edit mode (handled in sidebar)
-        if (this.isDistanceMode) {
-            this.handleDistanceModeClick(vertex);
-        }
-        // Otherwise, do nothing
     }
     
     handleDistanceModeClick(vertex) {
