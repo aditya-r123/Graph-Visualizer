@@ -1,6 +1,41 @@
 # Graph Creator Pro
 
+[![Version](https://img.shields.io/badge/version-v1.0.0--stable-brightgreen.svg)](https://github.com/aditya-r123/Graph-Visualizer/releases/tag/v1.0.0-stable)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A powerful, interactive web application for creating, visualizing, and analyzing graphs with an intuitive drag-and-drop interface.
+
+## 🎉 Stable Version v1.0.0
+
+This release includes all core features for graph creation and analysis:
+- ✅ **Complete graph creation and editing system**
+- ✅ **BFS/DFS search algorithms with animations**
+- ✅ **Connectivity checks and path finding**
+- ✅ **Waterfall effect animations**
+- ✅ **Save/load functionality**
+- ✅ **Screenshot capabilities**
+- ✅ **Modern UI with theme switching**
+
+*Note: Custom appearance editing for edges and vertices is planned for future releases.*
+
+## 📋 Changelog
+
+### v1.0.0-stable (Current Release)
+- **🎯 Core Features Complete**: All essential graph creation and analysis features implemented
+- **🔍 Search Algorithms**: BFS and DFS with animated traversal and path highlighting
+- **🌊 Waterfall Effects**: Directional edge traversal animations that follow actual paths
+- **🔗 Connectivity Checks**: Prevents unnecessary animations when vertices are unreachable
+- **💾 Data Persistence**: Auto-save, manual save/load, and file import/export
+- **📸 Screenshot System**: High-quality graph captures in multiple formats
+- **🎨 Modern UI**: Dark/light theme switching with responsive design
+- **⚡ Performance**: Optimized animations and efficient graph rendering
+- **🛡️ Error Handling**: Comprehensive error handling and user feedback
+
+### Planned for Future Releases
+- **🎨 Custom Appearance**: Advanced styling options for vertices and edges
+- **📊 Advanced Analytics**: More graph algorithms and analysis tools
+- **🌐 Collaboration**: Real-time collaborative graph editing
+- **📱 Mobile Support**: Enhanced mobile and tablet experience
 
 ## 🌟 Features
 
