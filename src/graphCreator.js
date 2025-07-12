@@ -43,6 +43,13 @@ export class GraphCreator {
         this.shakeOffset = 0;
         this.shakeDirection = 1;
         
+        // Hold timer visual feedback properties
+        this.holdStartTime = null;
+        this.holdProgressVertex = null;
+        this.holdProgressAnimation = null;
+        this.holdProgress = 0;
+        this.holdTimerWasActive = false; // Track if hold timer was active to prevent edge creation
+        
         // Apply to all properties
         this.applyToAllVertices = false;
         this.applyToAllEdges = false;
@@ -58,10 +65,28 @@ export class GraphCreator {
         this.originalVertices = [];
         this.originalEdges = [];
         
-        // Mouse button state tracking for simultaneous click detection
-        this.leftButtonPressed = false;
-        this.rightButtonPressed = false;
-        this.simultaneousClickDetected = false;
+
+        
+        // Mouse coordinate tracking
+        this.mouseCoordinates = { x: 0, y: 0 };
+        this.showMouseCoordinates = true;
+        this.mouseOverCanvas = false;
+        
+        // Coordinate grid properties
+        this.showCoordinateGrid = false;
+        this.gridDensity = 50; // Default density (10-100)
+        this.gridSpacing = 50; // Calculated from density
+        
+        // Mouse interaction properties
+        this.dragThreshold = 5; // Minimum distance to consider as drag
+        this.isDragging = false;
+        this.draggedVertex = null;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.hasDragged = false;
+        this.justFinishedDragging = false; // Flag to prevent clicks after drag
+        this.longPressTimer = null;
+        this.longPressDelay = 2500; // 2.5 seconds for edit mode
         
         // Styling properties
         this.vertexColor = '#1e293b';
@@ -96,26 +121,115 @@ export class GraphCreator {
         
         // Setup expandable sections
         this.setupExpandableSections();
+        
+        // Setup mouse coordinate tracking
+        this.setupMouseCoordinateTracking();
+        
+        // Initialize grid spacing
+        this.updateGridSpacing();
     }
+    
+    startEditModeTimer(vertex) {
+        // Clear any existing timer and animation
+        if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+        }
+        if (this.holdProgressAnimation) {
+            cancelAnimationFrame(this.holdProgressAnimation);
+        }
+        
+        // Start hold progress tracking
+        this.holdStartTime = Date.now();
+        this.holdProgressVertex = vertex;
+        this.holdTimerWasActive = false; // Reset the flag
+        
+        // Start visual feedback animation
+        this.startHoldProgressAnimation();
+        
+        // Start new timer
+        this.longPressTimer = setTimeout(() => {
+            if (!this.editModeElement && !this.hasDragged && this.draggedVertex === vertex) {
+                this.enterEditMode(vertex);
+                this.updateStatus(`Editing vertex "${vertex.label}"`);
+            }
+            // Clear hold progress
+            this.clearHoldProgress();
+        }, this.longPressDelay);
+    }
+    
+    startHoldProgressAnimation() {
+        const animate = () => {
+            if (this.holdProgressVertex && this.holdStartTime) {
+                const elapsed = Date.now() - this.holdStartTime;
+                const totalTime = this.longPressDelay;
+                
+                // Only show progress after 1 second
+                if (elapsed >= 1000) {
+                    const progress = Math.min(1, (elapsed - 1000) / (totalTime - 1000));
+                    this.holdProgress = progress;
+                    
+                    // Only mark as active if held for more than 0.25 seconds after visual feedback starts
+                    if (elapsed >= 1250) {
+                        this.holdTimerWasActive = true;
+                    }
+                    
+                    this.draw(); // Redraw to show the glow effect
+                }
+                
+                // Continue animation if still holding
+                if (elapsed < totalTime && this.holdProgressVertex) {
+                    this.holdProgressAnimation = requestAnimationFrame(animate);
+                }
+            }
+        };
+        
+        this.holdProgressAnimation = requestAnimationFrame(animate);
+    }
+    
+    clearHoldProgress() {
+        this.holdStartTime = null;
+        this.holdProgressVertex = null;
+        this.holdProgress = 0;
+        if (this.holdProgressAnimation) {
+            cancelAnimationFrame(this.holdProgressAnimation);
+            this.holdProgressAnimation = null;
+        }
+        // Don't reset holdTimerWasActive here - it should persist until the next mouse down
+        this.draw(); // Redraw to clear the glow effect
+    }
+    
+
+    
+
     
     initializeCanvas() {
         // Set canvas size to match container
         this.resizeCanvas();
         
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            this.resizeCanvas();
-            this.draw();
-        });
+        // No need for window resize listener with fixed coordinate system
+        // The canvas container will handle scrolling automatically
         
         // Update root node dropdown
         this.updateRootDropdown();
     }
     
     resizeCanvas() {
-        const container = this.canvas.parentElement;
-        this.canvas.width = container.clientWidth;
-        this.canvas.height = container.clientHeight;
+        // Fixed coordinate system: 1800x1800
+        const canvasWidth = 1800;
+        const canvasHeight = 1800;
+        
+        // Set the canvas size accounting for device pixel ratio
+        const dpr = window.devicePixelRatio || 1;
+        this.canvas.width = canvasWidth * dpr;
+        this.canvas.height = canvasHeight * dpr;
+        
+        // Set the CSS size to match the fixed coordinate system
+        this.canvas.style.width = canvasWidth + 'px';
+        this.canvas.style.height = canvasHeight + 'px';
+        
+        // Reset the context and scale it properly
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.scale(dpr, dpr);
     }
     
     initializeEventListeners() {
@@ -156,6 +270,58 @@ export class GraphCreator {
             this.autosaveEnabled = e.target.checked;
             this.updateStatus(`Auto-save ${this.autosaveEnabled ? 'enabled' : 'disabled'}`);
         });
+        
+        // Mouse coordinate toggle (simple checkbox)
+        const mouseCoordinateToggle = document.getElementById('mouseCoordinateToggle');
+        if (mouseCoordinateToggle) {
+            // Initialize the checkbox state
+            mouseCoordinateToggle.checked = this.showMouseCoordinates;
+            console.log('Mouse coordinate checkbox found and initialized:', this.showMouseCoordinates);
+            
+            // Add both change and click event listeners for maximum compatibility
+            mouseCoordinateToggle.addEventListener('change', (e) => {
+                this.showMouseCoordinates = e.target.checked;
+                this.updateMouseCoordinateDisplay();
+                this.updateStatus(`Mouse coordinates ${this.showMouseCoordinates ? 'enabled' : 'disabled'}`);
+                console.log('Mouse coordinate checkbox changed to:', this.showMouseCoordinates);
+            });
+            
+            mouseCoordinateToggle.addEventListener('click', (e) => {
+                // Prevent event bubbling
+                e.stopPropagation();
+                console.log('Mouse coordinate checkbox clicked');
+            });
+        } else {
+            console.error('Mouse coordinate checkbox not found!');
+        }
+        
+        // Coordinate grid toggle
+        const coordinateGridToggle = document.getElementById('coordinateGridToggle');
+        if (coordinateGridToggle) {
+            coordinateGridToggle.addEventListener('change', (e) => {
+                this.showCoordinateGrid = e.target.checked;
+                const gridDensityContainer = document.getElementById('gridDensityContainer');
+                if (gridDensityContainer) {
+                    gridDensityContainer.style.display = this.showCoordinateGrid ? 'block' : 'none';
+                }
+                this.draw(); // Redraw to show/hide grid
+            });
+        } else {
+            console.error('Coordinate grid toggle not found!');
+        }
+        
+        // Grid density slider
+        const gridDensitySlider = document.getElementById('gridDensity');
+        if (gridDensitySlider) {
+            gridDensitySlider.addEventListener('input', (e) => {
+                this.gridDensity = parseInt(e.target.value);
+                document.getElementById('gridDensityValue').textContent = this.gridDensity;
+                this.updateGridSpacing();
+                this.draw(); // Redraw to update grid
+            });
+        } else {
+            console.error('Grid density slider not found!');
+        }
         
         document.getElementById('hideInstructions').addEventListener('click', () => {
             this.hideInstructions();
@@ -599,9 +765,9 @@ export class GraphCreator {
             
             console.log('Created temporary canvas');
         
-        // Set canvas size
-        tempCanvas.width = this.canvas.width;
-        tempCanvas.height = this.canvas.height;
+        // Set canvas size to fixed coordinate system
+        tempCanvas.width = 1800;
+        tempCanvas.height = 1800;
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
         
@@ -616,24 +782,14 @@ export class GraphCreator {
         } else {
             // Fill with white background for JPG
             tempCtx.fillStyle = '#ffffff';
-            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         }
         
             console.log('Filled background');
             
-            // Draw edges first (so they appear behind vertices)
-            console.log('Drawing edges...');
-            this.edges.forEach((edge, index) => {
-                console.log(`Drawing edge ${index}:`, edge.from.label, '->', edge.to.label);
-                this.drawEdgeForScreenshot(tempCtx, edge);
-            });
-            
-            // Draw vertices on top
-            console.log('Drawing vertices...');
-            this.vertices.forEach((vertex, index) => {
-                console.log(`Drawing vertex ${index}:`, vertex.label, 'at', vertex.x, vertex.y);
-                this.drawVertexForScreenshot(tempCtx, vertex);
-            });
+            // Draw the entire graph using the fixed coordinate system
+            console.log('Drawing graph on screenshot canvas...');
+            this.drawOnCanvas(tempCtx, 1800, 1800);
             
             console.log('Starting blob conversion...');
             
@@ -1249,21 +1405,27 @@ export class GraphCreator {
     
     getMousePos(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const scaleX = this.canvas.width / rect.width;
-        const scaleY = this.canvas.height / rect.height;
-        
-        return {
-            x: (e.clientX - rect.left) * scaleX,
-            y: (e.clientY - rect.top) * scaleY
+        const pos = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
         };
+        
+        // Debug: Log mouse position calculation
+        if (this.isDragging && this.draggedVertex) {
+            console.log('Mouse calculation:', {
+                clientX: e.clientX,
+                clientY: e.clientY,
+                rectLeft: rect.left,
+                rectTop: rect.top,
+                calculatedX: pos.x,
+                calculatedY: pos.y
+            });
+        }
+        
+        return pos;
     }
     
     handleCanvasClick(e) {
-        // Prevent action if simultaneous click was detected
-        if (this.simultaneousClickDetected) {
-            return;
-        }
-        
         const pos = this.getMousePos(e);
         
         // Check for delete button clicks first
@@ -1284,19 +1446,21 @@ export class GraphCreator {
             return;
         }
 
+        // Prevent clicks if hold timer was active (to prevent edge creation)
+        if (this.holdTimerWasActive) {
+            console.log('Click prevented - hold timer was active');
+            this.holdTimerWasActive = false; // Reset the flag
+            return;
+        }
+
+        // Prevent clicks if we just finished dragging (to prevent edge creation)
+        if (this.justFinishedDragging) {
+            console.log('Click prevented - just finished dragging');
+            return;
+        }
+
         // Handle vertex clicks
         if (clickedVertex) {
-            // Check if this is a drag (if we've moved significantly, don't create edges)
-            if (this.hasDragged) {
-                // This was a drag, just set target vertex
-                this.selectTargetVertex(clickedVertex);
-                if (this.isDistanceMode) {
-                    this.handleDistanceModeClick(clickedVertex);
-                }
-                return;
-            }
-            
-            // This is a single click - handle edge creation
             this.handleVertexClick(clickedVertex);
             return;
         }
@@ -1313,25 +1477,27 @@ export class GraphCreator {
             return;
         }
         
-        // Right-click is now reserved for future features
-        // Currently no action on right-click
+        const pos = this.getMousePos(e);
+        const vertex = this.getVertexAt(pos.x, pos.y);
+        
+        if (vertex) {
+            // Right-click on vertex - handle edge creation
+            this.handleVertexRightClick(vertex);
+        }
     }
     
-
-    
-    handleVertexClick(vertex) {
-        // Set target vertex
-        this.selectTargetVertex(vertex);
-        
+    handleVertexRightClick(vertex) {
         if (this.isDistanceMode) {
-            this.handleDistanceModeClick(vertex);
+            // In distance mode, right-click sets target vertex
+            this.selectTargetVertex(vertex);
+            this.updateStatus(`Target vertex set to "${vertex.label}"`);
             return;
         }
         
-        // Handle edge creation logic - click two vertices to create edge
+        // Handle edge creation logic - right-click two vertices to create edge
         if (this.selectedVertices.length === 0) {
             this.selectedVertices.push(vertex);
-            this.updateStatus(`Selected vertex "${vertex.label}" - click another vertex to create edge`);
+            this.updateStatus(`Selected vertex "${vertex.label}" for edge creation - right-click another vertex to create edge`);
             this.draw(); // Redraw to show purple highlighting
         } else if (this.selectedVertices.length === 1) {
             const vertex1 = this.selectedVertices[0];
@@ -1372,6 +1538,21 @@ export class GraphCreator {
             // Flash the vertices briefly
             this.flashVertices(vertex1, vertex2);
         }
+    }
+    
+
+    
+    handleVertexClick(vertex) {
+        // Set target vertex
+        this.selectTargetVertex(vertex);
+        
+        if (this.isDistanceMode) {
+            this.handleDistanceModeClick(vertex);
+            return;
+        }
+        
+        // Left click on vertex - just select it, no edge creation
+        this.updateStatus(`Selected vertex "${vertex.label}"`);
     }
     
     handleDistanceModeClick(vertex) {
@@ -1431,88 +1612,94 @@ export class GraphCreator {
     }
     
     handleMouseDown(e) {
-        // Track mouse button states
-        if (e.button === 0) { // Left button
-            this.leftButtonPressed = true;
-        } else if (e.button === 2) { // Right button
-            this.rightButtonPressed = true;
-        }
-        
-        // Check for simultaneous button press
-        if (this.leftButtonPressed && this.rightButtonPressed) {
-            this.simultaneousClickDetected = true;
-            return; // Do nothing when both buttons are pressed
-        }
-        
         const pos = this.getMousePos(e);
         const vertex = this.getVertexAt(pos.x, pos.y);
         
         if (vertex) {
-            // Prevent dragging during edit mode or delete mode
+            // Prevent interactions during edit mode or delete mode
             if (this.editModeElement || this.isDeleteMode) {
                 return;
             }
             
-            // Set up for dragging
+            // Allow dragging even if vertex is selected for edge creation
+            // Clear edge selection when starting to drag
+            if (this.selectedVertices.includes(vertex)) {
+                this.selectedVertices = [];
+                this.draw(); // Redraw to clear purple highlighting
+            }
+            
+            // Initialize drag state
             this.draggedVertex = vertex;
             this.isDragging = true;
             this.dragStartX = pos.x;
             this.dragStartY = pos.y;
+            this.hasDragged = false;
+            this.holdTimerWasActive = false; // Reset hold timer flag for new interaction
             this.canvas.style.cursor = 'grabbing';
             
-            // Add drag detection properties
-            this.dragThreshold = 10; // pixels - if moved more than this, it's a drag
-            this.hasDragged = false;
-            this.dragStartTime = Date.now();
+            // Add global mouse event listeners to handle dragging outside canvas
+            this.globalMouseMoveHandler = (e) => this.handleMouseMove(e);
+            this.globalMouseUpHandler = (e) => this.handleMouseUp(e);
+            document.addEventListener('mousemove', this.globalMouseMoveHandler);
+            document.addEventListener('mouseup', this.globalMouseUpHandler);
             
-            // Start long-press timer for edit mode
-            this.longPressTimer = setTimeout(() => {
-                // Only enter edit mode if we haven't dragged significantly and not already in edit mode
-                if (!this.hasDragged && !this.editModeElement && !this.simultaneousClickDetected) {
-                    this.enterEditMode(vertex);
-                    this.updateStatus(`Editing vertex "${vertex.label}"`);
-                }
-            }, 1500); // 1.5 seconds hold time
+            // Start edit mode timer
+            this.startEditModeTimer(vertex);
             
-            // Set the dragged vertex as the target
-            this.selectTargetVertex(vertex);
+            // Prevent default to avoid text selection
+            e.preventDefault();
         }
     }
     
     handleMouseMove(e) {
         if (this.isDragging && this.draggedVertex) {
             const pos = this.getMousePos(e);
-            
-            // Check if we've dragged beyond the threshold
+            // Calculate drag distance
             const dragDistance = Math.sqrt(
                 Math.pow(pos.x - this.dragStartX, 2) + 
                 Math.pow(pos.y - this.dragStartY, 2)
             );
-            
+            // Check if we've started dragging
             if (dragDistance > this.dragThreshold && !this.hasDragged) {
                 this.hasDragged = true;
-                // Cancel the edit mode timer if we're dragging
+                console.log('Drag started - distance:', dragDistance);
+                // Cancel edit mode timer when dragging starts
                 if (this.longPressTimer) {
                     clearTimeout(this.longPressTimer);
                     this.longPressTimer = null;
                 }
+                // Clear hold progress when dragging starts
+                this.clearHoldProgress();
             }
+            // Check if we've stopped dragging (moved back within threshold)
+            if (dragDistance <= this.dragThreshold && this.hasDragged) {
+                this.hasDragged = false;
+                console.log('Drag stopped - restarting edit mode timer');
+                // Restart edit mode timer when dragging stops
+                this.startEditModeTimer(this.draggedVertex);
+            }
+            // Clamp vertex position to stay fully inside the white box
+            const size = this.draggedVertex.size || this.vertexSize;
+            const minX = size;
+            const minY = size;
+            const maxX = 1800 - size;
+            const maxY = 1800 - size;
             
-            // Update vertex position
-            this.draggedVertex.x = pos.x;
-            this.draggedVertex.y = pos.y;
+
             
-            // Update edit mode info in real-time if dragging in edit mode
+            this.draggedVertex.x = Math.max(minX, Math.min(maxX, pos.x));
+            this.draggedVertex.y = Math.max(minY, Math.min(maxY, pos.y));
+            // Update edit mode info if in edit mode
             if (this.editModeElement === this.draggedVertex && this.editModeType === 'vertex') {
                 this.updateEditModeInfo();
             }
-            
             this.draw();
         } else if (this.isDraggingEdge && this.draggedEdge) {
             const pos = this.getMousePos(e);
             this.draggedEdge.controlPoint = { x: pos.x, y: pos.y };
             this.draw();
         } else {
+            // Update cursor
             const pos = this.getMousePos(e);
             const vertex = this.getVertexAt(pos.x, pos.y);
             const edge = this.getEdgeAt(pos.x, pos.y);
@@ -1528,33 +1715,38 @@ export class GraphCreator {
     }
     
     handleMouseUp(e) {
-        // Reset mouse button states
-        if (e.button === 0) { // Left button
-            this.leftButtonPressed = false;
-        } else if (e.button === 2) { // Right button
-            this.rightButtonPressed = false;
-        }
-        
-        // Reset simultaneous click detection when both buttons are released
-        if (!this.leftButtonPressed && !this.rightButtonPressed) {
-            this.simultaneousClickDetected = false;
-        }
-        
-        // Clear long-press timer if mouse is released before hold time
+        // Clear edit mode timer and hold progress
         if (this.longPressTimer) {
             clearTimeout(this.longPressTimer);
             this.longPressTimer = null;
         }
+        this.clearHoldProgress();
         
         if (this.isDragging && this.draggedVertex) {
+            console.log('MouseUp: Resetting drag state, hasDragged was:', this.hasDragged);
             this.isDragging = false;
             this.draggedVertex = null;
             this.canvas.style.cursor = 'crosshair';
-            
-            // Clean up drag detection properties
+            // FIX: Reset hasDragged so vertex creation works after drag
             this.hasDragged = false;
-            this.dragThreshold = null;
-            this.dragStartTime = null;
+            console.log('MouseUp: hasDragged reset to:', this.hasDragged);
+            
+            // Set flag to prevent clicks after drag
+            this.justFinishedDragging = true;
+            // Clear the flag after a short delay to allow future clicks
+            setTimeout(() => {
+                this.justFinishedDragging = false;
+            }, 100);
+            
+            // Remove global mouse event listeners
+            if (this.globalMouseMoveHandler) {
+                document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                this.globalMouseMoveHandler = null;
+            }
+            if (this.globalMouseUpHandler) {
+                document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                this.globalMouseUpHandler = null;
+            }
         }
         
         if (this.isDraggingEdge && this.draggedEdge) {
@@ -2564,6 +2756,9 @@ export class GraphCreator {
         // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
+        // Draw coordinate grid first (behind everything)
+        this.drawCoordinateGrid();
+        
         // Draw edges
         this.edges.forEach(edge => this.drawEdge(edge));
         
@@ -2604,15 +2799,15 @@ export class GraphCreator {
         if (edge.type === 'curved') {
             // Draw curved edge with quadratic Bézier curve using fixed control point
             const controlPoint = {
-                x: (edge.from.x + edge.to.x) / 2,
-                y: (edge.from.y + edge.to.y) / 2 - 40
+                x: (drawFromX + drawToX) / 2,
+                y: (drawFromY + drawToY) / 2 - 40
             };
-            this.ctx.moveTo(edge.from.x, edge.from.y);
-            this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, edge.to.x, edge.to.y);
+            this.ctx.moveTo(drawFromX, drawFromY);
+            this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, drawToX, drawToY);
         } else {
             // Draw straight edge
-            this.ctx.moveTo(edge.from.x, edge.from.y);
-            this.ctx.lineTo(edge.to.x, edge.to.y);
+            this.ctx.moveTo(drawFromX, drawFromY);
+            this.ctx.lineTo(drawToX, drawToY);
         }
         this.ctx.stroke();
         
@@ -2626,18 +2821,16 @@ export class GraphCreator {
             let midX, midY;
             if (edge.type === 'curved') {
                 // For curved edges, position weight near the fixed control point
-                midX = (edge.from.x + edge.to.x) / 2;
-                midY = (edge.from.y + edge.to.y) / 2 - 60;
+                midX = (drawFromX + drawToX) / 2;
+                midY = (drawFromY + drawToY) / 2 - 60;
             } else {
                 // For straight edges, position weight at midpoint
-                midX = (edge.from.x + edge.to.x) / 2;
-                midY = (edge.from.y + edge.to.y) / 2;
+                midX = (drawFromX + drawToX) / 2;
+                midY = (drawFromY + drawToY) / 2;
             }
-            
             // Background for weight text
             this.ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
             this.ctx.fillRect(midX - 20, midY - 12, 40, 24);
-            
             // Weight text
             this.ctx.fillStyle = edgeFontColor;
             this.ctx.font = `bold ${edgeFontSize}px ${edgeFontFamily}`;
@@ -2682,6 +2875,9 @@ export class GraphCreator {
         // Check if vertex is marked for deletion
         const isMarkedForDeletion = this.isDeleteMode && this.verticesToDelete.has(vertex.id);
         
+        // Check if this vertex is being held for edit mode
+        const isBeingHeld = this.holdProgressVertex === vertex && this.holdProgress > 0;
+        
         // Apply shake offset if in edit mode
         let drawX = vertex.x;
         let drawY = vertex.y;
@@ -2714,6 +2910,31 @@ export class GraphCreator {
             // Blue for distance mode vertices
             fillColor = '#3b82f6';
             borderColor = '#60a5fa';
+        }
+        
+        // Draw red glow effect for held vertex
+        if (isBeingHeld) {
+            ctx.save();
+            
+            // Calculate glow properties based on progress
+            const maxGlowRadius = size * 2; // Maximum glow radius
+            const glowRadius = size + (maxGlowRadius - size) * this.holdProgress;
+            const glowAlpha = 0.3 + 0.4 * this.holdProgress; // Alpha from 0.3 to 0.7
+            const glowIntensity = 0.5 + 0.5 * this.holdProgress; // Intensity from 0.5 to 1.0
+            
+            // Create gradient for the glow
+            const gradient = ctx.createRadialGradient(drawX, drawY, size, drawX, drawY, glowRadius);
+            gradient.addColorStop(0, `rgba(239, 68, 68, ${glowAlpha * glowIntensity})`); // Red at center
+            gradient.addColorStop(0.5, `rgba(239, 68, 68, ${glowAlpha * 0.7})`); // Medium red
+            gradient.addColorStop(1, `rgba(239, 68, 68, 0)`); // Transparent at edge
+            
+            // Draw the glow
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, glowRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            ctx.restore();
         }
         
         // Apply fade effect for deleted vertices
@@ -2894,7 +3115,7 @@ export class GraphCreator {
             `;
             display.classList.add('has-target');
         } else {
-            display.innerHTML = '<span class="target-placeholder">Click on any vertex to set as target</span>';
+            display.innerHTML = '<span class="target-placeholder">Right click on any vertex to set as target</span>';
             display.classList.remove('has-target');
         }
     }
@@ -3423,6 +3644,90 @@ export class GraphCreator {
                     searchIcon.style.transform = 'rotate(180deg)';
                 }
             });
+        }
+    }
+    
+    // Setup mouse coordinate tracking
+    setupMouseCoordinateTracking() {
+        this.canvas.addEventListener('mousemove', (e) => {
+            const pos = this.getMousePos(e);
+            this.mouseCoordinates = pos;
+            this.mouseOverCanvas = true;
+            this.updateMouseCoordinateDisplay();
+        });
+        
+        this.canvas.addEventListener('mouseenter', () => {
+            this.mouseOverCanvas = true;
+            this.updateMouseCoordinateDisplay();
+        });
+        
+        this.canvas.addEventListener('mouseleave', () => {
+            this.mouseOverCanvas = false;
+            this.updateMouseCoordinateDisplay();
+        });
+    }
+    
+    // Update mouse coordinate display
+    updateMouseCoordinateDisplay() {
+        const coordDisplay = document.getElementById('mouseCoordinates');
+        if (coordDisplay) {
+            if (!this.showMouseCoordinates || !this.mouseOverCanvas) {
+                coordDisplay.textContent = '';
+            } else {
+                // Display coordinates in bottom-left origin system
+                const displayX = Math.round(this.mouseCoordinates.x);
+                const displayY = Math.round(this.mouseCoordinates.y);
+                coordDisplay.textContent = `(${displayX}, ${displayY})`;
+            }
+        }
+    }
+    
+    updateGridSpacing() {
+        // Convert density (10-100) to spacing (100-10 pixels)
+        // Higher density = smaller spacing
+        this.gridSpacing = Math.max(10, 110 - this.gridDensity);
+    }
+    
+    drawCoordinateGrid() {
+        if (!this.showCoordinateGrid) return;
+        
+        const ctx = this.ctx;
+        const width = 1800; // Fixed coordinate system width
+        const height = 1800; // Fixed coordinate system height
+        
+        // Set grid styling
+        ctx.strokeStyle = this.currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        ctx.lineWidth = 1;
+        
+        // Draw vertical lines
+        for (let x = 0; x <= width; x += this.gridSpacing) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+        
+        // Draw horizontal lines (top-left origin)
+        for (let y = 0; y <= height; y += this.gridSpacing) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        }
+        
+        // Draw coordinate labels at grid intersections (every 5th line for readability)
+        if (this.gridSpacing >= 30) { // Only show labels if grid is not too dense
+            ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            
+            for (let x = this.gridSpacing * 5; x <= width; x += this.gridSpacing * 5) {
+                for (let y = this.gridSpacing * 5; y <= height; y += this.gridSpacing * 5) {
+                    // Display top-left origin coordinates
+                    ctx.fillText(`${x}, ${y}`, x + 2, y + 2);
+                }
+            }
         }
     }
     

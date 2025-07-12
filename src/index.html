@@ -99,6 +99,48 @@
                             <span class="stat-compact-label">Edges</span>
                         </div>
                     </div>
+                    <div class="coordinate-tooltip">
+                        <div class="coordinate-tooltip-label">
+                            <i class="fas fa-mouse-pointer"></i>
+                            Mouse Position
+                        </div>
+                        <div class="coordinate-tooltip-value" id="mouseCoordinates">
+                            (0, 0)
+                        </div>
+                        <div class="coordinate-toggle-container">
+                            <label class="switch-label" for="mouseCoordinateToggle">
+                                <i class="fas fa-eye"></i>
+                                Show Mouse Coordinates
+                                <div class="switch-container">
+                                    <input type="checkbox" id="mouseCoordinateToggle" checked>
+                                    <span class="switch-slider"></span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="coordinate-grid-controls">
+                        <div class="coordinate-grid-toggle">
+                            <label class="switch-label" for="coordinateGridToggle">
+                                <i class="fas fa-th"></i>
+                                Show Coordinate Grid
+                                <div class="switch-container">
+                                    <input type="checkbox" id="coordinateGridToggle">
+                                    <span class="switch-slider"></span>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="coordinate-grid-density" id="gridDensityContainer" style="display: none;">
+                            <label for="gridDensity">
+                                <i class="fas fa-sliders-h"></i>
+                                Grid Density
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" id="gridDensity" min="10" max="100" value="50">
+                                <span id="gridDensityValue">50</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="control-section" id="basicControlsSection">
@@ -290,78 +332,16 @@
                     </div>
                 </div>
                 
-                <div class="control-section" id="saveLoadSection">
-                    <h3><i class="fas fa-save"></i> Save & Load</h3>
-                    
-                    <div class="control-group">
-                        <label class="switch-label" for="autosaveToggle">
-                            <i class="fas fa-magic"></i>
-                            Auto-Save
-                            <div class="switch-container">
-                                <input type="checkbox" id="autosaveToggle" checked>
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
-                        <small>Automatically save changes when adding vertices/edges</small>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button id="newGraph" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
-                            New Graph
-                        </button>
-                        <button id="saveGraph" class="btn btn-success">
-                            <i class="fas fa-save"></i>
-                            Save Graph
-                        </button>
-                        <button id="loadGraph" class="btn btn-secondary">
-                            <i class="fas fa-folder-open"></i>
-                            Load Graph
-                        </button>
-                        <button id="takeScreenshot" class="btn btn-info">
-                            <i class="fas fa-camera"></i>
-                            Screenshot
-                        </button>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="screenshotFormat">
-                            <i class="fas fa-image"></i>
-                            Screenshot Format
-                        </label>
-                        <select id="screenshotFormat">
-                            <option value="jpg">JPG (Smaller file)</option>
-                            <option value="png">PNG (Better quality)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="saved-graphs">
-                        <h4><i class="fas fa-history"></i> Recent Graphs</h4>
-                        <div id="savedGraphsList" class="saved-graphs-list">
-                            <!-- Saved graphs will be populated here -->
-                        </div>
-                        <div class="button-group mt-3">
-                                                    <button id="deleteAllGraphs" class="btn btn-danger">
-                            <i class="fas fa-trash-alt"></i>
-                            Delete All Saved Graphs
-                        </button>
-                        </div>
-                    </div>
-                    
-                    <div class="button-group mt-3">
-                        <button id="clearGraph" class="btn btn-warning w-100">
-                            <i class="fas fa-trash"></i>
-                            Reset Current Graph
-                        </button>
-                    </div>
-                </div>
+                
             </div>
         </aside>
         
         <!-- Main Content -->
         <main class="main-content">
-            <div class="canvas-container">
-                <canvas id="graphCanvas"></canvas>
+            <div class="canvas-scroll-wrapper">
+                <div class="canvas-container">
+                    <div class="editing-zone-indicator"></div>
+                    <canvas id="graphCanvas"></canvas>
                 
                 <!-- Instructions Overlay as Bootstrap Modal -->
                 <div class="modal fade show" id="instructionsOverlay" tabindex="-1" aria-modal="true" role="dialog" style="display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.95);" data-autodismiss="10">
@@ -376,15 +356,19 @@
                                 </div>
                                 <div class="instruction-item d-flex align-items-center mb-2">
                                     <div class="instruction-icon me-2"><i class="fas fa-hand-pointer"></i></div>
-                                    <div class="instruction-text"><strong>Move Vertex:</strong> Drag to reposition</div>
+                                    <div class="instruction-text"><strong>Move Vertex:</strong> Drag to reposition (5px threshold)</div>
                                 </div>
                                 <div class="instruction-item d-flex align-items-center mb-2">
                                     <div class="instruction-icon me-2"><i class="fas fa-mouse"></i></div>
-                                    <div class="instruction-text"><strong>Create Edge:</strong> Left-click two vertices consecutively</div>
+                                    <div class="instruction-text"><strong>Create Edge:</strong> Right-click two vertices consecutively</div>
                                 </div>
                                 <div class="instruction-item d-flex align-items-center mb-2">
                                     <div class="instruction-icon me-2"><i class="fas fa-edit"></i></div>
-                                    <div class="instruction-text"><strong>Edit Elements:</strong> Click and hold vertices/edges</div>
+                                    <div class="instruction-text"><strong>Edit Mode:</strong> Hold vertex for 2.5 seconds (red glow appears at 1s)</div>
+                                </div>
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="instruction-text"><strong>Note:</strong> Dragging prevents edit mode</div>
                                 </div>
                                 <div class="instruction-item d-flex align-items-center mb-2">
                                     <div class="instruction-icon me-2"><i class="fas fa-sliders-h"></i></div>
@@ -393,6 +377,10 @@
                                 <div class="instruction-item d-flex align-items-center mb-2">
                                     <div class="instruction-icon me-2"><i class="fas fa-search"></i></div>
                                     <div class="instruction-text"><strong>Search:</strong> Run BFS/DFS algorithms</div>
+                                </div>
+                                <div class="instruction-item d-flex align-items-center mb-2">
+                                    <div class="instruction-icon me-2"><i class="fas fa-bullseye"></i></div>
+                                    <div class="instruction-text"><strong>Set Target:</strong> Right-click on vertex</div>
                                 </div>
                                 <div class="instruction-item d-flex align-items-center mb-2">
                                     <div class="instruction-icon me-2"><i class="fas fa-ruler"></i></div>
@@ -415,8 +403,80 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> <!-- end .canvas-container -->
+            </div> <!-- end .canvas-scroll-wrapper -->
         </main>
+        
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <div class="right-sidebar-header">
+                <h3><i class="fas fa-save"></i> Save & Load</h3>
+            </div>
+            
+            <div class="right-sidebar-content">
+                <div class="control-group">
+                    <label class="switch-label" for="autosaveToggle">
+                        <i class="fas fa-magic"></i>
+                        Auto-Save
+                        <div class="switch-container">
+                            <input type="checkbox" id="autosaveToggle" checked>
+                            <span class="switch-slider"></span>
+                        </div>
+                    </label>
+                    <small>Automatically save changes when adding vertices/edges</small>
+                </div>
+                
+                <div class="button-group">
+                    <button id="newGraph" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        New Graph
+                    </button>
+                    <button id="saveGraph" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Save Graph
+                    </button>
+                    <button id="loadGraph" class="btn btn-secondary">
+                        <i class="fas fa-folder-open"></i>
+                        Load Graph
+                    </button>
+                    <button id="takeScreenshot" class="btn btn-info">
+                        <i class="fas fa-camera"></i>
+                        Screenshot
+                    </button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="screenshotFormat">
+                        <i class="fas fa-image"></i>
+                        Screenshot Format
+                    </label>
+                    <select id="screenshotFormat">
+                        <option value="jpg">JPG (Smaller file)</option>
+                        <option value="png">PNG (Better quality)</option>
+                    </select>
+                </div>
+                
+                <div class="saved-graphs">
+                    <h4><i class="fas fa-history"></i> Recent Graphs</h4>
+                    <div id="savedGraphsList" class="saved-graphs-list">
+                        <!-- Saved graphs will be populated here -->
+                    </div>
+                    <div class="button-group mt-3">
+                        <button id="deleteAllGraphs" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i>
+                            Delete All Saved Graphs
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="button-group mt-3">
+                    <button id="clearGraph" class="btn btn-warning w-100">
+                        <i class="fas fa-trash"></i>
+                        Reset Current Graph
+                    </button>
+                </div>
+            </div>
+        </aside>
         
         <!-- Status Bar -->
         <div class="status-bar">

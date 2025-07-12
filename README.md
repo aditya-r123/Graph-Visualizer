@@ -6,13 +6,19 @@ A powerful, interactive web application for creating, visualizing, and analyzing
 
 ### Core Functionality
 - **Interactive Graph Creation**: Click to add vertices, drag to move them, and create edges between vertices
+- **Smart Interaction System**: 
+  - **Drag Threshold**: 5-pixel movement threshold to distinguish dragging from clicking
+  - **Edit Mode**: Hold vertex for 2.5 seconds to enter edit mode (red glow appears at 1 second)
+  - **Edge Creation**: Click two vertices consecutively (dragging prevents edge creation)
 - **Real-time Visualization**: Smooth animations and visual feedback for all interactions
 - **Multiple Edge Types**: Support for straight and curved edges, directed and undirected graphs
 - **Edge Weights**: Add numerical weights to edges for weighted graph analysis
 - **Vertex Labels**: Custom labels or auto-generated labels for vertices
 
 ### Advanced Editing
-- **Edit Mode**: Click and hold vertices to enter edit mode with comprehensive controls
+- **Edit Mode**: Hold vertex for 2.5 seconds to enter edit mode with comprehensive controls
+- **Visual Hold Feedback**: Red glow appears after 1 second of holding, gradually expanding until edit mode activates
+- **Smart State Management**: Dragging prevents both edge creation and edit mode activation
 - **Apply to All**: Apply changes to all vertices simultaneously (size, label, etc.)
 - **Pending Deletion**: Mark vertices for deletion with visual preview before confirming
 - **Delete Mode**: Dedicated deletion mode with red X buttons on vertices
@@ -90,12 +96,21 @@ npm run build
 
 ### Basic Operations
 - **Add Vertex**: Left-click anywhere on the canvas
-- **Move Vertex**: Drag vertices to reposition them
-- **Create Edge**: Double-click two vertices to connect them
-- **Edit Vertex**: Click and hold a vertex to enter edit mode
+- **Move Vertex**: Drag vertices to reposition them (5-pixel movement threshold)
+- **Create Edge**: Click two vertices consecutively to connect them
+- **Edit Vertex**: Hold vertex for 2.5 seconds to enter edit mode (red glow appears at 1 second)
 - **Delete Vertex**: Use edit mode or dedicated delete mode
 
+### Interaction Timing
+- **Quick Click** (< 1 second): Normal edge creation behavior
+- **Short Hold** (1-1.25 seconds): Red glow appears, edge creation still works
+- **Medium Hold** (1.25-2.5 seconds): Red glow continues, edge creation prevented
+- **Long Hold** (2.5+ seconds): Edit mode activated
+- **Dragging**: Prevents both edge creation and edit mode activation
+
 ### Edit Mode Features
+- **Hold to Enter**: Hold vertex for 2.5 seconds to enter edit mode
+- **Visual Feedback**: Red glow appears after 1 second, expanding until edit mode activates
 - **Label Editing**: Change vertex labels with immediate visual feedback
 - **Size Adjustment**: Modify vertex size with live preview
 - **Apply to All**: Check the "Apply to All Vertices" option to modify all vertices
