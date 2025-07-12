@@ -58,6 +58,11 @@ export class GraphCreator {
         this.originalVertices = [];
         this.originalEdges = [];
         
+        // Mouse button state tracking for simultaneous click detection
+        this.leftButtonPressed = false;
+        this.rightButtonPressed = false;
+        this.simultaneousClickDetected = false;
+        
         // Styling properties
         this.vertexColor = '#1e293b';
         this.vertexBorderColor = '#475569';
@@ -1254,6 +1259,11 @@ export class GraphCreator {
     }
     
     handleCanvasClick(e) {
+        // Prevent action if simultaneous click was detected
+        if (this.simultaneousClickDetected) {
+            return;
+        }
+        
         const pos = this.getMousePos(e);
         
         // Check for delete button clicks first
@@ -1292,6 +1302,11 @@ export class GraphCreator {
     
     handleRightClick(e) {
         e.preventDefault();
+        
+        // Prevent action if simultaneous click was detected
+        if (this.simultaneousClickDetected) {
+            return;
+        }
         
         // Prevent edge creation during edit mode or delete mode
         if (this.editModeElement || this.isDeleteMode) {
@@ -1420,6 +1435,19 @@ export class GraphCreator {
     }
     
     handleMouseDown(e) {
+        // Track mouse button states
+        if (e.button === 0) { // Left button
+            this.leftButtonPressed = true;
+        } else if (e.button === 2) { // Right button
+            this.rightButtonPressed = true;
+        }
+        
+        // Check for simultaneous button press
+        if (this.leftButtonPressed && this.rightButtonPressed) {
+            this.simultaneousClickDetected = true;
+            return; // Do nothing when both buttons are pressed
+        }
+        
         const pos = this.getMousePos(e);
         const vertex = this.getVertexAt(pos.x, pos.y);
         
@@ -1444,7 +1472,7 @@ export class GraphCreator {
             // Start long-press timer for edit mode
             this.longPressTimer = setTimeout(() => {
                 // Only enter edit mode if we haven't dragged significantly and not already in edit mode
-                if (!this.hasDragged && !this.editModeElement) {
+                if (!this.hasDragged && !this.editModeElement && !this.simultaneousClickDetected) {
                     this.enterEditMode(vertex);
                     this.updateStatus(`Editing vertex "${vertex.label}"`);
                 }
@@ -1504,6 +1532,18 @@ export class GraphCreator {
     }
     
     handleMouseUp(e) {
+        // Reset mouse button states
+        if (e.button === 0) { // Left button
+            this.leftButtonPressed = false;
+        } else if (e.button === 2) { // Right button
+            this.rightButtonPressed = false;
+        }
+        
+        // Reset simultaneous click detection when both buttons are released
+        if (!this.leftButtonPressed && !this.rightButtonPressed) {
+            this.simultaneousClickDetected = false;
+        }
+        
         // Clear long-press timer if mouse is released before hold time
         if (this.longPressTimer) {
             clearTimeout(this.longPressTimer);
