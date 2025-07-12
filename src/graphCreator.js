@@ -1418,8 +1418,8 @@ export class GraphCreator {
             return;
         }
 
-        // Prevent interactions during edit mode or delete mode
-        if (this.editModeElement || this.isDeleteMode) {
+        // Prevent interactions during edit mode, delete mode, or search animations
+        if (this.editModeElement || this.isDeleteMode || this.isSearching) {
             return;
         }
 
@@ -1430,15 +1430,15 @@ export class GraphCreator {
             return;
         }
 
-        // Prevent clicks if we just finished dragging (to prevent edge creation)
-        if (this.justFinishedDragging) {
-            console.log('Click prevented - just finished dragging');
+        // Handle vertex clicks - allow target vertex selection even after dragging
+        if (clickedVertex) {
+            this.handleVertexClick(clickedVertex);
             return;
         }
 
-        // Handle vertex clicks
-        if (clickedVertex) {
-            this.handleVertexClick(clickedVertex);
+        // Prevent adding new vertices if we just finished dragging (to prevent accidental vertex creation)
+        if (this.justFinishedDragging) {
+            console.log('Click prevented - just finished dragging');
             return;
         }
 
@@ -1451,6 +1451,11 @@ export class GraphCreator {
         
         // Prevent action if simultaneous click was detected
         if (this.simultaneousClickDetected) {
+            return;
+        }
+        
+        // Prevent interactions during search animations
+        if (this.isSearching) {
             return;
         }
         
@@ -1593,8 +1598,8 @@ export class GraphCreator {
         const vertex = this.getVertexAt(pos.x, pos.y);
         
         if (vertex) {
-            // Prevent interactions during edit mode or delete mode
-            if (this.editModeElement || this.isDeleteMode) {
+            // Prevent interactions during edit mode, delete mode, or search animations
+            if (this.editModeElement || this.isDeleteMode || this.isSearching) {
                 return;
             }
             
@@ -1650,6 +1655,11 @@ export class GraphCreator {
     }
 
     handleMouseMove(e) {
+        // Prevent interactions during search animations
+        if (this.isSearching) {
+            return;
+        }
+        
         if (this.isDragging && this.draggedVertex) {
             const pos = this.getMousePos(e); // Now in CSS pixels
             // Calculate drag distance
@@ -1713,7 +1723,9 @@ export class GraphCreator {
             const pos = this.getMousePos(e);
             const vertex = this.getVertexAt(pos.x, pos.y);
             const edge = this.getEdgeAt(pos.x, pos.y);
-            if (vertex) {
+            if (this.isSearching) {
+                this.canvas.style.cursor = 'not-allowed';
+            } else if (vertex) {
                 this.canvas.style.cursor = 'grab';
             } else if (edge && edge.type === 'curved') {
                 this.canvas.style.cursor = 'grab';
@@ -2280,7 +2292,24 @@ export class GraphCreator {
     
     findMostUpwardVertex() {
         if (this.vertices.length === 0) return null;
-        return this.vertices.reduce((mostUpward, vertex) => {
+        
+        // Get adjacency list to check which vertices have edges
+        const adjacencyList = this.getAdjacencyList();
+        
+        // Filter vertices that have at least one edge
+        const verticesWithEdges = this.vertices.filter(vertex => 
+            adjacencyList[vertex.id] && adjacencyList[vertex.id].length > 0
+        );
+        
+        if (verticesWithEdges.length === 0) {
+            // If no vertices have edges, fall back to the original behavior
+            return this.vertices.reduce((mostUpward, vertex) => {
+                return vertex.y < mostUpward.y ? vertex : mostUpward;
+            });
+        }
+        
+        // Find the most upward vertex among those with edges
+        return verticesWithEdges.reduce((mostUpward, vertex) => {
             return vertex.y < mostUpward.y ? vertex : mostUpward;
         });
     }
@@ -2389,8 +2418,12 @@ export class GraphCreator {
         const queue = [startVertex]; // Start from the specified starting vertex
         const visited = new Set();
         const parent = {};
+        const distances = {}; // Track distances from start vertex
+        const visitOrder = []; // Track the order vertices were visited
         
         visited.add(startVertex.id);
+        distances[startVertex.id] = 0;
+        visitOrder.push(startVertex);
         
         while (queue.length > 0 && this.isSearching) {
             const current = queue.shift();
@@ -2403,7 +2436,9 @@ export class GraphCreator {
             if (current.id === targetVertex.id) {
                 // Found target, reconstruct path
                 this.reconstructPath(parent, targetVertex);
-                this.showSearchResult(true, 'BFS');
+                const distance = distances[current.id];
+                const visitedCount = visited.size;
+                this.showSearchResult(true, 'BFS', distance, visitedCount, visitOrder);
                 return;
             }
             
@@ -2413,13 +2448,16 @@ export class GraphCreator {
                 if (!visited.has(neighbor.id)) {
                     visited.add(neighbor.id);
                     parent[neighbor.id] = current;
+                    distances[neighbor.id] = distances[current.id] + 1;
                     queue.push(neighbor);
+                    visitOrder.push(neighbor);
                 }
             }
         }
         
         if (this.isSearching) {
-            this.showSearchResult(false, 'BFS');
+            const visitedCount = visited.size;
+            this.showSearchResult(false, 'BFS', null, visitedCount, visitOrder);
         }
     }
     
@@ -2427,18 +2465,21 @@ export class GraphCreator {
         const adjacencyList = this.getAdjacencyList();
         const visited = new Set();
         const parent = {};
+        const visitOrder = []; // Track the order vertices were visited
         
         const dfs = async (current) => {
             if (!this.isSearching) return false;
             
             visited.add(current.id);
             this.visitedVertices.add(current);
+            visitOrder.push(current);
             this.draw();
             await this.sleep(500);
             
             if (current.id === targetVertex.id) {
                 this.reconstructPath(parent, targetVertex);
-                this.showSearchResult(true, 'DFS');
+                const visitedCount = visited.size;
+                this.showSearchResult(true, 'DFS', null, visitedCount, visitOrder);
                 return true;
             }
             
@@ -2456,7 +2497,8 @@ export class GraphCreator {
         
         const found = await dfs(startVertex);
         if (!found && this.isSearching) {
-            this.showSearchResult(false, 'DFS');
+            const visitedCount = visited.size;
+            this.showSearchResult(false, 'DFS', null, visitedCount, visitOrder);
         }
     }
     
@@ -2473,7 +2515,7 @@ export class GraphCreator {
         this.draw();
     }
     
-    showSearchResult(found, algorithm) {
+    showSearchResult(found, algorithm, distance = null, visitedCount = null, visitOrder = null) {
         this.isSearching = false;
         
         document.getElementById('runBFS').disabled = false;
@@ -2481,23 +2523,36 @@ export class GraphCreator {
         document.getElementById('stopSearch').disabled = true;
         
         const searchInfo = document.getElementById('searchInfo');
+        let resultText = '';
+        
         if (found) {
-            searchInfo.textContent = `${algorithm} found target! Path length: ${this.pathVertices.size}`;
+            const pathLength = this.pathVertices.size;
+            const distanceText = distance !== null ? `Distance: ${distance} edges` : `Path length: ${pathLength} vertices`;
+            const visitedText = visitedCount !== null ? `, Visited: ${visitedCount} vertices` : '';
+            resultText = `${algorithm} found target! ${distanceText}${visitedText}`;
             this.updateStatus(`${algorithm} found target vertex!`);
         } else {
-            searchInfo.textContent = `${algorithm} did not find target vertex`;
+            const visitedText = visitedCount !== null ? ` (Visited ${visitedCount} vertices)` : '';
+            resultText = `${algorithm} did not find target vertex${visitedText}`;
             this.updateStatus(`${algorithm} completed - target not found`);
         }
         
+        // Add visited path if available
+        if (visitOrder && visitOrder.length > 0) {
+            const pathString = visitOrder.map(vertex => vertex.label).join(' → ');
+            resultText += `\n\nVisited path: ${pathString}`;
+        }
+        
+        searchInfo.textContent = resultText;
         searchInfo.classList.add('show');
         
-        // Clear after 5 seconds
+        // Clear after 8 seconds (increased to allow reading the path)
         setTimeout(() => {
             this.visitedVertices.clear();
             this.pathVertices.clear();
             searchInfo.classList.remove('show');
             this.draw();
-        }, 5000);
+        }, 8000);
     }
     
     sleep(ms) {
