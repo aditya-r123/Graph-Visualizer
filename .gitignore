@@ -59,4 +59,9 @@ jspm_packages/
 *.tgz
 
 # Yarn Integrity file
-.yarn-integrity 
+.yarn-integrity
+
+# Temporary files and artifacts
+node
+graph-creator@1.0.0
+VERTEX_CLONING_BUG_ISSUE.md 

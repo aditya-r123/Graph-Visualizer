@@ -18,6 +18,8 @@ export class GraphCreator {
         this.distanceFlashingVertices = new Set();
         this.visitedVertices = new Set();
         this.pathVertices = new Set();
+        this.visitedEdges = new Set(); // Track edges that are part of the search
+        this.pathEdges = new Set(); // Track edges that are part of the final path
         this.distanceModeVertices = [];
         this.isDistanceMode = false;
         
@@ -59,6 +61,7 @@ export class GraphCreator {
         this.isSearching = false;
         this.targetVertex = null;
         this.selectedTargetVertex = null;
+        this.animationSpeed = 500; // Animation speed in milliseconds
         
         // Theme and styling
         this.currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -342,6 +345,12 @@ export class GraphCreator {
         
         document.getElementById('stopSearch').addEventListener('click', () => {
             this.stopSearch();
+        });
+        
+        // Animation speed slider
+        document.getElementById('animationSpeed').addEventListener('input', (e) => {
+            this.animationSpeed = parseInt(e.target.value);
+            document.getElementById('animationSpeedValue').textContent = `${this.animationSpeed}ms`;
         });
         
         // Clear target button - this is handled in setupResetTargetBtn()
@@ -2286,6 +2295,13 @@ export class GraphCreator {
         return adjacencyList;
     }
     
+    findEdge(from, to) {
+        return this.edges.find(edge => 
+            (edge.from.id === from.id && edge.to.id === to.id) ||
+            (edge.from.id === to.id && edge.to.id === from.id)
+        );
+    }
+    
     findVertexByLabel(label) {
         return this.vertices.find(vertex => vertex.label === label);
     }
@@ -2390,6 +2406,8 @@ export class GraphCreator {
         this.isSearching = true;
         this.visitedVertices.clear();
         this.pathVertices.clear();
+        this.visitedEdges.clear();
+        this.pathEdges.clear();
         
         document.getElementById('runBFS').disabled = true;
         document.getElementById('runDFS').disabled = true;
@@ -2402,6 +2420,8 @@ export class GraphCreator {
         this.isSearching = false;
         this.visitedVertices.clear();
         this.pathVertices.clear();
+        this.visitedEdges.clear();
+        this.pathEdges.clear();
         
         document.getElementById('runBFS').disabled = false;
         document.getElementById('runDFS').disabled = false;
@@ -2421,6 +2441,12 @@ export class GraphCreator {
         const distances = {}; // Track distances from start vertex
         const visitOrder = []; // Track the order vertices were visited
         
+        // Clear previous animation state
+        this.visitedVertices.clear();
+        this.pathVertices.clear();
+        this.visitedEdges.clear();
+        this.pathEdges.clear();
+        
         visited.add(startVertex.id);
         distances[startVertex.id] = 0;
         visitOrder.push(startVertex);
@@ -2430,8 +2456,17 @@ export class GraphCreator {
             
             // Mark as visited
             this.visitedVertices.add(current);
+            
+            // Add edges to visited edges if we have a parent
+            if (parent[current.id]) {
+                const edge = this.findEdge(parent[current.id], current);
+                if (edge) {
+                    this.visitedEdges.add(edge);
+                }
+            }
+            
             this.draw();
-            await this.sleep(500);
+            await this.sleep();
             
             if (current.id === targetVertex.id) {
                 // Found target, reconstruct path
@@ -2467,14 +2502,29 @@ export class GraphCreator {
         const parent = {};
         const visitOrder = []; // Track the order vertices were visited
         
+        // Clear previous animation state
+        this.visitedVertices.clear();
+        this.pathVertices.clear();
+        this.visitedEdges.clear();
+        this.pathEdges.clear();
+        
         const dfs = async (current) => {
             if (!this.isSearching) return false;
             
             visited.add(current.id);
             this.visitedVertices.add(current);
             visitOrder.push(current);
+            
+            // Add edges to visited edges if we have a parent
+            if (parent[current.id]) {
+                const edge = this.findEdge(parent[current.id], current);
+                if (edge) {
+                    this.visitedEdges.add(edge);
+                }
+            }
+            
             this.draw();
-            await this.sleep(500);
+            await this.sleep();
             
             if (current.id === targetVertex.id) {
                 this.reconstructPath(parent, targetVertex);
@@ -2512,6 +2562,15 @@ export class GraphCreator {
         }
         
         this.pathVertices = new Set(path);
+        
+        // Add path edges
+        for (let i = 0; i < path.length - 1; i++) {
+            const edge = this.findEdge(path[i], path[i + 1]);
+            if (edge) {
+                this.pathEdges.add(edge);
+            }
+        }
+        
         this.draw();
     }
     
@@ -2555,8 +2614,9 @@ export class GraphCreator {
         }, 8000);
     }
     
-    sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    sleep(ms = null) {
+        const delay = ms !== null ? ms : this.animationSpeed;
+        return new Promise(resolve => setTimeout(resolve, delay));
     }
     
 
@@ -2931,6 +2991,37 @@ export class GraphCreator {
             edgeColor = '#ef4444';
         }
         
+        // Enhanced edge styling for search animations
+        if (this.pathEdges.has(edge)) {
+            // Path edges get enhanced styling with gradient
+            this.ctx.save();
+            const gradient = this.ctx.createLinearGradient(drawFromX, drawFromY, drawToX, drawToY);
+            gradient.addColorStop(0, '#f59e0b'); // Orange start
+            gradient.addColorStop(0.5, '#fbbf24'); // Light orange middle
+            gradient.addColorStop(1, '#f59e0b'); // Orange end
+            edgeColor = gradient;
+            edgeWidth = Math.max(edgeWidth, 4); // Thicker for path edges
+            
+            // Add pulsing glow effect for path edges
+            const time = Date.now() * 0.005;
+            const pulse = Math.sin(time) * 0.3 + 0.7;
+            this.ctx.shadowColor = 'rgba(245, 158, 11, 0.6)';
+            this.ctx.shadowBlur = 8 * pulse;
+        } else if (this.visitedEdges.has(edge)) {
+            // Visited edges get subtle enhancement
+            this.ctx.save();
+            const gradient = this.ctx.createLinearGradient(drawFromX, drawFromY, drawToX, drawToY);
+            gradient.addColorStop(0, '#10b981'); // Green start
+            gradient.addColorStop(0.5, '#34d399'); // Light green middle
+            gradient.addColorStop(1, '#10b981'); // Green end
+            edgeColor = gradient;
+            edgeWidth = Math.max(edgeWidth, 3); // Slightly thicker for visited edges
+            
+            // Add subtle glow effect
+            this.ctx.shadowColor = 'rgba(16, 185, 129, 0.4)';
+            this.ctx.shadowBlur = 4;
+        }
+        
         this.ctx.strokeStyle = edgeColor;
         this.ctx.lineWidth = edgeWidth;
         this.ctx.lineCap = 'round';
@@ -2977,6 +3068,11 @@ export class GraphCreator {
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(edge.weight.toString(), midX, midY);
+        }
+        
+        // Restore context for enhanced edge effects
+        if (this.pathEdges.has(edge) || this.visitedEdges.has(edge)) {
+            this.ctx.restore();
         }
         
         // Add glow effect for edit mode
@@ -3039,13 +3135,47 @@ export class GraphCreator {
             fillColor = '#3b82f6'; // Blue
             borderColor = '#60a5fa'; // Lighter blue
         } else if (this.visitedVertices.has(vertex)) {
-            // Green for visited vertices during search
-            fillColor = '#10b981';
+            // Enhanced green gradient for visited vertices during search
+            ctx.save();
+            const gradient = ctx.createRadialGradient(drawX, drawY, 0, drawX, drawY, size * 1.5);
+            gradient.addColorStop(0, '#10b981'); // Bright green center
+            gradient.addColorStop(0.7, '#059669'); // Medium green
+            gradient.addColorStop(1, '#047857'); // Dark green edge
+            fillColor = gradient;
             borderColor = '#34d399';
+            
+            // Add pulsing glow effect
+            const time = Date.now() * 0.003;
+            const pulse = Math.sin(time) * 0.3 + 0.7;
+            const glowGradient = ctx.createRadialGradient(drawX, drawY, size, drawX, drawY, size * 2.5);
+            glowGradient.addColorStop(0, `rgba(16, 185, 129, ${0.3 * pulse})`);
+            glowGradient.addColorStop(0.5, `rgba(16, 185, 129, ${0.1 * pulse})`);
+            glowGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, size * 2.5, 0, 2 * Math.PI);
+            ctx.fillStyle = glowGradient;
+            ctx.fill();
         } else if (this.pathVertices.has(vertex)) {
-            // Orange for path vertices during search
-            fillColor = '#f59e0b';
+            // Enhanced orange gradient for path vertices during search
+            ctx.save();
+            const gradient = ctx.createRadialGradient(drawX, drawY, 0, drawX, drawY, size * 1.5);
+            gradient.addColorStop(0, '#f59e0b'); // Bright orange center
+            gradient.addColorStop(0.7, '#d97706'); // Medium orange
+            gradient.addColorStop(1, '#b45309'); // Dark orange edge
+            fillColor = gradient;
             borderColor = '#fbbf24';
+            
+            // Add pulsing glow effect
+            const time = Date.now() * 0.004;
+            const pulse = Math.sin(time) * 0.4 + 0.6;
+            const glowGradient = ctx.createRadialGradient(drawX, drawY, size, drawX, drawY, size * 3);
+            glowGradient.addColorStop(0, `rgba(245, 158, 11, ${0.4 * pulse})`);
+            glowGradient.addColorStop(0.5, `rgba(245, 158, 11, ${0.2 * pulse})`);
+            glowGradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, size * 3, 0, 2 * Math.PI);
+            ctx.fillStyle = glowGradient;
+            ctx.fill();
         } else if (this.distanceModeVertices.includes(vertex)) {
             // Blue for distance mode vertices
             fillColor = '#3b82f6';
@@ -3085,6 +3215,11 @@ export class GraphCreator {
         ctx.strokeStyle = borderColor;
         ctx.lineWidth = 2;
         ctx.stroke();
+        
+        // Restore context for gradient effects
+        if (this.visitedVertices.has(vertex) || this.pathVertices.has(vertex)) {
+            ctx.restore();
+        }
         // Draw vertex label
         const fontSize = (vertex.fontSize || this.vertexFontSize);
         const fontFamily = vertex.fontFamily || this.vertexFontFamily;

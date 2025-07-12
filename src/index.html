@@ -99,37 +99,41 @@
                             <span class="stat-compact-label">Edges</span>
                         </div>
                     </div>
-                    <div class="coordinate-tooltip">
-                        <div class="coordinate-tooltip-label">
-                            <i class="fas fa-mouse-pointer"></i>
-                            Mouse Position
-                        </div>
-                        <div class="coordinate-tooltip-value" id="mouseCoordinates">
-                            (0, 0)
-                        </div>
-                        <div class="coordinate-toggle-container">
-                            <label class="switch-label" for="mouseCoordinateToggle">
-                                <i class="fas fa-eye"></i>
-                                Show Mouse Coordinates
-                                <div class="switch-container">
-                                    <input type="checkbox" id="mouseCoordinateToggle" checked>
-                                    <span class="switch-slider"></span>
-                                </div>
-                            </label>
+
+                </div>
+                
+                <div class="control-section" id="basicControlsSection">
+                    <h3><i class="fas fa-sliders-h"></i> Controls</h3>
+                    
+                    <div class="control-group">
+                        <label class="switch-label" for="mouseCoordinateToggle">
+                            <i class="fas fa-eye"></i>
+                            Show Mouse Coordinates
+                            <div class="switch-container">
+                                <input type="checkbox" id="mouseCoordinateToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                        <div class="coordinate-tooltip">
+                            <div class="coordinate-tooltip-label">
+                                <i class="fas fa-mouse-pointer"></i>
+                                Mouse Position
+                            </div>
+                            <div class="coordinate-tooltip-value" id="mouseCoordinates">
+                                (0, 0)
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="coordinate-grid-controls">
-                        <div class="coordinate-grid-toggle">
-                            <label class="switch-label" for="coordinateGridToggle">
-                                <i class="fas fa-th"></i>
-                                Show Coordinate Grid
-                                <div class="switch-container">
-                                    <input type="checkbox" id="coordinateGridToggle">
-                                    <span class="switch-slider"></span>
-                                </div>
-                            </label>
-                        </div>
+                    <div class="control-group">
+                        <label class="switch-label" for="coordinateGridToggle">
+                            <i class="fas fa-th"></i>
+                            Show Coordinate Grid
+                            <div class="switch-container">
+                                <input type="checkbox" id="coordinateGridToggle">
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
                         <div class="coordinate-grid-density" id="gridDensityContainer" style="display: none;">
                             <label for="gridDensity">
                                 <i class="fas fa-sliders-h"></i>
@@ -140,10 +144,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="control-section" id="basicControlsSection">
-                    <h3><i class="fas fa-sliders-h"></i> Controls</h3>
                     
                     <div class="control-group">
                         <label for="vertexSize">
@@ -303,6 +303,21 @@
                                 <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
                                     <i class="fas fa-recycle"></i>
                                 </button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="animationSpeed">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Animation Speed
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" id="animationSpeed" min="100" max="2000" value="500" step="100" class="slider">
+                                <div class="slider-labels">
+                                    <span>Fast</span>
+                                    <span id="animationSpeedValue">500ms</span>
+                                    <span>Slow</span>
+                                </div>
                             </div>
                         </div>
                         
