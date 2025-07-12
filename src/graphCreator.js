@@ -347,8 +347,9 @@ export class GraphCreator {
         
         // Animation speed slider
         document.getElementById('animationSpeed').addEventListener('input', (e) => {
-            // Direct mapping: left (100) = slow, right (2000) = fast
-            this.animationSpeed = parseInt(e.target.value);
+            // Inverted mapping: left (100) = slow (long delay), right (2000) = fast (short delay)
+            const sliderValue = parseInt(e.target.value);
+            this.animationSpeed = 2100 - sliderValue; // This inverts the range: 100->2000, 2000->100
         });
         
         // Clear target button - this is handled in setupResetTargetBtn()
@@ -2328,6 +2329,35 @@ export class GraphCreator {
         });
     }
     
+    isVertexReachable(startVertex, targetVertex) {
+        if (!startVertex || !targetVertex) return false;
+        if (startVertex.id === targetVertex.id) return true;
+        
+        const adjacencyList = this.getAdjacencyList();
+        const visited = new Set();
+        const queue = [startVertex];
+        
+        visited.add(startVertex.id);
+        
+        while (queue.length > 0) {
+            const current = queue.shift();
+            
+            const neighbors = adjacencyList[current.id] || [];
+            for (const neighbor of neighbors) {
+                if (neighbor.id === targetVertex.id) {
+                    return true; // Found target
+                }
+                
+                if (!visited.has(neighbor.id)) {
+                    visited.add(neighbor.id);
+                    queue.push(neighbor);
+                }
+            }
+        }
+        
+        return false; // Target not reachable
+    }
+    
     async runBFS() {
         if (!this.selectedTargetVertex) {
             this.updateStatus('Please select a target vertex first');
@@ -2357,6 +2387,12 @@ export class GraphCreator {
         const adjacencyList = this.getAdjacencyList();
         if (!adjacencyList[startVertex.id] || adjacencyList[startVertex.id].length === 0) {
             this.updateStatus('Root node must be connected to at least one other node');
+            return;
+        }
+        
+        // Check if target vertex is reachable from start vertex
+        if (!this.isVertexReachable(startVertex, targetVertex)) {
+            this.updateStatus(`Target vertex "${targetVertex.label}" is not reachable from root vertex "${startVertex.label}"`);
             return;
         }
         
@@ -2393,6 +2429,12 @@ export class GraphCreator {
         const adjacencyList = this.getAdjacencyList();
         if (!adjacencyList[startVertex.id] || adjacencyList[startVertex.id].length === 0) {
             this.updateStatus('Root node must be connected to at least one other node');
+            return;
+        }
+        
+        // Check if target vertex is reachable from start vertex
+        if (!this.isVertexReachable(startVertex, targetVertex)) {
+            this.updateStatus(`Target vertex "${targetVertex.label}" is not reachable from root vertex "${startVertex.label}"`);
             return;
         }
         
@@ -2484,10 +2526,11 @@ export class GraphCreator {
                     // Animate edge traversal from current node to neighbor
                     const edge = this.findEdge(current, neighbor);
                     if (edge) {
-                        await this.animateEdgeTraversal(edge);
-                        // After edge traversal completes, mark the neighbor as visited
-                        this.visitedVertices.add(neighbor);
-                        this.draw();
+                        await this.animateEdgeTraversal(edge, null, () => {
+                            // Only mark the neighbor as visited when the waterfall reaches it
+                            this.visitedVertices.add(neighbor);
+                            this.draw();
+                        });
                         await this.sleep();
                     }
                 }
@@ -2539,10 +2582,11 @@ export class GraphCreator {
                     // Animate edge traversal from current node to neighbor
                     const edge = this.findEdge(current, neighbor);
                     if (edge) {
-                        await this.animateEdgeTraversal(edge);
-                        // After edge traversal completes, mark the neighbor as visited
-                        this.visitedVertices.add(neighbor);
-                        this.draw();
+                        await this.animateEdgeTraversal(edge, null, () => {
+                            // Only mark the neighbor as visited when the waterfall reaches it
+                            this.visitedVertices.add(neighbor);
+                            this.draw();
+                        });
                         await this.sleep();
                     }
                     
@@ -2636,7 +2680,7 @@ export class GraphCreator {
         return new Promise(resolve => setTimeout(resolve, delay));
     }
     
-    async animateEdgeTraversal(edge, duration = null) {
+    async animateEdgeTraversal(edge, duration = null, onComplete = null) {
         if (!edge) return;
         
         this.currentTraversalEdge = edge;
@@ -2657,6 +2701,11 @@ export class GraphCreator {
         this.visitedEdges.add(edge);
         this.currentTraversalEdge = null;
         this.traversalProgress = 0;
+        
+        // Call the completion callback if provided
+        if (onComplete) {
+            onComplete();
+        }
     }
     
 
