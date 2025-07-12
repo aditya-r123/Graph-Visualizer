@@ -1106,7 +1106,7 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .right-sidebar-content::-webkit-scrollbar {
@@ -2401,7 +2401,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -2467,7 +2467,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
