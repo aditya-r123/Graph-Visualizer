@@ -63,8 +63,8 @@ export class GraphCreator {
         // Theme and styling
         this.currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
         this.vertexSize = 25;
-        this.vertexColor = '#6b7280'; // Dark gray instead of blue
-        this.vertexBorderColor = '#4b5563'; // Darker gray border
+        this.vertexColor = '#374151'; // Darker gray for better contrast
+        this.vertexBorderColor = '#1f2937'; // Even darker border
         this.vertexFontSize = 14;
         this.vertexFontFamily = 'Inter, sans-serif';
         this.vertexFontColor = '#ffffff'; // White text for contrast
@@ -178,11 +178,11 @@ export class GraphCreator {
         this.holdStartTime = null;
         this.holdProgressVertex = null;
         this.holdProgress = 0;
+        this.holdTimerWasActive = false; // Reset the flag when clearing progress
         if (this.holdProgressAnimation) {
             cancelAnimationFrame(this.holdProgressAnimation);
             this.holdProgressAnimation = null;
         }
-        // Don't reset holdTimerWasActive here - it should persist until the next mouse down
         this.draw(); // Redraw to clear the glow effect
     }
     
@@ -1529,8 +1529,8 @@ export class GraphCreator {
             return;
         }
         
-        // Left click on vertex - just select it, no edge creation
-        this.updateStatus(`Selected vertex "${vertex.label}"`);
+        // Left click on vertex - set as target and show status
+        this.updateStatus(`Target vertex set to "${vertex.label}"`);
     }
     
     handleDistanceModeClick(vertex) {
@@ -1599,6 +1599,11 @@ export class GraphCreator {
                 return;
             }
             
+            // Only handle left mouse button (button 0) for dragging and edit mode
+            if (e.button !== 0) {
+                return;
+            }
+            
             // Allow dragging even if vertex is selected for edge creation
             // Clear edge selection when starting to drag
             if (this.selectedVertices.includes(vertex)) {
@@ -1621,7 +1626,7 @@ export class GraphCreator {
             document.addEventListener('mousemove', this.globalMouseMoveHandler);
             document.addEventListener('mouseup', this.globalMouseUpHandler);
             
-            // Start edit mode timer
+            // Start edit mode timer (only for left mouse button)
             this.startEditModeTimer(vertex);
             
             // Prevent default to avoid text selection
