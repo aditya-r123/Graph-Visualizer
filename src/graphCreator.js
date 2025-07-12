@@ -63,8 +63,8 @@ export class GraphCreator {
         // Theme and styling
         this.currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
         this.vertexSize = 25;
-        this.vertexColor = '#374151'; // Darker gray for better contrast
-        this.vertexBorderColor = '#1f2937'; // Even darker border
+        this.vertexColor = '#1f2937'; // Much darker gray for maximum contrast
+        this.vertexBorderColor = '#111827'; // Very dark border
         this.vertexFontSize = 14;
         this.vertexFontFamily = 'Inter, sans-serif';
         this.vertexFontColor = '#ffffff'; // White text for contrast
@@ -306,9 +306,8 @@ export class GraphCreator {
         if (gridDensitySlider) {
             gridDensitySlider.addEventListener('input', (e) => {
                 this.gridDensity = parseInt(e.target.value);
-                document.getElementById('gridDensityValue').textContent = this.gridDensity;
                 this.updateGridSpacing();
-                this.forceRedraw(); // Redraw to update grid
+                this.draw(); // Redraw to update grid
             });
         } else {
             console.error('Grid density slider not found!');
@@ -3782,21 +3781,6 @@ export class GraphCreator {
             ctx.moveTo(0, y);
             ctx.lineTo(width, y);
             ctx.stroke();
-        }
-        
-        // Draw coordinate labels at grid intersections (every 5th line for readability)
-        if (this.gridSpacing >= 30) { // Only show labels if grid is not too dense
-            ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
-            ctx.font = '10px Inter';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-            
-            for (let x = this.gridSpacing * 5; x <= width; x += this.gridSpacing * 5) {
-                for (let y = this.gridSpacing * 5; y <= height; y += this.gridSpacing * 5) {
-                    // Display top-left origin coordinates
-                    ctx.fillText(`${x}, ${y}`, x + 2, y + 2);
-                }
-            }
         }
     }
     

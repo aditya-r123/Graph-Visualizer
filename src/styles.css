@@ -186,6 +186,8 @@ body {
     font-size: 1.25rem;
 }
 
+
+
 .theme-toggle {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
