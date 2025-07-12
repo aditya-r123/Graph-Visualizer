@@ -2496,6 +2496,16 @@ export class GraphCreator {
     updateInfo() {
         document.getElementById('vertexCount').textContent = this.vertices.length;
         document.getElementById('edgeCount').textContent = this.edges.length;
+        
+        // Hide/show delete nodes button based on vertex count
+        const deleteNodesBtn = document.getElementById('deleteNodesBtn');
+        if (deleteNodesBtn) {
+            if (this.vertices.length === 0) {
+                deleteNodesBtn.style.display = 'none';
+            } else {
+                deleteNodesBtn.style.display = 'block';
+            }
+        }
     }
     
     updateStatus(message) {
