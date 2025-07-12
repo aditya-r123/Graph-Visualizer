@@ -153,6 +153,37 @@ body {
     color: var(--text-primary);
 }
 
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.help-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.5rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.help-btn:hover {
+    background: var(--border-color);
+    transform: scale(1.05);
+    color: var(--primary-color);
+}
+
+.help-btn i {
+    font-size: 1.25rem;
+}
+
 .theme-toggle {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
@@ -1768,6 +1799,50 @@ body {
     transform: scale(1.1);
 }
 
+.btn-outline-danger {
+    background: transparent;
+    border: 2px solid var(--danger-color);
+    color: var(--danger-color);
+    transition: var(--transition);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-outline-danger::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.btn-outline-danger:hover {
+    background: var(--danger-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--danger-color);
+}
+
+.btn-outline-danger:hover::before {
+    left: 100%;
+}
+
+.btn-outline-danger i {
+    margin-right: 0.5rem;
+    transition: var(--transition);
+}
+
+.btn-outline-danger:hover i {
+    transform: scale(1.1);
+}
+
 /* Contact Modal Styles */
 #contactModal .modal-content {
     background: var(--bg-card);
@@ -1878,3 +1953,222 @@ body {
         font-size: 0.8rem;
     }
 } 
+
+/* Theme toggle container */
+.theme-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+    padding: 0.5rem;
+}
+
+.theme-toggle-container .theme-toggle {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle-container .theme-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-color: var(--primary-color);
+}
+
+/* Delete mode styling */
+.delete-mode-active .vertex {
+    position: relative;
+}
+
+.delete-button {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background: #ef4444;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 10px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.delete-button:hover {
+    background: #dc2626;
+    transform: scale(1.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.delete-button::before {
+    content: "×";
+    line-height: 1;
+}
+
+/* Delete mode canvas styling */
+.delete-mode-active #graphCanvas {
+    cursor: crosshair;
+}
+
+.delete-mode-active .vertex:hover {
+    cursor: pointer;
+}
+
+/* Statistics section styling to match other control sections */
+#infoSection {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#infoSection h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#infoSection h3 i {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.stats-compact {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-around;
+}
+
+.stat-compact-item {
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    min-width: 60px;
+    transition: all 0.2s ease;
+}
+
+.stat-compact-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.stat-compact-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.stat-compact-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+/* Delete Mode Panel Styling */
+#deleteModePanel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#deleteModePanel h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#deleteModePanel h3 i {
+    color: #ef4444;
+    font-size: 0.9rem;
+}
+
+.delete-mode-info {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.delete-mode-info-text {
+    color: #ef4444;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.selected-vertices-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.selected-vertex-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(236, 72, 153, 0.1);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.selected-vertex-item:last-child {
+    margin-bottom: 0;
+}
+
+.selected-vertex-item i {
+    color: #ec4899;
+    font-size: 0.8rem;
+}
+
+.selected-vertex-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.vertex-coords {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-left: auto;
+}

@@ -20,6 +20,15 @@
                     <i class="fas fa-project-diagram"></i>
                     <h1>Graph Creator Pro</h1>
                 </div>
+                <div class="header-buttons">
+                    <button id="helpBtn" class="help-btn" title="Show Help">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Theme Toggle moved here -->
+            <div class="theme-toggle-container">
                 <button id="themeToggle" class="theme-toggle" title="Toggle theme">
                     <div class="theme-icon">
                         <!-- Sun (visible in dark theme) -->
@@ -77,7 +86,8 @@
                     </div>
                     <span class="scroll-text">More options</span>
                 </div>
-                <div class="info-section" id="infoSection">
+                
+                <div class="control-section" id="infoSection">
                     <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
                     <div class="stats-compact">
                         <div class="stat-compact-item">
@@ -114,25 +124,6 @@
                         <small>Leave empty for auto-labeling</small>
                     </div>
                     
-                    <div class="control-group" id="editLabelGroup" style="display: none;">
-                        <label for="editVertexLabel">
-                            <i class="fas fa-edit"></i>
-                            Edit Vertex Label
-                        </label>
-                        <div class="edit-label-container">
-                            <input type="text" id="editVertexLabel" placeholder="Enter new label" maxlength="10">
-                            <div class="edit-label-buttons">
-                                <button id="saveLabelBtn" class="btn btn-sm btn-success" title="Save label">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button id="cancelLabelBtn" class="btn btn-sm btn-secondary" title="Cancel">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <small>Editing: <span id="editingVertexLabel"></span></small>
-                    </div>
-                    
                     <div class="control-group">
                         <label for="edgeWeight">
                             <i class="fas fa-weight-hanging"></i>
@@ -163,6 +154,14 @@
                             <option value="directed-backward">Directed (←)</option>
                         </select>
                     </div>
+                    
+                    <!-- Delete Nodes Mode Controls -->
+                    <div class="button-group" id="deleteNodesControls">
+                        <button id="deleteNodesBtn" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                            Delete Nodes
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="control-section" id="editControlsSection" style="display: none;">
@@ -185,6 +184,15 @@
                                 <span id="editVertexSizeValue">25</span>
                             </div>
                         </div>
+                        <div class="control-group">
+                            <label class="checkbox-label" for="applyToAllToggle">
+                                <i class="fas fa-copy"></i>
+                                Apply to All Vertices
+                                <input type="checkbox" id="applyToAllToggle">
+                                <span class="checkmark"></span>
+                            </label>
+                            <small>Apply these changes to all vertices in the graph</small>
+                        </div>
                         <div class="button-group mt-3">
                             <button type="submit" id="saveVertexEdit" class="btn btn-success">
                                 <i class="fas fa-check"></i> Save
@@ -192,8 +200,40 @@
                             <button type="button" id="cancelVertexEdit" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancel
                             </button>
+                            <button type="button" id="deleteCurrentVertex" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Current Node
+                            </button>
                         </div>
                     </form>
+                </div>
+                
+                <div class="control-section" id="deleteModePanel" style="display: none;">
+                    <h3><i class="fas fa-trash"></i> Delete Mode</h3>
+                    <div class="delete-mode-info">
+                        <div class="delete-mode-info-text">
+                            Delete Mode Active - 0 of 0 vertices selected for deletion
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>
+                            <i class="fas fa-list"></i>
+                            Selected Vertices
+                        </label>
+                        <div class="selected-vertices-list">
+                            <!-- Selected vertices will be populated here -->
+                        </div>
+                        <small>Click on red X buttons or vertices to select/deselect them for deletion</small>
+                    </div>
+                    <div class="button-group mt-3">
+                        <button id="saveDeleteChanges" class="btn btn-success">
+                            <i class="fas fa-check"></i>
+                            Save Changes
+                        </button>
+                        <button id="cancelDeleteChanges" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="control-section" id="searchSection">
@@ -266,6 +306,10 @@
                     </div>
                     
                     <div class="button-group">
+                        <button id="newGraph" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            New Graph
+                        </button>
                         <button id="saveGraph" class="btn btn-success">
                             <i class="fas fa-save"></i>
                             Save Graph
@@ -280,19 +324,36 @@
                         </button>
                     </div>
                     
+                    <div class="control-group">
+                        <label for="screenshotFormat">
+                            <i class="fas fa-image"></i>
+                            Screenshot Format
+                        </label>
+                        <select id="screenshotFormat">
+                            <option value="jpg">JPG (Smaller file)</option>
+                            <option value="png">PNG (Better quality)</option>
+                        </select>
+                    </div>
+                    
                     <div class="saved-graphs">
                         <h4><i class="fas fa-history"></i> Recent Graphs</h4>
                         <div id="savedGraphsList" class="saved-graphs-list">
                             <!-- Saved graphs will be populated here -->
                         </div>
+                        <div class="button-group mt-3">
+                            <button id="deleteAllGraphs" class="btn btn-outline-danger">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete All Saved Graphs
+                            </button>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="control-section" id="clearSection">
-                    <button id="clearGraph" class="btn btn-danger w-100">
-                        <i class="fas fa-trash"></i>
-                        Clear Graph
-                    </button>
+                    
+                    <div class="button-group mt-3">
+                        <button id="clearGraph" class="btn btn-danger w-100">
+                            <i class="fas fa-trash"></i>
+                            Reset Graph
+                        </button>
+                    </div>
                 </div>
             </div>
         </aside>

@@ -1,40 +1,70 @@
 # Graph Creator Pro
 
-A modern, interactive web application for creating, visualizing, and analyzing graphs with an intuitive interface.
+A powerful, interactive web application for creating, visualizing, and analyzing graphs with an intuitive drag-and-drop interface.
 
-## ✨ Features
+## 🌟 Features
 
-### 🎯 Core Functionality
-- **Interactive Graph Creation**: Click to add vertices, drag to reposition
-- **Edge Management**: Create edges between vertices with various types and weights
-- **Real-time Editing**: Edit vertex labels and sizes with immediate visual feedback
-- **Search Algorithms**: BFS and DFS with visual animations
-- **Distance Calculator**: Measure shortest path distances between vertices
+### Core Functionality
+- **Interactive Graph Creation**: Click to add vertices, drag to move them, and create edges between vertices
+- **Real-time Visualization**: Smooth animations and visual feedback for all interactions
+- **Multiple Edge Types**: Support for straight and curved edges, directed and undirected graphs
+- **Edge Weights**: Add numerical weights to edges for weighted graph analysis
+- **Vertex Labels**: Custom labels or auto-generated labels for vertices
 
-### 💾 Save & Load System
-- **Auto-Save**: Automatic graph saving with toggle control
-- **Manual Save**: Save graphs with custom timestamps
-- **Load Graphs**: Browse and load previously saved graphs
-- **Recent Graphs**: Quick access to last 10 saved graphs
-- **Screenshot Capture**: High-quality graph screenshots
+### Advanced Editing
+- **Edit Mode**: Click and hold vertices to enter edit mode with comprehensive controls
+- **Apply to All**: Apply changes to all vertices simultaneously (size, label, etc.)
+- **Pending Deletion**: Mark vertices for deletion with visual preview before confirming
+- **Delete Mode**: Dedicated deletion mode with red X buttons on vertices
+- **Visual Feedback**: Fade effects and color changes for pending deletions
 
-### 🎨 User Interface
+### Search & Analysis
+- **Breadth-First Search (BFS)**: Animated BFS traversal with visual path highlighting
+- **Depth-First Search (DFS)**: Animated DFS traversal with step-by-step visualization
+- **Distance Calculation**: Calculate shortest path distances between any two vertices
+- **Target Selection**: Interactive target vertex selection with visual indicators
+- **Collapsible Search Panel**: Expandable search algorithms section
+
+### Save & Load System
+- **Auto-Save**: Automatic saving when adding vertices/edges (toggleable)
+- **Manual Save/Load**: Save graphs with custom names and timestamps
+- **Recent Graphs**: Quick access to recently saved graphs with click-to-load
+- **Graph Management**: Delete individual graphs or all saved graphs
+- **File Import/Export**: Load graphs from JSON files and export current graphs
+
+### Screenshot & Export
+- **High-Quality Screenshots**: Capture graphs in JPG or PNG format
+- **Full Graph Data**: Screenshots include all vertex and edge information
+- **Custom Format Selection**: Choose between smaller JPG files or higher quality PNG
+
+### User Interface
+- **Modern Design**: Clean, responsive interface with Bootstrap styling
 - **Dark/Light Theme**: Toggle between themes with animated sun/moon icons
-- **Responsive Design**: Works on desktop, tablet, and mobile
-- **Collapsible Sections**: Organized control panels
-- **Status Bar**: Real-time updates and system information
+- **Eye Tracking**: Interactive sun/moon icons that follow your mouse
+- **Collapsible Sections**: Expandable search algorithms panel
+- **Smart Scroll Indicator**: "More options" indicator that disappears after 150px of scrolling
+- **Status Bar**: Real-time status updates, local time, and contact information
+- **Contact Modal**: Built-in contact form for feedback and support
+
+### Accessibility & UX
+- **Keyboard Navigation**: Full keyboard support for all operations
+- **Visual Feedback**: Shake animations, color changes, and hover effects
+- **Responsive Design**: Works on desktop and tablet devices
+- **Intuitive Controls**: Clear visual cues and helpful tooltips
+- **Error Handling**: Graceful error handling with user-friendly messages
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js (v14 or higher)
-- npm (v6 or higher)
+- npm or yarn
 
 ### Installation
+
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/aditya-r123/Graph-Visualizer.git
-   cd Graph-Visualizer
+   git clone https://github.com/yourusername/graph-creator.git
+   cd graph-creator
    ```
 
 2. **Install dependencies**
@@ -42,80 +72,108 @@ A modern, interactive web application for creating, visualizing, and analyzing g
    npm install
    ```
 
-3. **Build the project**
-   ```bash
-   npm run build
-   ```
-
-4. **Start the server**
+3. **Start the development server**
    ```bash
    npm start
    ```
 
-5. **Open your browser**
+4. **Open your browser**
    Navigate to `http://localhost:3002`
 
-## 📖 Quick Usage Guide
+### Building for Production
 
-### Creating Graphs
-1. **Add Vertices**: Left-click anywhere on the canvas
-2. **Move Vertices**: Drag vertices to reposition them
-3. **Create Edges**: Double-click two vertices to connect them
-4. **Edit Vertices**: Hold left-click on a vertex for 2 seconds to enter edit mode
+```bash
+npm run build
+```
 
-### Graph Controls
-- **Vertex Size**: Use the slider to adjust vertex size (15-60px)
-- **Vertex Labels**: Type custom labels or leave empty for auto-labeling
-- **Edge Weight**: Enter numerical weights for edges
-- **Edge Type**: Choose between straight and curved edges
-- **Edge Direction**: Select undirected or directed edges
+## 🎯 How to Use
+
+### Basic Operations
+- **Add Vertex**: Left-click anywhere on the canvas
+- **Move Vertex**: Drag vertices to reposition them
+- **Create Edge**: Double-click two vertices to connect them
+- **Edit Vertex**: Click and hold a vertex to enter edit mode
+- **Delete Vertex**: Use edit mode or dedicated delete mode
+
+### Edit Mode Features
+- **Label Editing**: Change vertex labels with immediate visual feedback
+- **Size Adjustment**: Modify vertex size with live preview
+- **Apply to All**: Check the "Apply to All Vertices" option to modify all vertices
+- **Pending Deletion**: Mark vertices for deletion with visual preview
+- **Save/Cancel**: Confirm changes or revert to original state
 
 ### Search Algorithms
-1. **Select Target**: Click the target vertex display to select a vertex
-2. **Run Search**: Click "Run BFS" or "Run DFS" to start visualization
-3. **Watch Animation**: Observe the search process with color-coded vertices
+- **Select Target**: Click the target selection area to choose a vertex
+- **Run BFS/DFS**: Click the respective buttons to start animated traversal
+- **Stop Search**: Interrupt ongoing searches at any time
+- **Calculate Distance**: Measure shortest path between two vertices
 
-### Saving & Loading
-- **Auto-Save**: Toggle on/off in the Save & Load section
-- **Manual Save**: Click "Save Graph" to save with timestamp
-- **Load Graph**: Click "Load Graph" to browse saved graphs
-- **Recent Graphs**: Click on any recent graph to load it instantly
+### Save & Load
+- **Auto-Save**: Toggle automatic saving in the Save & Load section
+- **Manual Save**: Click "Save Graph" to save with custom name
+- **Load Graph**: Click "Load Graph" or click on recent graphs
+- **Screenshot**: Capture current graph state in your preferred format
 
-## 🛠️ Technical Stack
+## 🛠️ Technical Details
 
-- **Backend**: Node.js with Express.js
-- **Frontend**: Vanilla JavaScript with HTML5 Canvas
-- **Build Tool**: Webpack
-- **Styling**: CSS3 with CSS Grid and Flexbox
-- **Icons**: Font Awesome
+### Architecture
+- **Frontend**: Vanilla JavaScript with ES6 modules
+- **Build System**: Webpack with production optimization
+- **Styling**: CSS3 with custom properties for theming
+- **Server**: Express.js for development and production serving
 
-## 🎯 Key Features
+### Key Components
+- **GraphCreator Class**: Main application logic and canvas management
+- **Event System**: Comprehensive event handling for user interactions
+- **Animation Engine**: Smooth animations for search algorithms and UI feedback
+- **Storage System**: Local storage for graph persistence
+- **Theme System**: Dynamic theme switching with CSS custom properties
 
-### Edit Mode
-- Hold left-click on vertex for 2 seconds to enter edit mode
-- Edit label and size with real-time updates
-- Save or cancel changes
+### Performance Features
+- **Canvas Optimization**: Efficient rendering with requestAnimationFrame
+- **Event Delegation**: Optimized event handling for large graphs
+- **Memory Management**: Proper cleanup of animations and event listeners
+- **Lazy Loading**: On-demand loading of non-critical features
 
-### Search Visualization
-- Color-coded vertices (visited: blue, path: green)
-- Step-by-step animation with delays
-- Shows shortest path when target is found
+## 🎨 Customization
 
-### Auto-Save System
-- Silent operation with no status messages
-- Only saves when modifications are made
-- Toggle control available
+### Themes
+The application supports dynamic theme switching with custom CSS properties:
+- Dark theme: Modern dark interface with high contrast
+- Light theme: Clean light interface with subtle shadows
 
-## 🔧 Development
+### Styling
+All visual elements can be customized through CSS:
+- Vertex colors, sizes, and fonts
+- Edge styles, colors, and thickness
+- UI component styling and animations
+- Responsive breakpoints and layouts
 
-### Available Scripts
-- `npm start`: Start the development server
-- `npm run build`: Build for production
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Author
 
-**Aditya Rao** - [GitHub](https://github.com/aditya-r123)
+**Aditya Rao**
+- LinkedIn: [Aditya Rao](https://www.linkedin.com/in/-aditya-rao/)
+- Contact: Available through the in-app contact form
 
-## 📄 License
+## 🙏 Acknowledgments
 
-This project is licensed under the MIT License. 
+- Bootstrap for the responsive UI framework
+- Font Awesome for the comprehensive icon library
+- The graph theory community for inspiration and algorithms
+- All contributors and users who provided feedback and suggestions
+
+---
+
+**Graph Creator Pro** - Where creativity meets graph theory! 🚀 

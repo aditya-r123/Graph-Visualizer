@@ -52,6 +52,12 @@ export class GraphCreator {
         this.distanceFlashingVertices = null;
         this.flashTimer = null;
         
+        // Delete mode properties
+        this.isDeleteMode = false;
+        this.verticesToDelete = new Set();
+        this.originalVertices = [];
+        this.originalEdges = [];
+        
         // Styling properties
         this.vertexColor = '#1e293b';
         this.vertexBorderColor = '#475569';
@@ -155,6 +161,15 @@ export class GraphCreator {
             this.toggleTheme();
         });
         
+        // Help button
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            if (window.showInstructionsModal) {
+                window.showInstructionsModal();
+            } else {
+                console.error('showInstructionsModal function not found');
+            }
+        });
+        
         // Search controls
         document.getElementById('runBFS').addEventListener('click', () => {
             this.runBFS();
@@ -182,9 +197,19 @@ export class GraphCreator {
         });
         
         // Save/Load controls
+        const newGraphBtn = document.getElementById('newGraph');
         const saveGraphBtn = document.getElementById('saveGraph');
         const loadGraphBtn = document.getElementById('loadGraph');
         const takeScreenshotBtn = document.getElementById('takeScreenshot');
+        
+        if (newGraphBtn) {
+            newGraphBtn.addEventListener('click', () => {
+                console.log('New Graph button clicked');
+                this.createNewGraph();
+            });
+        } else {
+            console.error('New Graph button not found!');
+        }
         
         if (saveGraphBtn) {
             saveGraphBtn.addEventListener('click', () => {
@@ -213,32 +238,53 @@ export class GraphCreator {
             console.error('Take Screenshot button not found!');
         }
         
+        // Delete all saved graphs button
+        const deleteAllGraphsBtn = document.getElementById('deleteAllGraphs');
+        if (deleteAllGraphsBtn) {
+            deleteAllGraphsBtn.addEventListener('click', () => {
+                this.deleteAllSavedGraphs();
+            });
+        } else {
+            console.error('Delete All Graphs button not found!');
+        }
+        
+        // Delete nodes mode controls
+        const deleteNodesBtn = document.getElementById('deleteNodesBtn');
+        const saveDeleteChangesBtn = document.getElementById('saveDeleteChanges');
+        const cancelDeleteChangesBtn = document.getElementById('cancelDeleteChanges');
+        
+        if (deleteNodesBtn) {
+            deleteNodesBtn.addEventListener('click', () => {
+                this.enterDeleteMode();
+            });
+        } else {
+            console.error('Delete Nodes button not found!');
+        }
+        
+        if (saveDeleteChangesBtn) {
+            saveDeleteChangesBtn.addEventListener('click', () => {
+                this.saveDeleteChanges();
+            });
+        } else {
+            console.error('Save Delete Changes button not found!');
+        }
+        
+        if (cancelDeleteChangesBtn) {
+            cancelDeleteChangesBtn.addEventListener('click', () => {
+                this.cancelDeleteChanges();
+            });
+        } else {
+            console.error('Cancel Delete Changes button not found!');
+        }
+        
         // File input for loading
         document.getElementById('loadFileInput').addEventListener('change', (e) => {
             this.handleFileLoad(e);
         });
         
-        // Edit label controls
-        document.getElementById('saveLabelBtn').addEventListener('click', () => {
-            this.saveVertexLabel();
-        });
-        
-        document.getElementById('cancelLabelBtn').addEventListener('click', () => {
-            this.cancelVertexLabelEdit();
-        });
-        
-        // Enter key to save label, Escape to cancel
-        document.getElementById('editVertexLabel').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.saveVertexLabel();
-            }
-        });
-        
-        // Global escape key listener for canceling label edit
+        // Global escape key listener for canceling edit mode
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.editingVertex) {
-                this.cancelVertexLabelEdit();
-            } else if (e.key === 'Escape' && this.editModeElement) {
+            if (e.key === 'Escape' && this.editModeElement) {
                 this.exitEditMode();
             }
         });
@@ -379,10 +425,6 @@ export class GraphCreator {
     // Save the current graph (update if editing, otherwise new)
     saveGraph(isAutoSave = false) {
         console.log('saveGraph function called', isAutoSave ? '(auto-save)' : '(manual)');
-        if (this.vertices.length === 0) {
-            this.updateStatus('No graph to save');
-            return;
-        }
         
         // If editing a loaded/saved graph, update it; otherwise, create new
         let currentId = this.currentGraphId;
@@ -488,13 +530,13 @@ export class GraphCreator {
     }
     
     saveCurrentGraphAndLoadSpecific(targetGraph) {
-        // First save the current graph
+        // First save the current graph to localStorage without adding to savedGraphs list
         const graphData = this.exportGraph();
         const timestamp = new Date().toISOString();
         const name = this.getTimestampString();
         
-        const savedGraph = {
-            id: Date.now(), // New graph gets a unique id
+        const currentGraphData = {
+            id: this.currentGraphId || Date.now(),
             name: name,
             data: graphData,
             timestamp: timestamp,
@@ -502,20 +544,13 @@ export class GraphCreator {
             edges: this.edges.length
         };
         
-        // Add to saved graphs
-        this.savedGraphs.unshift(savedGraph);
-        if (this.savedGraphs.length > 10) {
-            this.savedGraphs = this.savedGraphs.slice(0, 10);
-        }
-        
-        // Save to localStorage
+        // Save to localStorage as a temporary backup (not in savedGraphs list)
         try {
-            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
-            this.updateSavedGraphsList();
-            this.updateStatus('Current graph saved before loading new graph');
+            localStorage.setItem('graph_temp_backup', JSON.stringify(currentGraphData));
+            this.updateStatus('Current graph backed up before loading new graph');
         } catch (error) {
-            console.error('Failed to save graph:', error);
-            this.updateStatus('Failed to save current graph');
+            console.error('Failed to backup current graph:', error);
+            this.updateStatus('Failed to backup current graph');
         }
         
         // Now load the target graph
@@ -575,19 +610,23 @@ export class GraphCreator {
             console.log('Drawing edges...');
             this.edges.forEach((edge, index) => {
                 console.log(`Drawing edge ${index}:`, edge.from.label, '->', edge.to.label);
-                this.drawSimpleEdge(tempCtx, edge);
+                this.drawEdgeForScreenshot(tempCtx, edge);
             });
             
             // Draw vertices on top
             console.log('Drawing vertices...');
             this.vertices.forEach((vertex, index) => {
                 console.log(`Drawing vertex ${index}:`, vertex.label, 'at', vertex.x, vertex.y);
-                this.drawSimpleVertex(tempCtx, vertex);
+                this.drawVertexForScreenshot(tempCtx, vertex);
             });
             
             console.log('Starting blob conversion...');
             
-            // Convert to blob and download as JPG
+            // Get the selected format
+            const formatSelect = document.getElementById('screenshotFormat');
+            const format = formatSelect ? formatSelect.value : 'jpg';
+            
+            // Convert to blob and download
         tempCanvas.toBlob((blob) => {
                 console.log('Blob callback executed, blob:', blob);
                 if (blob) {
@@ -596,20 +635,20 @@ export class GraphCreator {
                     console.log('Created object URL:', url);
             const a = document.createElement('a');
             a.href = url;
-                    a.download = `graph-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.jpg`;
+                    a.download = `graph-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`;
                     a.style.display = 'none';
             document.body.appendChild(a);
                     console.log('Triggering download...');
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-                    this.updateStatus('Screenshot saved as JPG!');
+                    this.updateStatus(`Screenshot saved as ${format.toUpperCase()}!`);
                     console.log('Screenshot downloaded successfully');
                 } else {
                     console.error('Failed to create blob for screenshot');
                     this.updateStatus('Failed to create screenshot');
                 }
-            }, 'image/jpeg', 0.9); // Save as JPG with 90% quality
+            }, format === 'png' ? 'image/png' : 'image/jpeg', format === 'png' ? 1.0 : 0.9);
             
             console.log('toBlob called, waiting for callback...');
         } catch (error) {
@@ -1052,6 +1091,7 @@ export class GraphCreator {
                 x: v.x,
                 y: v.y,
                 label: v.label,
+                size: v.size,
                 color: v.color,
                 borderColor: v.borderColor,
                 fontSize: v.fontSize,
@@ -1104,6 +1144,7 @@ export class GraphCreator {
             x: v.x,
             y: v.y,
             label: v.label,
+            size: v.size,
             color: v.color,
             borderColor: v.borderColor,
             fontSize: v.fontSize,
@@ -1154,7 +1195,6 @@ export class GraphCreator {
                 themeToggle.title = 'Switch to light mode';
             }
         }
-        document.getElementById('editLabelGroup').style.display = 'none';
         this.lastSavedState = JSON.stringify({
             vertices: this.vertices.map(v => ({ id: v.id, x: v.x, y: v.y, label: v.label })),
             edges: this.edges.map(e => ({ from: e.from.id, to: e.to.id, weight: e.weight, type: e.type, direction: e.direction, controlPoint: e.controlPoint })),
@@ -1209,6 +1249,12 @@ export class GraphCreator {
     
     handleCanvasClick(e) {
         const pos = this.getMousePos(e);
+        
+        // Check for delete button clicks first
+        if (this.handleDeleteButtonClick(pos)) {
+            return;
+        }
+        
         const clickedVertex = this.getVertexAt(pos.x, pos.y);
         const clickedEdge = this.getEdgeAt(pos.x, pos.y);
 
@@ -1217,14 +1263,18 @@ export class GraphCreator {
             return;
         }
 
-        // Automatically set target vertex when clicking on a vertex
+        // Prevent interactions during edit mode or delete mode
+        if (this.editModeElement || this.isDeleteMode) {
+            return;
+        }
+
+        // Handle vertex clicks
         if (clickedVertex) {
+            // Set target vertex
             this.selectTargetVertex(clickedVertex);
             
             if (this.isDistanceMode) {
                 this.handleDistanceModeClick(clickedVertex);
-            } else if (this.editModeElement === clickedVertex && this.editModeType === 'vertex') {
-                // Already in edit mode for this vertex, do nothing (edit mode UI is in sidebar)
             }
             // Otherwise, do nothing
             return;
@@ -1236,6 +1286,12 @@ export class GraphCreator {
     
     handleRightClick(e) {
         e.preventDefault();
+        
+        // Prevent edge creation during edit mode or delete mode
+        if (this.editModeElement || this.isDeleteMode) {
+            return;
+        }
+        
         const pos = this.getMousePos(e);
         const clickedVertex = this.getVertexAt(pos.x, pos.y);
         
@@ -1362,11 +1418,10 @@ export class GraphCreator {
         const vertex = this.getVertexAt(pos.x, pos.y);
         
         if (vertex) {
-            // Start long-press timer for edit mode
-            this.longPressTimer = setTimeout(() => {
-                this.enterEditMode(vertex);
-                this.updateStatus(`Editing vertex "${vertex.label}"`);
-            }, 500); // 500ms hold time
+            // Prevent dragging during edit mode or delete mode
+            if (this.editModeElement || this.isDeleteMode) {
+                return;
+            }
             
             // Set up for dragging
             this.draggedVertex = vertex;
@@ -1374,7 +1429,20 @@ export class GraphCreator {
             this.dragStartX = pos.x;
             this.dragStartY = pos.y;
             this.canvas.style.cursor = 'grabbing';
-            // Remove status message for dragging
+            
+            // Add drag detection properties
+            this.dragThreshold = 10; // pixels - if moved more than this, it's a drag
+            this.hasDragged = false;
+            this.dragStartTime = Date.now();
+            
+            // Start long-press timer for edit mode
+            this.longPressTimer = setTimeout(() => {
+                // Only enter edit mode if we haven't dragged significantly and not already in edit mode
+                if (!this.hasDragged && !this.editModeElement) {
+                    this.enterEditMode(vertex);
+                    this.updateStatus(`Editing vertex "${vertex.label}"`);
+                }
+            }, 1500); // 1.5 seconds hold time
             
             // Set the dragged vertex as the target
             this.selectTargetVertex(vertex);
@@ -1384,6 +1452,23 @@ export class GraphCreator {
     handleMouseMove(e) {
         if (this.isDragging && this.draggedVertex) {
             const pos = this.getMousePos(e);
+            
+            // Check if we've dragged beyond the threshold
+            const dragDistance = Math.sqrt(
+                Math.pow(pos.x - this.dragStartX, 2) + 
+                Math.pow(pos.y - this.dragStartY, 2)
+            );
+            
+            if (dragDistance > this.dragThreshold && !this.hasDragged) {
+                this.hasDragged = true;
+                // Cancel the edit mode timer if we're dragging
+                if (this.longPressTimer) {
+                    clearTimeout(this.longPressTimer);
+                    this.longPressTimer = null;
+                }
+            }
+            
+            // Update vertex position
             this.draggedVertex.x = pos.x;
             this.draggedVertex.y = pos.y;
             
@@ -1423,7 +1508,11 @@ export class GraphCreator {
             this.isDragging = false;
             this.draggedVertex = null;
             this.canvas.style.cursor = 'crosshair';
-            // Remove status message for vertex movement
+            
+            // Clean up drag detection properties
+            this.hasDragged = false;
+            this.dragThreshold = null;
+            this.dragStartTime = null;
         }
         
         if (this.isDraggingEdge && this.draggedEdge) {
@@ -1434,37 +1523,152 @@ export class GraphCreator {
         }
     }
     
-    enterEditMode(element, type) {
-        // Exit any existing edit mode
+    enterEditMode(vertex) {
+        console.log('[EditMode] Entering edit mode for vertex:', vertex.label);
         this.exitEditMode();
-        
-        this.editModeElement = element;
-        this.editModeType = type;
-        this.isLongPressing = true;
-        
-        // Start shaking animation
+        this.editModeElement = vertex;
+        this.editModeType = 'vertex';
+        // Store original values for cancellation
+        this._editOriginal = {
+            label: vertex.label,
+            size: vertex.size || this.vertexSize,
+        };
+        // Temporary edit state for preview
+        this._editPreview = {
+            label: vertex.label,
+            size: vertex.size || this.vertexSize,
+            pendingDelete: false
+        };
+        this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
         this.startShakeAnimation();
+        const editSection = document.getElementById('editControlsSection');
+        if (editSection) editSection.style.display = 'block';
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'editControlsSection') section.style.display = 'none';
+        });
+        const editTitle = editSection.querySelector('h3');
+        if (editTitle) editTitle.innerHTML = `<i class="fas fa-edit"></i> Edit Vertex "${vertex.label}"`;
+        const labelInput = document.getElementById('editVertexLabel');
+        const sizeInput = document.getElementById('editVertexSize');
+        const sizeValue = document.getElementById('editVertexSizeValue');
+        if (labelInput && sizeInput && sizeValue) {
+            labelInput.value = vertex.label;
+            sizeInput.value = vertex.size || this.vertexSize;
+            sizeValue.textContent = vertex.size || this.vertexSize;
+        }
+        labelInput.style.borderColor = '';
+        labelInput.style.boxShadow = '';
+        const warningMsg = document.getElementById('editVertexLabelWarning');
+        if (warningMsg) warningMsg.textContent = '';
+        const applyToAllToggle = document.getElementById('applyToAllToggle');
+        if (applyToAllToggle) applyToAllToggle.checked = false;
+        setTimeout(() => { if (labelInput) { labelInput.focus(); labelInput.select(); } }, 100);
+        this._setupApplyToAllImmediateListeners();
+        this._updateEditPanelForPendingDelete(false);
+        this._updateDeleteButtonText();
+        this.draw();
+    }
+
+    _updateEditPanelForPendingDelete(isPending) {
+        const labelInput = document.getElementById('editVertexLabel');
+        const sizeInput = document.getElementById('editVertexSize');
+        const applyToAllToggle = document.getElementById('applyToAllToggle');
+        const saveBtn = document.getElementById('saveVertexEdit');
         
-        // Show edit controls in sidebar
-        this.showEditControls();
-        
-        this.updateStatus(`${type === 'vertex' ? 'Vertex' : 'Edge'} in edit mode - use sidebar to modify`);
+        if (isPending) {
+            // Replace label input with plain purple text when marked for deletion
+            if (labelInput) {
+                const labelContainer = labelInput.closest('.control-group');
+                if (labelContainer) {
+                    // Create or update the plain text display
+                    let labelDisplay = labelContainer.querySelector('.label-display');
+                    if (!labelDisplay) {
+                        labelDisplay = document.createElement('div');
+                        labelDisplay.className = 'label-display';
+                        labelDisplay.style.cssText = `
+                            color: #8b5cf6;
+                            font-weight: 500;
+                            padding: 8px 12px;
+                            background: transparent;
+                            border: none;
+                            font-size: 14px;
+                            font-family: inherit;
+                        `;
+                        labelInput.parentNode.insertBefore(labelDisplay, labelInput);
+                    }
+                    labelDisplay.textContent = labelInput.value || 'No label';
+                    labelDisplay.style.display = 'block';
+                    labelInput.style.display = 'none';
+                }
+            }
+            // Hide size control when marked for deletion
+            if (sizeInput) sizeInput.style.display = 'none';
+            // Hide apply to all toggle when marked for deletion
+            if (applyToAllToggle) {
+                const applyToAllContainer = applyToAllToggle.closest('.control-group');
+                if (applyToAllContainer) applyToAllContainer.style.display = 'none';
+            }
+            if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-trash"></i> Confirm Deletion';
+        } else {
+            // Show all edit controls when not marked for deletion
+            if (labelInput) {
+                const labelContainer = labelInput.closest('.control-group');
+                if (labelContainer) {
+                    // Hide the plain text display and show the input
+                    const labelDisplay = labelContainer.querySelector('.label-display');
+                    if (labelDisplay) {
+                        labelDisplay.style.display = 'none';
+                    }
+                    labelInput.style.display = 'block';
+                    labelInput.disabled = false;
+                    labelInput.style.backgroundColor = '';
+                    labelInput.style.color = '';
+                }
+            }
+            if (sizeInput) sizeInput.style.display = 'block';
+            if (applyToAllToggle) {
+                const applyToAllContainer = applyToAllToggle.closest('.control-group');
+                if (applyToAllContainer) applyToAllContainer.style.display = 'block';
+            }
+            if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-check"></i> Save Edits';
+        }
+        this._updateDeleteButtonText();
+    }
+
+    _updateDeleteButtonText() {
+        const deleteBtn = document.getElementById('deleteCurrentVertex');
+        if (!deleteBtn) return;
+        if (this._editPreview && this._editPreview.pendingDelete) {
+            deleteBtn.innerHTML = '<i class="fas fa-undo"></i> Un-delete Current Node';
+        } else {
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete Current Node';
+        }
+        deleteBtn.disabled = false;
     }
     
     exitEditMode() {
-        if (this.editModeElement) {
             // Stop shaking animation
             this.stopShakeAnimation();
-            
-            // Hide edit controls
-            this.hideEditControls();
-            
             this.editModeElement = null;
             this.editModeType = null;
-            this.isLongPressing = false;
-            
-            this.updateStatus('Edit mode exited');
+        this._editOriginal = null;
+        this._editPreview = null;
+        // Hide edit controls
+        const editSection = document.getElementById('editControlsSection');
+        if (editSection) editSection.style.display = 'none';
+        // Always hide delete mode panel when exiting edit mode
+        const deletePanel = document.getElementById('deleteModePanel');
+        if (deletePanel) deletePanel.style.display = 'none';
+        // Show all other control sections
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
+        });
+        // Reset the edit section title
+        const editTitle = editSection?.querySelector('h3');
+        if (editTitle) {
+            editTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Vertex';
         }
+        this.draw();
     }
     
     startShakeAnimation() {
@@ -1874,7 +2078,7 @@ export class GraphCreator {
         this.updateStatus('Searching...');
     }
     
-    stopSearch() {
+    stopSearch(showNotification = true) {
         this.isSearching = false;
         this.visitedVertices.clear();
         this.pathVertices.clear();
@@ -1884,7 +2088,9 @@ export class GraphCreator {
         document.getElementById('stopSearch').disabled = true;
         
         this.draw();
+        if (showNotification) {
         this.updateStatus('Search stopped');
+        }
     }
     
     async animateBFS(targetVertex, startVertex) {
@@ -2007,62 +2213,7 @@ export class GraphCreator {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
     
-    startVertexLabelEdit(vertex) {
-        this.editingVertex = vertex;
-        this.selectedVertices = [vertex]; // Select the vertex being edited
-        
-        // Show the edit interface
-        document.getElementById('editLabelGroup').style.display = 'block';
-        document.getElementById('editVertexLabel').value = vertex.label;
-        document.getElementById('editingVertexLabel').textContent = vertex.label;
-        
-        // Focus on the input
-        document.getElementById('editVertexLabel').focus();
-        document.getElementById('editVertexLabel').select();
-        
-        this.draw();
-        this.updateStatus(`Editing vertex "${vertex.label}" - Press Enter to save, Escape to cancel`);
-    }
-    
-    saveVertexLabel() {
-        if (!this.editingVertex) return;
-        
-        const newLabel = document.getElementById('editVertexLabel').value.trim();
-        if (!newLabel) {
-            this.updateStatus('Label cannot be empty!');
-            return;
-        }
-        
-        // Check if label already exists (except for the current vertex)
-        const existingVertex = this.vertices.find(v => v.label === newLabel && v.id !== this.editingVertex.id);
-        if (existingVertex) {
-            this.updateStatus(`Label "${newLabel}" already exists! Each vertex must have a unique label.`);
-            return;
-        }
-        
-        const oldLabel = this.editingVertex.label;
-        this.editingVertex.label = newLabel;
-        
-        // Hide the edit interface
-        this.cancelVertexLabelEdit();
-        
-        this.draw();
-        this.updateStatus(`Vertex label changed from "${oldLabel}" to "${newLabel}"`);
-        this.updateRootDropdown();
-    }
-    
-    cancelVertexLabelEdit() {
-        this.editingVertex = null;
-        this.selectedVertices = [];
-        
-        // Hide the edit interface
-        document.getElementById('editLabelGroup').style.display = 'none';
-        document.getElementById('editVertexLabel').value = '';
-        document.getElementById('editingVertexLabel').textContent = '';
-        
-        this.draw();
-        this.updateStatus('Label editing cancelled');
-    }
+
     
     hasUnsavedChanges() {
         if (!this.lastSavedState) {
@@ -2092,47 +2243,13 @@ export class GraphCreator {
     
     showLoadConfirmation() {
         console.log('showLoadConfirmation function called');
-        if (!this.hasUnsavedChanges()) {
-            this.showLoadDialog();
-            return;
-        }
         
-        const dialog = document.createElement('div');
-        dialog.className = 'modal-overlay';
-        dialog.innerHTML = `
-            <div class="modal-content">
-                <h3><i class="fas fa-exclamation-triangle"></i> Unsaved Changes</h3>
-                <p>You have unsaved changes in your current graph. What would you like to do?</p>
-                <div class="modal-buttons">
-                    <button class="btn btn-success" id="saveAndLoadBtn">
-                        <i class="fas fa-save"></i> Save & Load
-                    </button>
-                    <button class="btn btn-warning" id="loadWithoutSaveBtn">
-                        <i class="fas fa-folder-open"></i> Load Without Saving
-                    </button>
-                    <button class="btn btn-secondary" id="cancelLoadBtn">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(dialog);
-        
-        // Add event listeners
-        document.getElementById('saveAndLoadBtn').addEventListener('click', () => {
+        // Always auto-save the current graph if there are any changes
+        if (this.hasUnsavedChanges()) {
             this.saveCurrentGraphAndLoad();
-            document.body.removeChild(dialog);
-        });
-        
-        document.getElementById('loadWithoutSaveBtn').addEventListener('click', () => {
+        } else {
             this.showLoadDialog();
-            document.body.removeChild(dialog);
-        });
-        
-        document.getElementById('cancelLoadBtn').addEventListener('click', () => {
-            document.body.removeChild(dialog);
-        });
+        }
     }
     
     saveCurrentGraphAndLoad() {
@@ -2290,49 +2407,90 @@ export class GraphCreator {
     }
     
     clearGraph() {
+        if (this.vertices.length === 0 && this.edges.length === 0) {
+            this.updateStatus('Graph is already empty');
+            return;
+        }
+        
+        // Get the current graph name if it exists
+        let graphName = 'Untitled Graph';
+        if (this.currentGraphId) {
+            const existing = this.savedGraphs.find(g => g.id === this.currentGraphId);
+            if (existing) {
+                graphName = existing.name;
+            }
+        }
+        
+        // Show confirmation dialog with graph name
+        const confirmed = confirm(`Are you sure you want to reset the graph "${graphName}"? This action cannot be undone.`);
+        if (!confirmed) {
+            return;
+        }
+        
+        // Clear the graph
         this.vertices = [];
         this.edges = [];
-        this.nextVertexId = 1;
         this.selectedVertices = [];
-        this.draggedVertex = null;
-        this.isDragging = false;
-        this.distanceModeVertices = [];
-        this.isDistanceMode = false;
-        this.visitedVertices.clear();
-        this.pathVertices.clear();
-        this.isSearching = false;
-        this.editingVertex = null;
-        this.selectedTargetVertex = null;
-        this.updateTargetVertexDisplay();
-        this.vertexColor = '#1e293b';
-        this.vertexBorderColor = '#475569';
-        this.vertexFontSize = 14;
-        this.vertexFontFamily = 'Inter';
-        this.vertexFontColor = '#ffffff';
-        this.edgeColor = '#6366f1';
-        this.edgeWidth = 3;
-        this.edgeFontSize = 14;
-        this.edgeFontFamily = 'Inter';
-        this.edgeFontColor = '#06b6d4';
-        document.getElementById('distanceInfo').classList.remove('show');
-        document.getElementById('searchInfo').classList.remove('show');
-        document.getElementById('calculateDistance').classList.remove('active');
-        document.getElementById('runBFS').disabled = false;
-        document.getElementById('runDFS').disabled = false;
-        document.getElementById('stopSearch').disabled = true;
-        document.getElementById('editLabelGroup').style.display = 'none';
-        this.lastSavedState = null;
-        this.currentGraphId = null; // Clear id
+        this.targetVertex = null;
+        this.distanceMode = false;
+        this.stopSearch();
+        
+        // Reset edit mode
+        this.exitEditMode();
+        
+        // Clear any flashing vertices
+        this.flashingVertices.clear();
+        this.distanceFlashingVertices = null;
+        
+        // Update UI
         this.updateInfo();
-        this.draw();
-        this.updateStatus('Graph cleared!');
         this.updateRootDropdown();
+        this.updateTargetVertexDisplay();
+        this.draw();
+        
+        this.updateStatus('Graph reset');
+    }
+    
+    createNewGraph() {
+        // Check if there's a current graph to save
+        if (this.vertices.length > 0 || this.edges.length > 0) {
+            // Auto-save the current graph first
+            this.saveGraph(true); // true = auto-save mode
+            this.updateStatus('Current graph saved, starting new graph');
+        } else {
+            this.updateStatus('Starting new graph');
+        }
+        
+        // Clear the graph
+        this.vertices = [];
+        this.edges = [];
+        this.selectedVertices = [];
+        this.targetVertex = null;
+        this.distanceMode = false;
+        this.stopSearch(false); // Don't show "Search stopped" notification
+        
+        // Reset edit mode
+        this.exitEditMode();
+        
+        // Clear any flashing vertices
+        this.flashingVertices.clear();
+        this.distanceFlashingVertices = null;
+        
+        // Reset current graph ID so new graph will be saved as a new entry
+        this.currentGraphId = null;
+        
+        // Update UI
+        this.updateInfo();
+        this.updateRootDropdown();
+        this.updateTargetVertexDisplay();
+        this.draw();
     }
     
     hideInstructions() {
         const overlay = document.getElementById('instructionsOverlay');
+        if (overlay) {
         overlay.style.display = 'none';
-        this.updateStatus('Instructions hidden. You can start creating your graph!');
+        }
     }
     
     updateInfo() {
@@ -2447,7 +2605,15 @@ export class GraphCreator {
     
     drawVertex(vertex) {
         const ctx = this.ctx;
-        const size = vertex.size || this.vertexSize;
+        let size = vertex.size || this.vertexSize;
+        let label = vertex.label;
+        let isPendingDeleteEdit = false;
+        // If in edit mode and this is the vertex being edited, use preview state
+        if (this.editModeElement === vertex && this._editPreview) {
+            size = this._editPreview.size;
+            label = this._editPreview.label;
+            isPendingDeleteEdit = !!this._editPreview.pendingDelete;
+        }
         
         // Check if this vertex is selected for edge creation
         const isSelectedForEdge = this.selectedVertices.includes(vertex);
@@ -2457,6 +2623,20 @@ export class GraphCreator {
         
         // Check if this vertex is flashing for distance calculation
         const isDistanceFlashing = this.distanceFlashingVertices && this.distanceFlashingVertices.has(vertex);
+        
+        // Check if this vertex is in edit mode (shaking)
+        const isInEditMode = this.editModeElement === vertex && this.editModeType === 'vertex';
+        
+        // Check if vertex is marked for deletion
+        const isMarkedForDeletion = this.isDeleteMode && this.verticesToDelete.has(vertex.id);
+        
+        // Apply shake offset if in edit mode
+        let drawX = vertex.x;
+        let drawY = vertex.y;
+        if (isInEditMode && this.shakeOffset !== undefined) {
+            drawX += this.shakeOffset;
+            drawY += this.shakeOffset * 0.5; // Slight vertical shake too
+        }
         
         // Set colors based on selection state
         let fillColor = vertex.color || this.vertexColor;
@@ -2484,9 +2664,17 @@ export class GraphCreator {
             borderColor = '#60a5fa';
         }
         
+        // Apply fade effect for deleted vertices
+        if (isMarkedForDeletion || isPendingDeleteEdit) {
+            ctx.save();
+            ctx.globalAlpha = 0.6;
+            fillColor = '#ec4899';
+            borderColor = '#f472b6';
+        }
+        
         // Draw vertex circle
         ctx.beginPath();
-        ctx.arc(vertex.x, vertex.y, size, 0, 2 * Math.PI);
+        ctx.arc(drawX, drawY, size, 0, 2 * Math.PI);
         ctx.fillStyle = fillColor;
         ctx.fill();
         ctx.strokeStyle = borderColor;
@@ -2509,13 +2697,18 @@ export class GraphCreator {
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 1;
         
-        ctx.fillText(vertex.label, vertex.x, vertex.y);
+        ctx.fillText(label, drawX, drawY);
         
         // Reset shadow
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
+        
+        // Restore opacity for deleted vertices
+        if (isMarkedForDeletion || isPendingDeleteEdit) {
+            ctx.restore();
+        }
     }
     
     drawArrow(edge) {
@@ -2784,74 +2977,106 @@ export class GraphCreator {
         this.exitEditMode();
         this.editModeElement = vertex;
         this.editModeType = 'vertex';
-        
         // Store original values for cancellation
-        this.originalLabel = vertex.label;
-        this.originalSize = vertex.size || this.vertexSize;
-        console.log('[EditMode] Original values stored - label:', this.originalLabel, 'size:', this.originalSize);
-        
-        // Show the edit controls section
+        this._editOriginal = {
+            label: vertex.label,
+            size: vertex.size || this.vertexSize,
+        };
+        // Temporary edit state for preview
+        this._editPreview = {
+            label: vertex.label,
+            size: vertex.size || this.vertexSize,
+            pendingDelete: false
+        };
+        this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
+        this.startShakeAnimation();
         const editSection = document.getElementById('editControlsSection');
-        if (editSection) {
-            editSection.style.display = 'block';
-            console.log('[EditMode] Edit section displayed');
-        } else {
-            console.error('[EditMode] Edit section not found!');
-        }
-        
-        // Hide other control sections
+        if (editSection) editSection.style.display = 'block';
         document.querySelectorAll('.control-section').forEach(section => {
             if (section.id !== 'editControlsSection') section.style.display = 'none';
         });
-        
-        // Update the section title to show which vertex is being edited
         const editTitle = editSection.querySelector('h3');
-        if (editTitle) {
-            editTitle.innerHTML = `<i class="fas fa-edit"></i> Edit Vertex "${vertex.label}"`;
-            console.log('[EditMode] Title updated to show vertex:', vertex.label);
-        }
-        
-        // Populate form with current values
+        if (editTitle) editTitle.innerHTML = `<i class="fas fa-edit"></i> Edit Vertex "${vertex.label}"`;
         const labelInput = document.getElementById('editVertexLabel');
         const sizeInput = document.getElementById('editVertexSize');
         const sizeValue = document.getElementById('editVertexSizeValue');
-        
         if (labelInput && sizeInput && sizeValue) {
             labelInput.value = vertex.label;
             sizeInput.value = vertex.size || this.vertexSize;
             sizeValue.textContent = vertex.size || this.vertexSize;
-            console.log('[EditMode] Form populated - label:', vertex.label, 'size:', vertex.size || this.vertexSize);
-        } else {
-            console.error('[EditMode] Form elements not found!');
         }
-        
-        // Clear any previous validation styling
         labelInput.style.borderColor = '';
         labelInput.style.boxShadow = '';
         const warningMsg = document.getElementById('editVertexLabelWarning');
         if (warningMsg) warningMsg.textContent = '';
-        
-        // Focus on the label input for immediate editing
-        setTimeout(() => {
-            if (labelInput) {
-                labelInput.focus();
-                labelInput.select();
-                console.log('[EditMode] Label input focused and selected');
+        const applyToAllToggle = document.getElementById('applyToAllToggle');
+        if (applyToAllToggle) applyToAllToggle.checked = false;
+        setTimeout(() => { if (labelInput) { labelInput.focus(); labelInput.select(); } }, 100);
+        this._setupApplyToAllImmediateListeners();
+        this._updateEditPanelForPendingDelete(false);
+        this._updateDeleteButtonText();
+        this.draw();
+    }
+
+    _setupApplyToAllImmediateListeners() {
+        const sizeInput = document.getElementById('editVertexSize');
+        const applyToAllToggle = document.getElementById('applyToAllToggle');
+        if (!sizeInput || !applyToAllToggle) return;
+        // Remove previous listeners if any
+        if (this._applyToAllSizeListener) sizeInput.removeEventListener('input', this._applyToAllSizeListener);
+        if (this._applyToAllToggleListener) applyToAllToggle.removeEventListener('change', this._applyToAllToggleListener);
+        // Listener for size slider
+        this._applyToAllSizeListener = (e) => {
+            const newSize = parseInt(e.target.value);
+            document.getElementById('editVertexSizeValue').textContent = newSize;
+            if (this.editModeElement) {
+                this.editModeElement.size = newSize;
+                if (applyToAllToggle.checked) {
+                    this.vertices.forEach((v, idx) => {
+                        if (v !== this.editModeElement) v.size = newSize;
+                    });
+                }
+                this.draw();
             }
-        }, 100);
+        };
+        sizeInput.addEventListener('input', this._applyToAllSizeListener);
+        // Listener for apply-to-all toggle
+        this._applyToAllToggleListener = (e) => {
+            const checked = e.target.checked;
+            const newSize = parseInt(sizeInput.value);
+            if (checked) {
+                // Apply current size to all other vertices
+                this.vertices.forEach((v, idx) => {
+                    if (v !== this.editModeElement) v.size = newSize;
+                });
+            } else {
+                // Revert all other vertices to their original sizes
+                this.vertices.forEach((v, idx) => {
+                    if (v !== this.editModeElement) v.size = this._originalAllVertexSizes[idx];
+                });
+            }
+            this.draw();
+        };
+        applyToAllToggle.addEventListener('change', this._applyToAllToggleListener);
     }
 
     exitEditMode() {
+        // Stop shaking animation
+        this.stopShakeAnimation();
+        
         this.editModeElement = null;
         this.editModeType = null;
-        this.originalLabel = null;
-        this.originalSize = null;
+        this._editOriginal = null;
+        this._editPreview = null;
         // Hide edit controls
         const editSection = document.getElementById('editControlsSection');
         if (editSection) editSection.style.display = 'none';
+        // Always hide delete mode panel when exiting edit mode
+        const deletePanel = document.getElementById('deleteModePanel');
+        if (deletePanel) deletePanel.style.display = 'none';
         // Show all other control sections
         document.querySelectorAll('.control-section').forEach(section => {
-            if (section.id !== 'editControlsSection') section.style.display = 'block';
+            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
         });
         // Reset the edit section title
         const editTitle = editSection?.querySelector('h3');
@@ -2862,10 +3087,9 @@ export class GraphCreator {
     }
 
     setupMinimalEditModeEvents() {
-        // Label input: immediate update with no validation blocking
+        // Label input: immediate update with validation
         const labelInput = document.getElementById('editVertexLabel');
         const saveBtn = document.getElementById('saveVertexEdit');
-        
         // Create warning message element if it doesn't exist
         let warningMsg = document.getElementById('editVertexLabelWarning');
         if (!warningMsg) {
@@ -2877,82 +3101,115 @@ export class GraphCreator {
             warningMsg.style.fontWeight = '500';
             labelInput.parentElement.appendChild(warningMsg);
         }
-        
         labelInput.addEventListener('input', (e) => {
-            console.log('[EditMode] Label input event fired');
-            if (this.editModeElement) {
-                const newLabel = e.target.value;
-                console.log('[EditMode] New label:', newLabel);
-                
-                // Always update the vertex label for immediate visual feedback
-                this.editModeElement.label = newLabel;
+            if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                this._editPreview.label = e.target.value;
                 this.draw();
                 this.updateRootDropdown();
-                
-                // Show validation warnings but don't block updates
-                const trimmed = newLabel.trim();
+                // Show validation warnings and disable save if not unique
+                const trimmed = e.target.value.trim();
                 let error = '';
                 if (!trimmed) {
                     error = 'Label cannot be empty.';
                 } else if (this.vertices.some(v => v !== this.editModeElement && v.label === trimmed)) {
-                    error = `Label "${trimmed}" already exists!`;
+                    error = `Label "${trimmed}" already exists! Each vertex must have a unique label.`;
                 }
-                
-                // Update UI based on validation (show warnings but don't disable save)
                 if (error) {
                     labelInput.style.borderColor = 'var(--danger-color)';
                     labelInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
                     warningMsg.textContent = error;
-                    console.log('[EditMode] Validation warning:', error);
+                    saveBtn.disabled = true;
                 } else {
                     labelInput.style.borderColor = '';
                     labelInput.style.boxShadow = '';
                     warningMsg.textContent = '';
-                    console.log('[EditMode] Label valid');
+                    saveBtn.disabled = false;
                 }
-            } else {
-                console.log('[EditMode] No editModeElement set');
             }
         });
         
-        // Size slider: immediate update
+        // Size slider: immediate update with apply-to-all support
         document.getElementById('editVertexSize').addEventListener('input', (e) => {
+            if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
             const newSize = parseInt(e.target.value);
             document.getElementById('editVertexSizeValue').textContent = newSize;
-            if (this.editModeElement) {
-                this.editModeElement.size = newSize;
+                this._editPreview.size = newSize;
                 this.draw();
             }
         });
         
-        // Save button: just exit edit mode (changes already applied)
+        // Apply-to-all toggle: immediate apply/revert
+        document.getElementById('applyToAllToggle').addEventListener('change', (e) => {
+            const checked = e.target.checked;
+            const newSize = parseInt(document.getElementById('editVertexSize').value);
+            
+            if (checked) {
+                // Apply current size to all other vertices
+                this.vertices.forEach(vertex => {
+                    if (vertex !== this.editModeElement) {
+                        vertex.size = newSize;
+                    }
+                });
+            } else {
+                // Revert all other vertices to their original sizes
+                this.vertices.forEach(vertex => {
+                    if (vertex !== this.editModeElement && this._originalAllVertexSizes) {
+                        const originalIndex = this.vertices.findIndex(v => v === vertex);
+                        if (originalIndex !== -1 && this._originalAllVertexSizes[originalIndex]) {
+                            vertex.size = this._originalAllVertexSizes[originalIndex];
+                        }
+                    }
+                });
+            }
+            this.draw();
+        });
+        
+        // Save button: validate and exit edit mode
         saveBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (this.editModeElement) {
-                console.log('[EditMode] Save clicked - exiting edit mode');
+            if (this.editModeElement && this._editPreview) {
+                if (this._editPreview.pendingDelete) {
+                    // Actually delete the node now
+                    const vertexToDelete = this.editModeElement;
+                    const vertexLabel = vertexToDelete.label;
+                    this.edges = this.edges.filter(edge => edge.from.id !== vertexToDelete.id && edge.to.id !== vertexToDelete.id);
+                    this.vertices = this.vertices.filter(v => v.id !== vertexToDelete.id);
+                    this.updateStatus(`Vertex "${vertexLabel}" deleted`);
                 this.exitEditMode();
+                    this.updateInfo();
+                    this.updateRootDropdown();
+                    this.draw();
+                    if (this.autosaveEnabled) this.saveGraph(true);
+                    return;
+                }
+                // Apply label/size edits
+                this.editModeElement.label = this._editPreview.label;
+                this.editModeElement.size = this._editPreview.size;
                 this.updateStatus('Vertex updated successfully!');
+                this.exitEditMode();
+                this.updateRootDropdown();
+                this.draw();
+                if (this.autosaveEnabled) this.saveGraph(true);
             }
         });
         
         // Cancel button: restore original values
         document.getElementById('cancelVertexEdit').addEventListener('click', (e) => {
             e.preventDefault();
-            if (this.editModeElement && this.originalLabel !== null) {
+            if (this.editModeElement && this._editPreview) {
+                // Revert preview
+                this._editPreview = null;
                 // Restore original values
-                this.editModeElement.label = this.originalLabel;
-                this.editModeElement.size = this.originalSize;
-                
-                // Clear any error styling
-                labelInput.style.borderColor = '';
-                labelInput.style.boxShadow = '';
-                warningMsg.textContent = '';
-                
+                this.editModeElement.label = this._editOriginal.label;
+                this.editModeElement.size = this._editOriginal.size;
+                const labelInput = document.getElementById('editVertexLabel');
+                if (labelInput) { labelInput.style.borderColor = ''; labelInput.style.boxShadow = ''; }
+                let warningMsg = document.getElementById('editVertexLabelWarning');
+                if (warningMsg) warningMsg.textContent = '';
                 this.exitEditMode();
                 this.updateRootDropdown();
                 this.draw();
                 this.updateStatus('Edit cancelled - changes reverted.');
-                console.log('[EditMode] Cancel clicked, reverted to original values');
             }
         });
         
@@ -2960,6 +3217,27 @@ export class GraphCreator {
         document.getElementById('vertexEditForm').addEventListener('submit', (e) => {
             e.preventDefault();
             saveBtn.click();
+        });
+        
+        // Enter key to save, Escape to cancel
+        labelInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveBtn.click();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                document.getElementById('cancelVertexEdit').click();
+            }
+        });
+        
+        // Delete current vertex button: toggle pending delete
+        document.getElementById('deleteCurrentVertex').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.editModeElement && this._editPreview) {
+                this._editPreview.pendingDelete = !this._editPreview.pendingDelete;
+                this._updateEditPanelForPendingDelete(this._editPreview.pendingDelete);
+                this.draw();
+            }
         });
     }
 
@@ -3113,6 +3391,30 @@ export class GraphCreator {
         }
     }
     
+    // Delete all saved graphs
+    deleteAllSavedGraphs() {
+        if (this.savedGraphs.length === 0) {
+            this.updateStatus('No saved graphs to delete');
+            return;
+        }
+        
+        const graphCount = this.savedGraphs.length;
+        const confirmed = confirm(`Are you sure you want to delete all ${graphCount} saved graphs? This action cannot be undone.`);
+        if (!confirmed) {
+            return;
+        }
+        
+        try {
+            this.savedGraphs = [];
+            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            this.updateSavedGraphsList();
+            this.updateStatus(`All ${graphCount} saved graphs deleted`);
+        } catch (error) {
+            console.error('Failed to delete all saved graphs:', error);
+            this.updateStatus('Failed to delete saved graphs');
+        }
+    }
+    
     // Contact modal functionality
     showContactModal() {
         // Reset form
@@ -3144,4 +3446,222 @@ export class GraphCreator {
         // Reset form
         document.getElementById('contactForm').reset();
     }
-} 
+
+    // --- Delete Nodes Mode ---
+    enterDeleteMode() {
+        this.isDeleteMode = true;
+        this.verticesToDelete = new Set();
+        // Save original state for cancel
+        this.originalVertices = this.vertices.map(v => ({ ...v }));
+        this.originalEdges = this.edges.map(e => ({ ...e }));
+        document.body.classList.add('delete-mode-active');
+        document.getElementById('deleteNodesControls').style.display = 'none';
+        // Show delete mode panel
+        this.showDeleteModePanel();
+        this.draw();
+    }
+
+    saveDeleteChanges() {
+        // Remove vertices marked for deletion
+        this.vertices = this.vertices.filter(v => !this.verticesToDelete.has(v.id));
+        // Remove edges connected to deleted vertices
+        this.edges = this.edges.filter(e => !this.verticesToDelete.has(e.from.id) && !this.verticesToDelete.has(e.to.id));
+        this.isDeleteMode = false;
+        this.verticesToDelete = new Set();
+        document.body.classList.remove('delete-mode-active');
+        document.getElementById('deleteNodesControls').style.display = 'flex';
+        // Hide delete mode panel
+        this.hideDeleteModePanel();
+        // Ensure edit controls section is hidden after delete mode
+        const editSection = document.getElementById('editControlsSection');
+        if (editSection) editSection.style.display = 'none';
+        // Show all other control sections
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') {
+                section.style.display = 'block';
+            }
+        });
+        this.updateInfo();
+        this.updateRootDropdown();
+        this.draw();
+        this.updateStatus('Deleted selected nodes');
+        // Auto-save if enabled
+        if (this.autosaveEnabled) {
+            this.saveGraph(true);
+        }
+    }
+
+    cancelDeleteChanges() {
+        // Restore original state
+        this.vertices = this.originalVertices.map(v => ({ ...v }));
+        this.edges = this.originalEdges.map(e => ({ ...e }));
+        this.isDeleteMode = false;
+        this.verticesToDelete = new Set();
+        document.body.classList.remove('delete-mode-active');
+        document.getElementById('deleteNodesControls').style.display = 'flex';
+        // Hide delete mode panel
+        this.hideDeleteModePanel();
+        // Ensure edit controls section is hidden after delete mode
+        const editSection = document.getElementById('editControlsSection');
+        if (editSection) editSection.style.display = 'none';
+        // Show all other control sections
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') {
+                section.style.display = 'block';
+            }
+        });
+        this.updateInfo();
+        this.updateRootDropdown();
+        this.draw();
+        this.updateStatus('Cancelled node deletion');
+    }
+
+    showDeleteModePanel() {
+        // Hide all other control sections
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'deleteModePanel') {
+                section.style.display = 'none';
+            }
+        });
+        
+        // Show delete mode panel
+        const deletePanel = document.getElementById('deleteModePanel');
+        if (deletePanel) {
+            deletePanel.style.display = 'block';
+            this.updateDeleteModeInfo();
+        }
+    }
+
+    hideDeleteModePanel() {
+        // Hide delete mode panel
+        const deletePanel = document.getElementById('deleteModePanel');
+        if (deletePanel) {
+            deletePanel.style.display = 'none';
+        }
+        
+        // Show all other control sections
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'deleteModePanel') {
+                section.style.display = 'block';
+            }
+        });
+    }
+
+    updateDeleteModeInfo() {
+        const deletePanel = document.getElementById('deleteModePanel');
+        if (!deletePanel) return;
+
+        const selectedCount = this.verticesToDelete.size;
+        const totalCount = this.vertices.length;
+        
+        const infoText = deletePanel.querySelector('.delete-mode-info-text');
+        if (infoText) {
+            infoText.textContent = `Delete Mode Active - ${selectedCount} of ${totalCount} vertices selected for deletion`;
+        }
+
+        const selectedList = deletePanel.querySelector('.selected-vertices-list');
+        if (selectedList) {
+            selectedList.innerHTML = '';
+            this.vertices.forEach(vertex => {
+                if (this.verticesToDelete.has(vertex.id)) {
+                    const item = document.createElement('div');
+                    item.className = 'selected-vertex-item';
+                    item.innerHTML = `
+                        <i class="fas fa-circle" style="color: #ec4899;"></i>
+                        <strong>${vertex.label}</strong>
+                        <span class="vertex-coords">(${Math.round(vertex.x)}, ${Math.round(vertex.y)})</span>
+                    `;
+                    selectedList.appendChild(item);
+                }
+            });
+        }
+    }
+
+    // Override draw to show delete buttons in delete mode
+    draw() {
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Draw edges
+        this.edges.forEach(edge => this.drawEdge(edge));
+        // Draw vertices
+        this.vertices.forEach(vertex => this.drawVertex(vertex));
+        // Draw delete buttons if in delete mode
+        if (this.isDeleteMode) {
+            this.vertices.forEach(vertex => this.drawDeleteButton(vertex));
+        }
+    }
+
+    drawDeleteButton(vertex) {
+        // Draw a red X button at the top right of the vertex
+        const size = vertex.size || this.vertexSize;
+        const x = vertex.x + size * 0.7;
+        const y = vertex.y - size * 0.7;
+        const r = 10;
+        // Draw circle
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, 2 * Math.PI);
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 2;
+        this.ctx.fill();
+        this.ctx.stroke();
+        // Draw X
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - 4, y - 4);
+        this.ctx.lineTo(x + 4, y + 4);
+        this.ctx.moveTo(x + 4, y - 4);
+        this.ctx.lineTo(x - 4, y + 4);
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+
+    // Handle click for delete button - this will be called from the main handleCanvasClick
+    handleDeleteButtonClick(pos) {
+        if (!this.isDeleteMode) return false;
+        
+        // Check if a delete button was clicked
+        for (const vertex of this.vertices) {
+            const size = vertex.size || this.vertexSize;
+            const x = vertex.x + size * 0.7;
+            const y = vertex.y - size * 0.7;
+            const r = 10;
+            const dist = Math.sqrt((pos.x - x) ** 2 + (pos.y - y) ** 2);
+            if (dist <= r) {
+                if (this.verticesToDelete.has(vertex.id)) {
+                    // Unselect vertex for deletion
+                    this.verticesToDelete.delete(vertex.id);
+                    this.updateStatus(`Unselected vertex "${vertex.label}" from deletion`);
+                } else {
+                    // Select vertex for deletion
+                    this.verticesToDelete.add(vertex.id);
+                    this.updateStatus(`Marked vertex "${vertex.label}" for deletion`);
+                }
+                this.updateDeleteModeInfo();
+                this.draw();
+                return true;
+            }
+        }
+        
+        // Check if a vertex was clicked (for delete mode)
+        const clickedVertex = this.getVertexAt(pos.x, pos.y);
+        if (clickedVertex) {
+            if (this.verticesToDelete.has(clickedVertex.id)) {
+                // Unselect vertex for deletion
+                this.verticesToDelete.delete(clickedVertex.id);
+                this.updateStatus(`Unselected vertex "${clickedVertex.label}" from deletion`);
+            } else {
+                // Select vertex for deletion
+                this.verticesToDelete.add(clickedVertex.id);
+                this.updateStatus(`Marked vertex "${clickedVertex.label}" for deletion`);
+            }
+            this.updateDeleteModeInfo();
+            this.draw();
+            return true;
+        }
+        
+        return false;
+    }
+} // End of GraphCreator class 

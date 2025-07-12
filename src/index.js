@@ -18,6 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function showInstructionsModal() {
+        if (overlay) {
+            overlay.classList.add('show');
+            overlay.style.display = 'flex';
+        }
+    }
+
+    // Make showInstructionsModal globally available
+    window.showInstructionsModal = showInstructionsModal;
+
     if (closeBtnX) closeBtnX.addEventListener('click', hideInstructionsModal);
     if (gotItBtn) gotItBtn.addEventListener('click', hideInstructionsModal);
 
@@ -91,9 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll indicator logic
     const sidebarContent = document.querySelector('.sidebar-content');
     const scrollIndicator = document.getElementById('scrollIndicator');
+    let totalScrollDelta = 0;
+    let lastScrollTop = 0;
+    let indicatorHidden = false;
     
     function checkScrollIndicator() {
-        if (sidebarContent && scrollIndicator) {
+        if (sidebarContent && scrollIndicator && !indicatorHidden) {
             const hasScrollableContent = sidebarContent.scrollHeight > sidebarContent.clientHeight;
             const isScrolledToBottom = sidebarContent.scrollTop + sidebarContent.clientHeight >= sidebarContent.scrollHeight - 10;
             
@@ -109,9 +122,25 @@ document.addEventListener('DOMContentLoaded', () => {
     checkScrollIndicator();
     window.addEventListener('resize', checkScrollIndicator);
     
-    // Check on scroll
+    // Track scroll delta and hide indicator permanently after 150px total scroll
     if (sidebarContent) {
-        sidebarContent.addEventListener('scroll', checkScrollIndicator);
+        sidebarContent.addEventListener('scroll', (e) => {
+            if (!indicatorHidden) {
+                const currentScrollTop = sidebarContent.scrollTop;
+                const scrollDelta = Math.abs(currentScrollTop - lastScrollTop);
+                totalScrollDelta += scrollDelta;
+                lastScrollTop = currentScrollTop;
+                
+                // Hide indicator permanently if total scroll delta reaches 150px
+                if (totalScrollDelta >= 150) {
+                    indicatorHidden = true;
+                    scrollIndicator.classList.remove('show');
+                    scrollIndicator.style.display = 'none';
+                } else {
+                    checkScrollIndicator();
+                }
+            }
+        });
     }
     
     // Scroll to bottom and hide indicator when clicked
