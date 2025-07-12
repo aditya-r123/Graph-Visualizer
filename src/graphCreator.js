@@ -600,9 +600,19 @@ export class GraphCreator {
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
         
-        // Fill background
+        // Get the selected format
+        const formatSelect = document.getElementById('screenshotFormat');
+        const format = formatSelect ? formatSelect.value : 'jpg';
+        
+        // Fill background - transparent for PNG, white for JPG
+        if (format === 'png') {
+            // Clear the canvas for transparency (no fill)
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        } else {
+            // Fill with white background for JPG
             tempCtx.fillStyle = '#ffffff';
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        }
         
             console.log('Filled background');
             
@@ -621,10 +631,6 @@ export class GraphCreator {
             });
             
             console.log('Starting blob conversion...');
-            
-            // Get the selected format
-            const formatSelect = document.getElementById('screenshotFormat');
-            const format = formatSelect ? formatSelect.value : 'jpg';
             
             // Convert to blob and download
         tempCanvas.toBlob((blob) => {
