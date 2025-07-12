@@ -792,9 +792,8 @@ body {
 
 /* Saved Graphs */
 .saved-graphs {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
 }
 
 .saved-graphs h4 {
@@ -1360,7 +1359,6 @@ body {
     grid-column: 1 / -1;
     grid-row: 2 / 3;
     background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
-    border-top: 1px solid var(--border-color);
     padding: 0.75rem 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -1370,12 +1368,11 @@ body {
     transition: var(--transition);
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: 320px; /* Account for left sidebar */
+    right: 280px; /* Account for right sidebar */
     z-index: 1000;
     overflow: hidden;
     gap: 1.5rem;
-    margin-right: 280px; /* Account for right sidebar */
 }
 
 .status-bar::before {
@@ -2188,6 +2185,8 @@ body {
 /* Responsive Status Bar */
 @media (max-width: 768px) {
     .status-bar {
+        left: 0;
+        right: 0;
         padding: 0.75rem 1rem;
         flex-wrap: wrap;
         gap: 1rem;
@@ -2495,9 +2494,8 @@ body {
 }
 
 .coordinate-grid-controls {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
 }
 
 .coordinate-grid-toggle {

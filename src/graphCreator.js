@@ -3690,29 +3690,71 @@ export class GraphCreator {
     
     // Setup expandable sections
     setupExpandableSections() {
-        const searchHeader = document.getElementById('searchSectionHeader');
-        const searchContent = document.getElementById('searchSectionContent');
-        const searchIcon = document.getElementById('searchExpandIcon');
+        // Define all expandable sections
+        const sections = [
+            {
+                header: 'infoSectionHeader',
+                content: 'infoSectionContent',
+                icon: 'infoExpandIcon'
+            },
+            {
+                header: 'basicControlsSectionHeader',
+                content: 'basicControlsSectionContent',
+                icon: 'basicControlsExpandIcon'
+            },
+            {
+                header: 'editControlsSectionHeader',
+                content: 'editControlsSectionContent',
+                icon: 'editControlsExpandIcon'
+            },
+            {
+                header: 'deleteModePanelHeader',
+                content: 'deleteModePanelContent',
+                icon: 'deleteModeExpandIcon'
+            },
+            {
+                header: 'searchSectionHeader',
+                content: 'searchSectionContent',
+                icon: 'searchExpandIcon'
+            }
+        ];
         
-        if (searchHeader && searchContent && searchIcon) {
-            searchHeader.addEventListener('click', () => {
-                const isExpanded = searchHeader.classList.contains('expanded');
-                
-                if (isExpanded) {
-                    // Collapse
-                    searchContent.style.display = 'none';
-                    searchContent.classList.remove('show');
-                    searchHeader.classList.remove('expanded');
-                    searchIcon.style.transform = 'rotate(0deg)';
-                } else {
-                    // Expand
-                    searchContent.style.display = 'block';
-                    searchContent.classList.add('show');
-                    searchHeader.classList.add('expanded');
-                    searchIcon.style.transform = 'rotate(180deg)';
+        sections.forEach(section => {
+            const header = document.getElementById(section.header);
+            const content = document.getElementById(section.content);
+            const icon = document.getElementById(section.icon);
+            
+            if (header && content && icon) {
+                // Set initial state - all sections expanded by default
+                if (!header.classList.contains('expanded')) {
+                    header.classList.add('expanded');
                 }
-            });
-        }
+                if (!content.classList.contains('show')) {
+                    content.classList.add('show');
+                }
+                if (icon.style.transform !== 'rotate(180deg)') {
+                    icon.style.transform = 'rotate(180deg)';
+                }
+                
+                header.addEventListener('click', () => {
+                    const isExpanded = header.classList.contains('expanded');
+                    
+                    if (isExpanded) {
+                        // Collapse
+                        content.style.display = 'none';
+                        content.classList.remove('show');
+                        header.classList.remove('expanded');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        // Expand
+                        content.style.display = 'block';
+                        content.classList.add('show');
+                        header.classList.add('expanded');
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            }
+        });
     }
     
     // Setup mouse coordinate tracking
