@@ -1239,7 +1239,7 @@ body {
     left: 0;
     width: 2000px;
     height: 2000px;
-    background: var(--bg-primary);
+    background: #374151; /* Dark gray for dark mode */
     cursor: crosshair;
     display: block;
     transition: var(--transition);
@@ -1251,6 +1251,10 @@ body {
     image-rendering: crisp-edges;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="light"] #graphCanvas {
+    background: #e0f2fe; /* Light blue for light mode */
 }
 
 /* Instructions Overlay */

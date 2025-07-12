@@ -3294,14 +3294,36 @@ export class GraphCreator {
         this.ctx.beginPath();
         
         if (edge.type === 'self-loop') {
-            // Draw self-loop as a circular arc
+            // Draw self-loop as a 180-degree arc, both ends touching the vertex
             const vertexSize = edge.from.size || this.vertexSize;
-            const radius = vertexSize + 15; // Radius of the self-loop circle
-            const startAngle = -Math.PI / 2; // Start from top
-            const endAngle = 3 * Math.PI / 2; // End at bottom (full circle)
-            
+            const centerX = drawFromX;
+            const centerY = drawFromY;
+            // Choose symmetric angles for the arc ends
+            const angle1 = Math.PI * 0.25; // 45°
+            const angle2 = Math.PI * 1.75; // 315°
+            // Points on the vertex circumference
+            const x1 = centerX + vertexSize * Math.cos(angle1);
+            const y1 = centerY + vertexSize * Math.sin(angle1);
+            const x2 = centerX + vertexSize * Math.cos(angle2);
+            const y2 = centerY + vertexSize * Math.sin(angle2);
+            // Find the midpoint between these two points
+            const mx = (x1 + x2) / 2;
+            const my = (y1 + y2) / 2;
+            // Offset the arc center perpendicular to the chord between x1,y1 and x2,y2
+            const dx = y2 - y1;
+            const dy = x1 - x2;
+            const norm = Math.sqrt(dx*dx + dy*dy);
+            const offset = vertexSize * 1.2; // Controls how far the loop arcs out
+            const arcCenterX = mx + (dx / norm) * offset;
+            const arcCenterY = my + (dy / norm) * offset;
+            // Arc radius is distance from arc center to either end
+            const loopRadius = Math.sqrt((arcCenterX - x1) ** 2 + (arcCenterY - y1) ** 2);
+            // Start and end angles for the arc
+            const startAngle = Math.atan2(y1 - arcCenterY, x1 - arcCenterX);
+            const endAngle = Math.atan2(y2 - arcCenterY, x2 - arcCenterX);
             this.ctx.beginPath();
-            this.ctx.arc(drawFromX, drawFromY, radius, startAngle, endAngle);
+            this.ctx.arc(arcCenterX, arcCenterY, loopRadius, startAngle, endAngle, false);
+            this.ctx.stroke();
         } else if (edge.type === 'curved') {
             // Draw curved edge with quadratic Bézier curve using fixed control point
             const controlPoint = {
@@ -3537,12 +3559,18 @@ export class GraphCreator {
         let angle;
         
         if (edge.type === 'self-loop') {
-            // For self-loops, draw arrow at the bottom of the circle
+            // For self-loops, draw arrow at the end of the 180-degree arc
             const vertexSize = edge.from.size || this.vertexSize;
-            const radius = vertexSize + 15;
-            angle = Math.PI / 2; // Point downward (90 degrees)
-            endX = edge.from.x;
-            endY = edge.from.y + radius;
+            const loopRadius = vertexSize * 1.3;
+            const offset = vertexSize * 1.1;
+            const arcCenterX = edge.from.x;
+            const arcCenterY = edge.from.y - offset;
+            const endAngle = Math.PI * 0.25; // 45°
+            // Arc end point
+            endX = arcCenterX + loopRadius * Math.cos(endAngle);
+            endY = arcCenterY + loopRadius * Math.sin(endAngle);
+            // Tangent angle at end of arc (add 90deg/π/2 to arc angle)
+            angle = endAngle + Math.PI / 2;
         } else if (edge.type === 'curved' && edge.controlPoint) {
             // For curved edges, calculate the angle at the end point using control point
             const controlPoint = edge.controlPoint;
