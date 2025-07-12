@@ -64,6 +64,7 @@ export class GraphCreator {
         this.targetVertex = null;
         this.selectedTargetVertex = null;
         this.animationSpeed = 500; // Animation speed in milliseconds
+        this.traversalDirection = 'forward'; // Direction of edge traversal for waterfall effect
         
         // Theme and styling
         this.currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -2530,7 +2531,7 @@ export class GraphCreator {
                             // Only mark the neighbor as visited when the waterfall reaches it
                             this.visitedVertices.add(neighbor);
                             this.draw();
-                        });
+                        }, current, neighbor);
                         await this.sleep();
                     }
                 }
@@ -2586,7 +2587,7 @@ export class GraphCreator {
                             // Only mark the neighbor as visited when the waterfall reaches it
                             this.visitedVertices.add(neighbor);
                             this.draw();
-                        });
+                        }, current, neighbor);
                         await this.sleep();
                     }
                     
@@ -2680,11 +2681,27 @@ export class GraphCreator {
         return new Promise(resolve => setTimeout(resolve, delay));
     }
     
-    async animateEdgeTraversal(edge, duration = null, onComplete = null) {
+    async animateEdgeTraversal(edge, duration = null, onComplete = null, fromVertex = null, toVertex = null) {
         if (!edge) return;
         
         this.currentTraversalEdge = edge;
         this.traversalProgress = 0;
+        
+        // Determine the traversal direction
+        if (fromVertex && toVertex) {
+            // If fromVertex and toVertex are provided, determine the correct direction
+            if (edge.from.id === fromVertex.id && edge.to.id === toVertex.id) {
+                this.traversalDirection = 'forward'; // edge.from -> edge.to
+            } else if (edge.from.id === toVertex.id && edge.to.id === fromVertex.id) {
+                this.traversalDirection = 'backward'; // edge.to -> edge.from
+            } else {
+                // Default to forward if vertices don't match edge endpoints
+                this.traversalDirection = 'forward';
+            }
+        } else {
+            // Default to forward direction if no vertices specified
+            this.traversalDirection = 'forward';
+        }
         
         const steps = 20; // Number of animation steps
         const stepDuration = duration ? duration / steps : this.animationSpeed / steps;
@@ -2701,6 +2718,7 @@ export class GraphCreator {
         this.visitedEdges.add(edge);
         this.currentTraversalEdge = null;
         this.traversalProgress = 0;
+        this.traversalDirection = 'forward';
         
         // Call the completion callback if provided
         if (onComplete) {
@@ -3091,6 +3109,22 @@ export class GraphCreator {
             // Current traversal edge with waterfall effect
             this.ctx.save();
             
+            // Determine the actual traversal direction
+            let actualFromX, actualFromY, actualToX, actualToY;
+            if (this.traversalDirection === 'backward') {
+                // Traversing from edge.to to edge.from
+                actualFromX = drawToX;
+                actualFromY = drawToY;
+                actualToX = drawFromX;
+                actualToY = drawFromY;
+            } else {
+                // Traversing from edge.from to edge.to (default)
+                actualFromX = drawFromX;
+                actualFromY = drawFromY;
+                actualToX = drawToX;
+                actualToY = drawToY;
+            }
+            
             // Draw the base edge in normal color
             this.ctx.strokeStyle = edge.color || this.edgeColor;
             this.ctx.lineWidth = edgeWidth;
@@ -3111,7 +3145,7 @@ export class GraphCreator {
             this.ctx.stroke();
             
             // Draw the progressive colored portion
-            const gradient = this.ctx.createLinearGradient(drawFromX, drawFromY, drawToX, drawToY);
+            const gradient = this.ctx.createLinearGradient(actualFromX, actualFromY, actualToX, actualToY);
             gradient.addColorStop(0, '#10b981'); // Green start
             gradient.addColorStop(0.5, '#34d399'); // Light green middle
             gradient.addColorStop(1, '#10b981'); // Green end
@@ -3128,12 +3162,23 @@ export class GraphCreator {
                 };
                 // For curved edges, we need to calculate the point along the curve
                 const t = this.traversalProgress;
-                endX = Math.pow(1 - t, 2) * drawFromX + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * drawToX;
-                endY = Math.pow(1 - t, 2) * drawFromY + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * drawToY;
+                if (this.traversalDirection === 'backward') {
+                    // Reverse the curve calculation for backward traversal
+                    endX = Math.pow(1 - t, 2) * drawToX + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * drawFromX;
+                    endY = Math.pow(1 - t, 2) * drawToY + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * drawFromY;
+                } else {
+                    endX = Math.pow(1 - t, 2) * drawFromX + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * drawToX;
+                    endY = Math.pow(1 - t, 2) * drawFromY + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * drawToY;
+                }
             } else {
                 // For straight edges, simple linear interpolation
-                endX = drawFromX + (drawToX - drawFromX) * this.traversalProgress;
-                endY = drawFromY + (drawToY - drawFromY) * this.traversalProgress;
+                if (this.traversalDirection === 'backward') {
+                    endX = actualFromX + (actualToX - actualFromX) * this.traversalProgress;
+                    endY = actualFromY + (actualToY - actualFromY) * this.traversalProgress;
+                } else {
+                    endX = actualFromX + (actualToX - actualFromX) * this.traversalProgress;
+                    endY = actualFromY + (actualToY - actualFromY) * this.traversalProgress;
+                }
             }
             
             this.ctx.beginPath();
@@ -3142,10 +3187,15 @@ export class GraphCreator {
                     x: (drawFromX + drawToX) / 2,
                     y: (drawFromY + drawToY) / 2 - 40
                 };
-                this.ctx.moveTo(drawFromX, drawFromY);
-                this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endX, endY);
+                if (this.traversalDirection === 'backward') {
+                    this.ctx.moveTo(actualFromX, actualFromY);
+                    this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endX, endY);
+                } else {
+                    this.ctx.moveTo(actualFromX, actualFromY);
+                    this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endX, endY);
+                }
             } else {
-                this.ctx.moveTo(drawFromX, drawFromY);
+                this.ctx.moveTo(actualFromX, actualFromY);
                 this.ctx.lineTo(endX, endY);
             }
             this.ctx.stroke();
