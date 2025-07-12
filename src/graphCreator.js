@@ -3690,71 +3690,8 @@ export class GraphCreator {
     
     // Setup expandable sections
     setupExpandableSections() {
-        // Define all expandable sections
-        const sections = [
-            {
-                header: 'infoSectionHeader',
-                content: 'infoSectionContent',
-                icon: 'infoExpandIcon'
-            },
-            {
-                header: 'basicControlsSectionHeader',
-                content: 'basicControlsSectionContent',
-                icon: 'basicControlsExpandIcon'
-            },
-            {
-                header: 'editControlsSectionHeader',
-                content: 'editControlsSectionContent',
-                icon: 'editControlsExpandIcon'
-            },
-            {
-                header: 'deleteModePanelHeader',
-                content: 'deleteModePanelContent',
-                icon: 'deleteModeExpandIcon'
-            },
-            {
-                header: 'searchSectionHeader',
-                content: 'searchSectionContent',
-                icon: 'searchExpandIcon'
-            }
-        ];
-        
-        sections.forEach(section => {
-            const header = document.getElementById(section.header);
-            const content = document.getElementById(section.content);
-            const icon = document.getElementById(section.icon);
-            
-            if (header && content && icon) {
-                // Set initial state - all sections expanded by default
-                if (!header.classList.contains('expanded')) {
-                    header.classList.add('expanded');
-                }
-                if (!content.classList.contains('show')) {
-                    content.classList.add('show');
-                }
-                if (icon.style.transform !== 'rotate(180deg)') {
-                    icon.style.transform = 'rotate(180deg)';
-                }
-                
-                header.addEventListener('click', () => {
-                    const isExpanded = header.classList.contains('expanded');
-                    
-                    if (isExpanded) {
-                        // Collapse
-                        content.style.display = 'none';
-                        content.classList.remove('show');
-                        header.classList.remove('expanded');
-                        icon.style.transform = 'rotate(0deg)';
-                    } else {
-                        // Expand
-                        content.style.display = 'block';
-                        content.classList.add('show');
-                        header.classList.add('expanded');
-                        icon.style.transform = 'rotate(180deg)';
-                    }
-                });
-            }
-        });
+        // Search section is always expanded and visible - no expand/collapse functionality
+        // Other sections can have expand/collapse if needed in the future
     }
     
     // Setup mouse coordinate tracking
