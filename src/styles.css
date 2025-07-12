@@ -1843,6 +1843,42 @@ body {
     transform: scale(1.1);
 }
 
+/* Custom button styles for specific buttons */
+#deleteNodesBtn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e) !important;
+    color: white !important;
+}
+
+#deleteNodesBtn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ff5722, #ff9800) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+#deleteAllGraphs {
+    background: linear-gradient(135deg, #8b0000, #a52a2a) !important;
+    color: white !important;
+    border: none !important;
+}
+
+#deleteAllGraphs:hover:not(:disabled) {
+    background: linear-gradient(135deg, #a52a2a, #b22222) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Consistent hover effects for all sidebar buttons */
+.sidebar .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.sidebar .btn-outline-primary:hover:not(:disabled),
+.sidebar .btn-outline-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
 /* Contact Modal Styles */
 #contactModal .modal-content {
     background: var(--bg-card);
