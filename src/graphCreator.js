@@ -20,6 +20,8 @@ export class GraphCreator {
         this.pathVertices = new Set();
         this.visitedEdges = new Set(); // Track edges that are part of the search
         this.pathEdges = new Set(); // Track edges that are part of the final path
+        this.currentTraversalEdge = null; // Track the edge currently being traversed
+        this.traversalProgress = 0; // Progress along the current edge (0-1)
         this.distanceModeVertices = [];
         this.isDistanceMode = false;
         
@@ -251,10 +253,6 @@ export class GraphCreator {
             this.forceRedraw();
         });
         
-        document.getElementById('calculateDistance').addEventListener('click', () => {
-            this.toggleDistanceMode();
-        });
-        
         document.getElementById('clearGraph').addEventListener('click', () => {
             this.clearGraph();
         });
@@ -349,8 +347,8 @@ export class GraphCreator {
         
         // Animation speed slider
         document.getElementById('animationSpeed').addEventListener('input', (e) => {
+            // Direct mapping: left (100) = slow, right (2000) = fast
             this.animationSpeed = parseInt(e.target.value);
-            document.getElementById('animationSpeedValue').textContent = `${this.animationSpeed}ms`;
         });
         
         // Clear target button - this is handled in setupResetTargetBtn()
@@ -2422,6 +2420,8 @@ export class GraphCreator {
         this.pathVertices.clear();
         this.visitedEdges.clear();
         this.pathEdges.clear();
+        this.currentTraversalEdge = null;
+        this.traversalProgress = 0;
         
         document.getElementById('runBFS').disabled = false;
         document.getElementById('runDFS').disabled = false;
@@ -2446,6 +2446,8 @@ export class GraphCreator {
         this.pathVertices.clear();
         this.visitedEdges.clear();
         this.pathEdges.clear();
+        this.currentTraversalEdge = null;
+        this.traversalProgress = 0;
         
         visited.add(startVertex.id);
         distances[startVertex.id] = 0;
@@ -2454,16 +2456,8 @@ export class GraphCreator {
         while (queue.length > 0 && this.isSearching) {
             const current = queue.shift();
             
-            // Mark as visited
+            // Mark as visited (this makes the current node glow green)
             this.visitedVertices.add(current);
-            
-            // Add edges to visited edges if we have a parent
-            if (parent[current.id]) {
-                const edge = this.findEdge(parent[current.id], current);
-                if (edge) {
-                    this.visitedEdges.add(edge);
-                }
-            }
             
             this.draw();
             await this.sleep();
@@ -2477,7 +2471,7 @@ export class GraphCreator {
                 return;
             }
             
-            // Add neighbors to queue
+            // Animate edge traversal to neighbors (waterfall effect)
             const neighbors = adjacencyList[current.id] || [];
             for (const neighbor of neighbors) {
                 if (!visited.has(neighbor.id)) {
@@ -2486,6 +2480,16 @@ export class GraphCreator {
                     distances[neighbor.id] = distances[current.id] + 1;
                     queue.push(neighbor);
                     visitOrder.push(neighbor);
+                    
+                    // Animate edge traversal from current node to neighbor
+                    const edge = this.findEdge(current, neighbor);
+                    if (edge) {
+                        await this.animateEdgeTraversal(edge);
+                        // After edge traversal completes, mark the neighbor as visited
+                        this.visitedVertices.add(neighbor);
+                        this.draw();
+                        await this.sleep();
+                    }
                 }
             }
         }
@@ -2507,6 +2511,8 @@ export class GraphCreator {
         this.pathVertices.clear();
         this.visitedEdges.clear();
         this.pathEdges.clear();
+        this.currentTraversalEdge = null;
+        this.traversalProgress = 0;
         
         const dfs = async (current) => {
             if (!this.isSearching) return false;
@@ -2514,14 +2520,6 @@ export class GraphCreator {
             visited.add(current.id);
             this.visitedVertices.add(current);
             visitOrder.push(current);
-            
-            // Add edges to visited edges if we have a parent
-            if (parent[current.id]) {
-                const edge = this.findEdge(parent[current.id], current);
-                if (edge) {
-                    this.visitedEdges.add(edge);
-                }
-            }
             
             this.draw();
             await this.sleep();
@@ -2537,6 +2535,17 @@ export class GraphCreator {
             for (const neighbor of neighbors) {
                 if (!visited.has(neighbor.id)) {
                     parent[neighbor.id] = current;
+                    
+                    // Animate edge traversal from current node to neighbor
+                    const edge = this.findEdge(current, neighbor);
+                    if (edge) {
+                        await this.animateEdgeTraversal(edge);
+                        // After edge traversal completes, mark the neighbor as visited
+                        this.visitedVertices.add(neighbor);
+                        this.draw();
+                        await this.sleep();
+                    }
+                    
                     const found = await dfs(neighbor);
                     if (found) return true;
                 }
@@ -2577,6 +2586,14 @@ export class GraphCreator {
     showSearchResult(found, algorithm, distance = null, visitedCount = null, visitOrder = null) {
         this.isSearching = false;
         
+        // Immediately clear all visual effects when animation is done
+        this.visitedVertices.clear();
+        this.pathVertices.clear();
+        this.visitedEdges.clear();
+        this.pathEdges.clear();
+        this.currentTraversalEdge = null;
+        this.traversalProgress = 0;
+        
         document.getElementById('runBFS').disabled = false;
         document.getElementById('runDFS').disabled = false;
         document.getElementById('stopSearch').disabled = true;
@@ -2605,18 +2622,41 @@ export class GraphCreator {
         searchInfo.textContent = resultText;
         searchInfo.classList.add('show');
         
-        // Clear after 8 seconds (increased to allow reading the path)
+        // Clear search info after 8 seconds (but visual effects are already cleared)
         setTimeout(() => {
-            this.visitedVertices.clear();
-            this.pathVertices.clear();
             searchInfo.classList.remove('show');
-            this.draw();
         }, 8000);
+        
+        // Redraw immediately to show cleared visual effects
+        this.draw();
     }
     
     sleep(ms = null) {
         const delay = ms !== null ? ms : this.animationSpeed;
         return new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    async animateEdgeTraversal(edge, duration = null) {
+        if (!edge) return;
+        
+        this.currentTraversalEdge = edge;
+        this.traversalProgress = 0;
+        
+        const steps = 20; // Number of animation steps
+        const stepDuration = duration ? duration / steps : this.animationSpeed / steps;
+        
+        for (let i = 0; i <= steps; i++) {
+            if (!this.isSearching) break;
+            
+            this.traversalProgress = i / steps;
+            this.draw();
+            await new Promise(resolve => setTimeout(resolve, stepDuration));
+        }
+        
+        // Mark the edge as visited after traversal completes
+        this.visitedEdges.add(edge);
+        this.currentTraversalEdge = null;
+        this.traversalProgress = 0;
     }
     
 
@@ -2778,10 +2818,8 @@ export class GraphCreator {
         this.selectedVertices = [];
         
         if (this.isDistanceMode) {
-            document.getElementById('calculateDistance').classList.add('active');
             this.updateStatus('Distance mode: Click two vertices to calculate shortest path distance');
         } else {
-            document.getElementById('calculateDistance').classList.remove('active');
             this.updateStatus('Distance mode disabled');
         }
         
@@ -2964,6 +3002,14 @@ export class GraphCreator {
         if (this.isDeleteMode) {
             this.vertices.forEach(vertex => this.drawDeleteButton(vertex));
         }
+        
+        // Final canvas state reset to ensure no lingering effects
+        this.ctx.globalAlpha = 1.0;
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
     }
     
     drawEdge(edge) {
@@ -2992,7 +3038,77 @@ export class GraphCreator {
         }
         
         // Enhanced edge styling for search animations
-        if (this.pathEdges.has(edge)) {
+        if (this.currentTraversalEdge === edge && this.traversalProgress > 0) {
+            // Current traversal edge with waterfall effect
+            this.ctx.save();
+            
+            // Draw the base edge in normal color
+            this.ctx.strokeStyle = edge.color || this.edgeColor;
+            this.ctx.lineWidth = edgeWidth;
+            this.ctx.lineCap = 'round';
+            this.ctx.beginPath();
+            
+            if (edge.type === 'curved') {
+                const controlPoint = {
+                    x: (drawFromX + drawToX) / 2,
+                    y: (drawFromY + drawToY) / 2 - 40
+                };
+                this.ctx.moveTo(drawFromX, drawFromY);
+                this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, drawToX, drawToY);
+            } else {
+                this.ctx.moveTo(drawFromX, drawFromY);
+                this.ctx.lineTo(drawToX, drawToY);
+            }
+            this.ctx.stroke();
+            
+            // Draw the progressive colored portion
+            const gradient = this.ctx.createLinearGradient(drawFromX, drawFromY, drawToX, drawToY);
+            gradient.addColorStop(0, '#10b981'); // Green start
+            gradient.addColorStop(0.5, '#34d399'); // Light green middle
+            gradient.addColorStop(1, '#10b981'); // Green end
+            
+            this.ctx.strokeStyle = gradient;
+            this.ctx.lineWidth = Math.max(edgeWidth, 4);
+            
+            // Calculate the end point based on progress
+            let endX, endY;
+            if (edge.type === 'curved') {
+                const controlPoint = {
+                    x: (drawFromX + drawToX) / 2,
+                    y: (drawFromY + drawToY) / 2 - 40
+                };
+                // For curved edges, we need to calculate the point along the curve
+                const t = this.traversalProgress;
+                endX = Math.pow(1 - t, 2) * drawFromX + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * drawToX;
+                endY = Math.pow(1 - t, 2) * drawFromY + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * drawToY;
+            } else {
+                // For straight edges, simple linear interpolation
+                endX = drawFromX + (drawToX - drawFromX) * this.traversalProgress;
+                endY = drawFromY + (drawToY - drawFromY) * this.traversalProgress;
+            }
+            
+            this.ctx.beginPath();
+            if (edge.type === 'curved') {
+                const controlPoint = {
+                    x: (drawFromX + drawToX) / 2,
+                    y: (drawFromY + drawToY) / 2 - 40
+                };
+                this.ctx.moveTo(drawFromX, drawFromY);
+                this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endX, endY);
+            } else {
+                this.ctx.moveTo(drawFromX, drawFromY);
+                this.ctx.lineTo(endX, endY);
+            }
+            this.ctx.stroke();
+            
+            // Add glow effect
+            this.ctx.shadowColor = 'rgba(16, 185, 129, 0.6)';
+            this.ctx.shadowBlur = 6;
+            this.ctx.stroke();
+            
+            this.ctx.restore();
+            return; // Skip the rest of the function for this edge
+        } else if (this.pathEdges.has(edge)) {
             // Path edges get enhanced styling with gradient
             this.ctx.save();
             const gradient = this.ctx.createLinearGradient(drawFromX, drawFromY, drawToX, drawToY);
@@ -3082,6 +3198,12 @@ export class GraphCreator {
             this.ctx.stroke();
             this.ctx.shadowBlur = 0;
         }
+        
+        // Ensure shadow effects are completely cleared after drawing each edge
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
     }
     
     drawVertex(vertex) {

@@ -402,7 +402,7 @@ body {
 .slider-container {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .slider-container input[type="range"] {
@@ -1719,32 +1719,24 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.slider-labels {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0.5rem;
+.slider-label-left,
+.slider-label-right {
     font-size: 0.75rem;
+    font-weight: 500;
     color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    min-width: 2rem;
 }
 
-.slider-labels span:first-child {
+.slider-label-left {
     color: var(--success-color);
-    font-weight: 500;
+    margin-right: 0.75rem;
 }
 
-.slider-labels span:last-child {
+.slider-label-right {
     color: var(--warning-color);
-    font-weight: 500;
-}
-
-.slider-labels span:nth-child(2) {
-    color: var(--primary-color);
-    font-weight: 600;
-    background: var(--bg-tertiary);
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
+    margin-left: 0.75rem;
 } 
 
 /* Edit Mode Styles */

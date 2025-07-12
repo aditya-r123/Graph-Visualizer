@@ -312,31 +312,24 @@
                                 Animation Speed
                             </label>
                             <div class="slider-container">
+                                <span class="slider-label-left">Slow</span>
                                 <input type="range" id="animationSpeed" min="100" max="2000" value="500" step="100" class="slider">
-                                <div class="slider-labels">
-                                    <span>Fast</span>
-                                    <span id="animationSpeedValue">500ms</span>
-                                    <span>Slow</span>
-                                </div>
+                                <span class="slider-label-right">Fast</span>
                             </div>
                         </div>
                         
                         <div class="button-group">
                             <button id="runBFS" class="btn btn-primary">
                                 <i class="fas fa-bread-slice"></i>
-                                Run BFS / Shortest Path (Unweighted)
+                                Run Breadth First Search (BFS) / Find Unweighted Shortest Path
                             </button>
                             <button id="runDFS" class="btn btn-primary">
                                 <i class="fas fa-tree"></i>
-                                Run DFS
+                                Run Depth First Search (DFS)
                             </button>
                             <button id="stopSearch" class="btn btn-warning" disabled>
                                 <i class="fas fa-stop"></i>
                                 Stop Search
-                            </button>
-                            <button id="calculateDistance" class="btn btn-primary">
-                                <i class="fas fa-ruler"></i>
-                                Calculate Distance
                             </button>
                         </div>
                         <div id="distanceInfo" class="distance-info"></div>

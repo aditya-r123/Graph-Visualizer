@@ -121,7 +121,7 @@ npm run build
 - **Select Target**: Click the target selection area to choose a vertex
 - **Run BFS/DFS**: Click the respective buttons to start animated traversal
 - **Stop Search**: Interrupt ongoing searches at any time
-- **Calculate Distance**: Measure shortest path between two vertices
+
 
 ### Save & Load
 - **Auto-Save**: Toggle automatic saving in the Save & Load section
