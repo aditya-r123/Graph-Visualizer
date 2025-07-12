@@ -4213,8 +4213,10 @@ export class GraphCreator {
     updateMouseCoordinateDisplay() {
         const coordDisplay = document.getElementById('mouseCoordinates');
         if (coordDisplay) {
-            if (!this.showMouseCoordinates || !this.mouseOverCanvas) {
+            if (!this.showMouseCoordinates) {
                 coordDisplay.textContent = '';
+            } else if (!this.mouseOverCanvas) {
+                coordDisplay.textContent = 'outside editor';
             } else {
                 // Display coordinates in bottom-left origin system
                 const displayX = Math.round(this.mouseCoordinates.x);
