@@ -1,184 +1,121 @@
 export class GraphCreator {
     constructor() {
+        // Initialize canvas
         this.canvas = document.getElementById('graphCanvas');
         this.ctx = this.canvas.getContext('2d');
+        
+        // Fixed 2000x2000 canvas dimensions
+        this.whiteBoxWidth = 2000;
+        this.whiteBoxHeight = 2000;
+        this.canvasColor = '#374151'; // Dark gray for dark mode (will be updated based on theme)
+        
+        // Initialize graph data
         this.vertices = [];
         this.edges = [];
         this.nextVertexId = 1;
         this.selectedVertices = [];
-        this.draggedVertex = null;
-        this.isDragging = false;
-        this.vertexSize = 25;
-        this.edgeType = 'straight';
-        this.edgeDirection = 'undirected'; // 'undirected', 'directed-forward', 'directed-backward'
-        this.defaultEdgeWeight = null;
-        this.isDistanceMode = false;
-        this.distanceModeVertices = [];
-        this.isSearching = false;
-        this.searchAnimation = null;
+        this.flashingVertices = new Set();
+        this.distanceFlashingVertices = new Set();
         this.visitedVertices = new Set();
         this.pathVertices = new Set();
-        this.currentTheme = 'dark';
-        this.savedGraphs = [];
-        this.autoSaveInterval = null;
-        this.editingVertex = null;
-        this.lastSavedState = null;
-        this.autosaveEnabled = true;
+        this.distanceModeVertices = [];
+        this.isDistanceMode = false;
         
-        // Target selection properties
-        this.selectedTargetVertex = null;
+        // Initialize state variables
+        this.isDragging = false;
+        this.draggedVertex = null;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.hasDragged = false;
+        this.dragThreshold = 5;
+        this.justFinishedDragging = false;
         
         // Edge dragging properties
         this.draggedEdge = null;
         this.isDraggingEdge = false;
         this.edgeControlPointSize = 8;
         
-        // Long-press and edit mode properties
+        // Edit mode variables
+        this.editModeElement = null;
+        this.editModeType = null;
         this.longPressTimer = null;
-        this.longPressDuration = 2000; // 2 seconds
-        this.isLongPressing = false;
-        this.editModeElement = null; // Currently selected element for editing
-        this.editModeType = null; // 'vertex' or 'edge'
-        this.shakeAnimation = null;
-        this.shakeOffset = 0;
-        this.shakeDirection = 1;
-        
-        // Hold timer visual feedback properties
-        this.holdStartTime = null;
-        this.holdProgressVertex = null;
-        this.holdProgressAnimation = null;
+        this.longPressDelay = 2500; // 2.5 seconds for edit mode
         this.holdProgress = 0;
-        this.holdTimerWasActive = false; // Track if hold timer was active to prevent edge creation
+        this.holdProgressVertex = null;
+        this.holdStartTime = null;
+        this.holdProgressAnimation = null;
+        this.holdTimerWasActive = false;
+        this.shakeOffset = 0;
+        this.shakeAnimationId = null;
+        this._editPreview = null;
         
-        // Apply to all properties
-        this.applyToAllVertices = false;
-        this.applyToAllEdges = false;
-        
-        // Flash effect properties
-        this.flashingVertices = new Set();
-        this.distanceFlashingVertices = null;
-        this.flashTimer = null;
-        
-        // Delete mode properties
+        // Delete mode variables
         this.isDeleteMode = false;
         this.verticesToDelete = new Set();
         this.originalVertices = [];
         this.originalEdges = [];
         
-
+        // Search variables
+        this.isSearching = false;
+        this.targetVertex = null;
+        this.selectedTargetVertex = null;
+        
+        // Theme and styling
+        this.currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        this.vertexSize = 25;
+        this.vertexColor = '#6b7280'; // Dark gray instead of blue
+        this.vertexBorderColor = '#4b5563'; // Darker gray border
+        this.vertexFontSize = 14;
+        this.vertexFontFamily = 'Inter, sans-serif';
+        this.vertexFontColor = '#ffffff'; // White text for contrast
+        this.edgeColor = '#6b7280';
+        this.edgeWidth = 2;
+        this.edgeFontSize = 12;
+        this.edgeFontFamily = 'Inter, sans-serif';
+        this.edgeFontColor = '#374151';
+        this.edgeType = 'straight';
+        this.edgeDirection = 'undirected';
+        
+        // Auto-save
+        this.autosaveEnabled = true;
+        this.autosaveInterval = null;
+        this.savedGraphs = [];
+        this.lastSavedState = null;
         
         // Mouse coordinate tracking
-        this.mouseCoordinates = { x: 0, y: 0 };
         this.showMouseCoordinates = true;
-        this.mouseOverCanvas = false;
+        this.mouseX = 0;
+        this.mouseY = 0;
         
-        // Coordinate grid properties
+        // Coordinate grid
         this.showCoordinateGrid = false;
-        this.gridDensity = 50; // Default density (10-100)
-        this.gridSpacing = 50; // Calculated from density
+        this.gridDensity = 50;
+        this.gridSpacing = 50;
         
-        // Mouse interaction properties
-        this.dragThreshold = 5; // Minimum distance to consider as drag
-        this.isDragging = false;
-        this.draggedVertex = null;
-        this.dragStartX = 0;
-        this.dragStartY = 0;
-        this.hasDragged = false;
-        this.justFinishedDragging = false; // Flag to prevent clicks after drag
-        this.longPressTimer = null;
-        this.longPressDelay = 2500; // 2.5 seconds for edit mode
-        
-        // Debug mode for phantom node detection
+        // Debug mode
         this.debugMode = false;
-        this.vertexDrawCount = new Map(); // Track how many times each vertex is drawn
+        this.vertexDrawCount = new Map();
         
-        // Styling properties
-        this.vertexColor = '#1e293b';
-        this.vertexBorderColor = '#475569';
-        this.vertexFontSize = 14;
-        this.vertexFontFamily = 'Inter';
-        this.vertexFontColor = '#ffffff';
-        
-        this.edgeColor = '#6366f1';
-        this.edgeWidth = 3;
-        this.edgeFontSize = 14;
-        this.edgeFontFamily = 'Inter';
-        this.edgeFontColor = '#06b6d4';
-        
-        this.editingZoneWidth = null; // Store current editing zone width
-        this.editingZoneHeight = null;
-        
+        // Initialize the application
         this.initializeCanvas();
         this.initializeEventListeners();
         this.startAutoSave();
         this.loadSavedGraphs();
+        this.setupExpandableSections();
+        this.setupMouseCoordinateTracking();
+        this.setupResetTargetBtn();
+        this.setupMinimalEditModeEvents();
         this.updateInfo();
         this.updateTime();
-        this.updateTargetVertexDisplay();
         
-        // Enable debug mode for phantom node detection (set to false in production)
-        this.debugMode = true;
-        
-        // Update time every second
+        // Set up time update interval
         setInterval(() => this.updateTime(), 1000);
         
-        // Add event listener for the reset button after DOM is loaded
-        // (call this in constructor or after DOMContentLoaded)
-        this.setupResetTargetBtn();
-
-        // In constructor, after DOMContentLoaded, call this.setupMinimalEditModeEvents();
-        this.setupMinimalEditModeEvents();
-        
-        // Setup expandable sections
-        this.setupExpandableSections();
-        
-        // Setup mouse coordinate tracking
-        this.setupMouseCoordinateTracking();
-        
-        // Initialize grid spacing
-        this.updateGridSpacing();
-        this.initializeEditingZoneIndicator();
+        // Initial draw
+        this.draw();
     }
     
-    initializeEditingZoneIndicator() {
-        // Set up the editing zone indicator width on load and resize
-        const updateEditingZone = () => {
-            const leftSidebar = document.querySelector('.sidebar');
-            const rightSidebar = document.querySelector('.right-sidebar');
-            const mainContent = document.querySelector('.main-content');
-            const indicator = document.querySelector('.editing-zone-indicator');
-            if (!leftSidebar || !rightSidebar || !mainContent || !indicator) return;
 
-            // Get bounding rects
-            const leftRect = leftSidebar.getBoundingClientRect();
-            const rightRect = rightSidebar.getBoundingClientRect();
-            const mainRect = mainContent.getBoundingClientRect();
-
-            // Calculate the available width between the right edge of the left sidebar and the left edge of the right sidebar
-            const zoneLeft = leftRect.right;
-            const zoneRight = rightRect.left;
-            const zoneWidth = Math.max(0, zoneRight - zoneLeft);
-            const zoneHeight = mainRect.height;
-
-            // Set the indicator's width and left offset
-            indicator.style.width = zoneWidth + 'px';
-            indicator.style.left = (zoneLeft - mainRect.left) + 'px';
-            indicator.style.height = zoneHeight + 'px';
-
-            // Store for drag boundary
-            this.editingZoneWidth = zoneWidth;
-            this.editingZoneHeight = zoneHeight;
-
-            // Update label
-            indicator.setAttribute('data-zone-label', `${Math.round(zoneWidth)}×${Math.round(zoneHeight)} Editing Zone`);
-            // Update the ::before content using a CSS variable
-            indicator.style.setProperty('--zone-label', `'${Math.round(zoneWidth)}×${Math.round(zoneHeight)} Editing Zone'`);
-        };
-        window.addEventListener('resize', updateEditingZone);
-        window.addEventListener('DOMContentLoaded', updateEditingZone);
-        setTimeout(updateEditingZone, 100); // In case of late layout
-        updateEditingZone();
-    }
     
     startEditModeTimer(vertex) {
         // Clear any existing timer and animation
@@ -254,7 +191,7 @@ export class GraphCreator {
 
     
     initializeCanvas() {
-        // Set canvas size to match container
+        // Set canvas size to fixed 2000x2000 canvas
         this.resizeCanvas();
         // Redraw on window resize or devicePixelRatio change
         window.addEventListener('resize', () => {
@@ -273,17 +210,12 @@ export class GraphCreator {
     }
     
     resizeCanvas() {
-        // Dynamically size canvas to match parent container
-        const container = this.canvas.parentElement;
-        const rect = container.getBoundingClientRect();
+        // Set canvas to fixed 2000x2000 dimensions
         const dpr = window.devicePixelRatio || 1;
-        // Use Math.floor to avoid subpixel blurring
-        const width = Math.floor(rect.width);
-        const height = Math.floor(rect.height);
-        this.canvas.width = width * dpr;
-        this.canvas.height = height * dpr;
-        this.canvas.style.width = width + 'px';
-        this.canvas.style.height = height + 'px';
+        this.canvas.width = this.whiteBoxWidth * dpr;
+        this.canvas.height = this.whiteBoxHeight * dpr;
+        this.canvas.style.width = this.whiteBoxWidth + 'px';
+        this.canvas.style.height = this.whiteBoxHeight + 'px';
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(dpr, dpr);
         
@@ -813,7 +745,7 @@ export class GraphCreator {
     
     takeScreenshot() {
         console.log('takeScreenshot function called');
-        console.log('Canvas dimensions:', this.canvas.width, 'x', this.canvas.height);
+        console.log('White box dimensions:', this.whiteBoxWidth, 'x', this.whiteBoxHeight);
         console.log('Number of vertices:', this.vertices.length);
         console.log('Number of edges:', this.edges.length);
         
@@ -824,9 +756,9 @@ export class GraphCreator {
             
             console.log('Created temporary canvas');
         
-        // Set canvas size to fixed coordinate system
-        tempCanvas.width = 1800;
-        tempCanvas.height = 1800;
+        // Set canvas size to fixed 2000x2000 canvas
+        tempCanvas.width = this.whiteBoxWidth;
+        tempCanvas.height = this.whiteBoxHeight;
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
         
@@ -834,21 +766,21 @@ export class GraphCreator {
         const formatSelect = document.getElementById('screenshotFormat');
         const format = formatSelect ? formatSelect.value : 'jpg';
         
-        // Fill background - transparent for PNG, white for JPG
+        // Fill background - transparent for PNG, theme-based color for JPG
         if (format === 'png') {
             // Clear the canvas for transparency (no fill)
             tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
         } else {
-            // Fill with white background for JPG
-            tempCtx.fillStyle = '#ffffff';
+            // Fill with theme-based background for JPG
+            tempCtx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe';
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         }
         
             console.log('Filled background');
             
-            // Draw the entire graph using the fixed coordinate system
+            // Draw the graph using the fixed 2000x2000 coordinate system
             console.log('Drawing graph on screenshot canvas...');
-            this.drawOnCanvas(tempCtx, 1800, 1800);
+            this.drawOnCanvas(tempCtx, this.whiteBoxWidth, this.whiteBoxHeight);
             
             console.log('Starting blob conversion...');
             
@@ -1697,19 +1629,15 @@ export class GraphCreator {
         }
     }
     
-    // Color wall collision detection
-    isVertexTouchingColorWall(x, y, size) {
-        const borderColor = '#d3d3d3'; // Light gray color wall
-        const tolerance = 5; // Color matching tolerance
+    // Canvas boundary collision detection
+    isVertexTouchingCanvasBoundary(x, y, size) {
+        // Check if vertex would touch the canvas boundary at this position
+        const minX = size;
+        const minY = size;
+        const maxX = this.whiteBoxWidth - size;
+        const maxY = this.whiteBoxHeight - size;
         
-        // Check if vertex would touch the border at this position
-        const borderWidth = 3;
-        const minX = size + borderWidth;
-        const minY = size + borderWidth;
-        const maxX = (this.editingZoneWidth ? this.editingZoneWidth : this.canvas.width / (window.devicePixelRatio || 1)) - size - borderWidth;
-        const maxY = (this.editingZoneHeight ? this.editingZoneHeight : this.canvas.height / (window.devicePixelRatio || 1)) - size - borderWidth;
-        
-        // Check if vertex would be at the border
+        // Check if vertex would be at or beyond the boundary
         if (x <= minX || x >= maxX || y <= minY || y >= maxY) {
             return true;
         }
@@ -1745,10 +1673,10 @@ export class GraphCreator {
                 this.startEditModeTimer(this.draggedVertex);
             }
             
-            // COLOR WALL: Check if vertex would touch the light gray border
+            // CANVAS BOUNDARY: Check if vertex would touch the canvas boundary
             const size = this.draggedVertex.size || this.vertexSize;
-            if (this.isVertexTouchingColorWall(pos.x, pos.y, size)) {
-                // Don't allow movement - vertex would touch the color wall
+            if (this.isVertexTouchingCanvasBoundary(pos.x, pos.y, size)) {
+                // Don't allow movement - vertex would touch the canvas boundary
                 return;
             }
             
@@ -2227,6 +2155,13 @@ export class GraphCreator {
     }
     
     addVertex(x, y) {
+        // Check if vertex would be within canvas boundaries
+        const size = this.vertexSize;
+        if (this.isVertexTouchingCanvasBoundary(x, y, size)) {
+            this.updateStatus('Cannot add vertex outside the canvas boundaries!');
+            return;
+        }
+        
         const customLabel = document.getElementById('vertexLabel').value.trim();
         let label = customLabel;
         
@@ -2246,7 +2181,12 @@ export class GraphCreator {
             id: this.nextVertexId++,
             x: x,
             y: y,
-            label: label
+            label: label,
+            color: this.vertexColor,
+            borderColor: this.vertexBorderColor,
+            fontSize: this.vertexFontSize,
+            fontFamily: this.vertexFontFamily,
+            fontColor: this.vertexFontColor
         };
         
         this.vertices.push(vertex);
@@ -2866,9 +2806,9 @@ export class GraphCreator {
     }
     
     draw() {
-        // Clear canvas completely - use fillRect for more thorough clearing
-        this.ctx.fillStyle = this.currentTheme === 'dark' ? '#0f172a' : '#ffffff';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        // Fill canvas with theme-based color
+        this.ctx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe'; // Dark gray for dark mode, light blue for light mode
+        this.ctx.fillRect(0, 0, this.whiteBoxWidth, this.whiteBoxHeight);
         
         // Reset any canvas state that might cause artifacts
         this.ctx.globalAlpha = 1.0;
@@ -3816,8 +3756,8 @@ export class GraphCreator {
         if (!this.showCoordinateGrid) return;
         
         const ctx = this.ctx;
-        const width = 1800; // Fixed coordinate system width
-        const height = 1800; // Fixed coordinate system height
+        const width = this.whiteBoxWidth; // Fixed 2000x2000 canvas
+        const height = this.whiteBoxHeight;
         
         // Set grid styling
         ctx.strokeStyle = this.currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';

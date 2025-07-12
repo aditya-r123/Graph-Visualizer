@@ -1125,10 +1125,11 @@ body {
 
 .canvas-container {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 2000px;
+    height: 2000px;
     /* Ensure proper canvas rendering */
     overflow: hidden;
+    margin: 0 auto;
 }
 
 /* Scrollable wrapper for the canvas */
@@ -1216,48 +1217,25 @@ body {
     background: var(--bg-secondary);
 }
 
-/* Editing Zone Indicator */
-.editing-zone-indicator {
+/* Canvas Container */
+.white-box-container {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%; /* fallback, will be set by JS */
-    height: 100%;
-    border: 3px solid #d3d3d3; /* Light gray color wall */
-    border-radius: 8px;
+    width: 2000px;
+    height: 2000px;
+    border: 2px solid var(--border-color);
     pointer-events: none;
     z-index: 10;
-    box-shadow: 0 0 20px rgba(211, 211, 211, 0.3);
-    background: rgba(211, 211, 211, 0.1);
-}
-
-.editing-zone-indicator::before {
-    content: var(--zone-label, 'Editing Zone');
-    position: absolute;
-    top: -40px;
-    left: 10px;
-    background: #ffffff;
-    color: #333333;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    white-space: nowrap;
-}
-
-/* Dark theme adjustments for the indicator */
-[data-theme="dark"] .editing-zone-indicator::before {
-    background: #ffffff;
-    color: #1f2937;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 #graphCanvas {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 2000px;
+    height: 2000px;
     background: var(--bg-primary);
     cursor: crosshair;
     display: block;
