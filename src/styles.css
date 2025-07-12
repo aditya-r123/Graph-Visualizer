@@ -1124,23 +1124,22 @@ body {
 }
 
 .canvas-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1800px;
-    height: 1800px;
-    /* pointer-events: none; */
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Ensure proper canvas rendering */
+    overflow: hidden;
 }
 
 /* Scrollable wrapper for the canvas */
 .canvas-scroll-wrapper {
     width: 100%;
-    height: calc(100vh - 60px); /* Reduced to 60px to extend all the way to footer */
+    height: calc(100vh - 120px); /* Reduced from 200px to 120px to extend closer to footer */
     overflow: auto;
     position: relative;
     margin: 0;
     background: var(--bg-primary);
-    margin-bottom: 0px; /* Removed margin to touch footer */
+    margin-bottom: 8px; /* Reduced from 12px to 8px */
     display: block;
     /* Ensure scrollbars appear between editor and footer */
     z-index: 1;
@@ -1222,18 +1221,18 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 1800px;
-    height: 1800px;
-    border: 3px solid #ffffff;
+    width: 100%; /* fallback, will be set by JS */
+    height: 100%;
+    border: 3px solid #d3d3d3; /* Light gray color wall */
     border-radius: 8px;
     pointer-events: none;
     z-index: 10;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(211, 211, 211, 0.3);
+    background: rgba(211, 211, 211, 0.1);
 }
 
 .editing-zone-indicator::before {
-    content: '1800×1800 Editing Zone';
+    content: var(--zone-label, 'Editing Zone');
     position: absolute;
     top: -40px;
     left: 10px;
@@ -1257,8 +1256,8 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 1800px;
-    height: 1800px;
+    width: 100%;
+    height: 100%;
     background: var(--bg-primary);
     cursor: crosshair;
     display: block;
@@ -1266,6 +1265,11 @@ body {
     margin: 0;
     padding: 0;
     pointer-events: auto;
+    /* Prevent rendering artifacts */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Instructions Overlay */
@@ -1577,7 +1581,8 @@ body {
 
 /* Canvas-specific styles for better interaction */
 #graphCanvas {
-    touch-action: none;
+    /* Remove touch-action restriction that could interfere with dragging */
+    touch-action: manipulation;
 }
 
 /* Selection states for vertices */

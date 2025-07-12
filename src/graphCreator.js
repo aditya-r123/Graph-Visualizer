@@ -88,6 +88,10 @@ export class GraphCreator {
         this.longPressTimer = null;
         this.longPressDelay = 2500; // 2.5 seconds for edit mode
         
+        // Debug mode for phantom node detection
+        this.debugMode = false;
+        this.vertexDrawCount = new Map(); // Track how many times each vertex is drawn
+        
         // Styling properties
         this.vertexColor = '#1e293b';
         this.vertexBorderColor = '#475569';
@@ -101,6 +105,9 @@ export class GraphCreator {
         this.edgeFontFamily = 'Inter';
         this.edgeFontColor = '#06b6d4';
         
+        this.editingZoneWidth = null; // Store current editing zone width
+        this.editingZoneHeight = null;
+        
         this.initializeCanvas();
         this.initializeEventListeners();
         this.startAutoSave();
@@ -108,6 +115,9 @@ export class GraphCreator {
         this.updateInfo();
         this.updateTime();
         this.updateTargetVertexDisplay();
+        
+        // Enable debug mode for phantom node detection (set to false in production)
+        this.debugMode = true;
         
         // Update time every second
         setInterval(() => this.updateTime(), 1000);
@@ -127,6 +137,47 @@ export class GraphCreator {
         
         // Initialize grid spacing
         this.updateGridSpacing();
+        this.initializeEditingZoneIndicator();
+    }
+    
+    initializeEditingZoneIndicator() {
+        // Set up the editing zone indicator width on load and resize
+        const updateEditingZone = () => {
+            const leftSidebar = document.querySelector('.sidebar');
+            const rightSidebar = document.querySelector('.right-sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const indicator = document.querySelector('.editing-zone-indicator');
+            if (!leftSidebar || !rightSidebar || !mainContent || !indicator) return;
+
+            // Get bounding rects
+            const leftRect = leftSidebar.getBoundingClientRect();
+            const rightRect = rightSidebar.getBoundingClientRect();
+            const mainRect = mainContent.getBoundingClientRect();
+
+            // Calculate the available width between the right edge of the left sidebar and the left edge of the right sidebar
+            const zoneLeft = leftRect.right;
+            const zoneRight = rightRect.left;
+            const zoneWidth = Math.max(0, zoneRight - zoneLeft);
+            const zoneHeight = mainRect.height;
+
+            // Set the indicator's width and left offset
+            indicator.style.width = zoneWidth + 'px';
+            indicator.style.left = (zoneLeft - mainRect.left) + 'px';
+            indicator.style.height = zoneHeight + 'px';
+
+            // Store for drag boundary
+            this.editingZoneWidth = zoneWidth;
+            this.editingZoneHeight = zoneHeight;
+
+            // Update label
+            indicator.setAttribute('data-zone-label', `${Math.round(zoneWidth)}×${Math.round(zoneHeight)} Editing Zone`);
+            // Update the ::before content using a CSS variable
+            indicator.style.setProperty('--zone-label', `'${Math.round(zoneWidth)}×${Math.round(zoneHeight)} Editing Zone'`);
+        };
+        window.addEventListener('resize', updateEditingZone);
+        window.addEventListener('DOMContentLoaded', updateEditingZone);
+        setTimeout(updateEditingZone, 100); // In case of late layout
+        updateEditingZone();
     }
     
     startEditModeTimer(vertex) {
@@ -205,31 +256,39 @@ export class GraphCreator {
     initializeCanvas() {
         // Set canvas size to match container
         this.resizeCanvas();
-        
-        // No need for window resize listener with fixed coordinate system
-        // The canvas container will handle scrolling automatically
-        
+        // Redraw on window resize or devicePixelRatio change
+        window.addEventListener('resize', () => {
+            this.resizeCanvas();
+            this.draw();
+        });
+        // Listen for devicePixelRatio changes (for some browsers)
+        if (window.matchMedia) {
+            window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener('change', () => {
+                this.resizeCanvas();
+                this.draw();
+            });
+        }
         // Update root node dropdown
         this.updateRootDropdown();
     }
     
     resizeCanvas() {
-        // Fixed coordinate system: 1800x1800
-        const canvasWidth = 1800;
-        const canvasHeight = 1800;
-        
-        // Set the canvas size accounting for device pixel ratio
+        // Dynamically size canvas to match parent container
+        const container = this.canvas.parentElement;
+        const rect = container.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
-        this.canvas.width = canvasWidth * dpr;
-        this.canvas.height = canvasHeight * dpr;
-        
-        // Set the CSS size to match the fixed coordinate system
-        this.canvas.style.width = canvasWidth + 'px';
-        this.canvas.style.height = canvasHeight + 'px';
-        
-        // Reset the context and scale it properly
+        // Use Math.floor to avoid subpixel blurring
+        const width = Math.floor(rect.width);
+        const height = Math.floor(rect.height);
+        this.canvas.width = width * dpr;
+        this.canvas.height = height * dpr;
+        this.canvas.style.width = width + 'px';
+        this.canvas.style.height = height + 'px';
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(dpr, dpr);
+        
+        // Force complete redraw after resize to prevent phantom nodes
+        this.forceRedraw();
     }
     
     initializeEventListeners() {
@@ -244,17 +303,17 @@ export class GraphCreator {
         document.getElementById('vertexSize').addEventListener('input', (e) => {
             this.vertexSize = parseInt(e.target.value);
             document.getElementById('vertexSizeValue').textContent = this.vertexSize;
-            this.draw();
+            this.forceRedraw();
         });
         
         document.getElementById('edgeType').addEventListener('change', (e) => {
             this.edgeType = e.target.value;
-            this.draw();
+            this.forceRedraw();
         });
         
         document.getElementById('edgeDirection').addEventListener('change', (e) => {
             this.edgeDirection = e.target.value;
-            this.draw();
+            this.forceRedraw();
         });
         
         document.getElementById('calculateDistance').addEventListener('click', () => {
@@ -304,7 +363,7 @@ export class GraphCreator {
                 if (gridDensityContainer) {
                     gridDensityContainer.style.display = this.showCoordinateGrid ? 'block' : 'none';
                 }
-                this.draw(); // Redraw to show/hide grid
+                this.forceRedraw(); // Redraw to show/hide grid
             });
         } else {
             console.error('Coordinate grid toggle not found!');
@@ -317,7 +376,7 @@ export class GraphCreator {
                 this.gridDensity = parseInt(e.target.value);
                 document.getElementById('gridDensityValue').textContent = this.gridDensity;
                 this.updateGridSpacing();
-                this.draw(); // Redraw to update grid
+                this.forceRedraw(); // Redraw to update grid
             });
         } else {
             console.error('Grid density slider not found!');
@@ -1405,24 +1464,11 @@ export class GraphCreator {
     
     getMousePos(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const pos = {
+        // Return CSS pixel coordinates for consistent coordinate system
+        return {
             x: e.clientX - rect.left,
             y: e.clientY - rect.top
         };
-        
-        // Debug: Log mouse position calculation
-        if (this.isDragging && this.draggedVertex) {
-            console.log('Mouse calculation:', {
-                clientX: e.clientX,
-                clientY: e.clientY,
-                rectLeft: rect.left,
-                rectTop: rect.top,
-                calculatedX: pos.x,
-                calculatedY: pos.y
-            });
-        }
-        
-        return pos;
     }
     
     handleCanvasClick(e) {
@@ -1507,9 +1553,9 @@ export class GraphCreator {
                 this.updateStatus('Cannot create edge to same vertex');
                 this.selectedVertices = [];
                 this.draw(); // Redraw to clear highlighting
-                return;
-            }
-            
+            return;
+        }
+        
             // Check if edge already exists
             const existingEdge = this.edges.find(edge => 
                 (edge.from.id === vertex1.id && edge.to.id === vertex2.id) ||
@@ -1651,9 +1697,29 @@ export class GraphCreator {
         }
     }
     
+    // Color wall collision detection
+    isVertexTouchingColorWall(x, y, size) {
+        const borderColor = '#d3d3d3'; // Light gray color wall
+        const tolerance = 5; // Color matching tolerance
+        
+        // Check if vertex would touch the border at this position
+        const borderWidth = 3;
+        const minX = size + borderWidth;
+        const minY = size + borderWidth;
+        const maxX = (this.editingZoneWidth ? this.editingZoneWidth : this.canvas.width / (window.devicePixelRatio || 1)) - size - borderWidth;
+        const maxY = (this.editingZoneHeight ? this.editingZoneHeight : this.canvas.height / (window.devicePixelRatio || 1)) - size - borderWidth;
+        
+        // Check if vertex would be at the border
+        if (x <= minX || x >= maxX || y <= minY || y >= maxY) {
+            return true;
+        }
+        
+        return false;
+    }
+
     handleMouseMove(e) {
         if (this.isDragging && this.draggedVertex) {
-            const pos = this.getMousePos(e);
+            const pos = this.getMousePos(e); // Now in CSS pixels
             // Calculate drag distance
             const dragDistance = Math.sqrt(
                 Math.pow(pos.x - this.dragStartX, 2) + 
@@ -1678,21 +1744,33 @@ export class GraphCreator {
                 // Restart edit mode timer when dragging stops
                 this.startEditModeTimer(this.draggedVertex);
             }
-            // Clamp vertex position to stay fully inside the white box
+            
+            // COLOR WALL: Check if vertex would touch the light gray border
             const size = this.draggedVertex.size || this.vertexSize;
-            const minX = size;
-            const minY = size;
-            const maxX = 1800 - size;
-            const maxY = 1800 - size;
+            if (this.isVertexTouchingColorWall(pos.x, pos.y, size)) {
+                // Don't allow movement - vertex would touch the color wall
+                return;
+            }
             
-
+            // Store old position for debug
+            const oldX = this.draggedVertex.x;
+            const oldY = this.draggedVertex.y;
             
-            this.draggedVertex.x = Math.max(minX, Math.min(maxX, pos.x));
-            this.draggedVertex.y = Math.max(minY, Math.min(maxY, pos.y));
+            // Update vertex position in place (no copying, no removal/re-addition)
+            this.draggedVertex.x = pos.x;
+            this.draggedVertex.y = pos.y;
+            
+            // Debug: Log position changes
+            if (this.debugMode && (oldX !== this.draggedVertex.x || oldY !== this.draggedVertex.y)) {
+                console.log(`Vertex ${this.draggedVertex.label} moved from (${oldX}, ${oldY}) to (${this.draggedVertex.x}, ${this.draggedVertex.y})`);
+            }
+            
             // Update edit mode info if in edit mode
             if (this.editModeElement === this.draggedVertex && this.editModeType === 'vertex') {
                 this.updateEditModeInfo();
             }
+            
+            // Only redraw once during drag
             this.draw();
         } else if (this.isDraggingEdge && this.draggedEdge) {
             const pos = this.getMousePos(e);
@@ -1703,7 +1781,6 @@ export class GraphCreator {
             const pos = this.getMousePos(e);
             const vertex = this.getVertexAt(pos.x, pos.y);
             const edge = this.getEdgeAt(pos.x, pos.y);
-            
             if (vertex) {
                 this.canvas.style.cursor = 'grab';
             } else if (edge && edge.type === 'curved') {
@@ -1711,6 +1788,28 @@ export class GraphCreator {
             } else {
                 this.canvas.style.cursor = 'crosshair';
             }
+        }
+    }
+    
+    // Force a complete redraw with enhanced clearing to prevent phantom nodes
+    forceRedraw() {
+        // Clear vertex draw count for this frame
+        this.vertexDrawCount.clear();
+        
+        // Perform a complete redraw
+        this.draw();
+        
+        // Debug: Check for duplicate vertices
+        if (this.debugMode) {
+            const vertexPositions = new Map();
+            this.vertices.forEach(vertex => {
+                const key = `${vertex.x},${vertex.y}`;
+                if (vertexPositions.has(key)) {
+                    console.warn(`DUPLICATE POSITION DETECTED: ${vertex.label} and ${vertexPositions.get(key)} at (${vertex.x}, ${vertex.y})`);
+                } else {
+                    vertexPositions.set(key, vertex.label);
+                }
+            });
         }
     }
     
@@ -1724,6 +1823,16 @@ export class GraphCreator {
         
         if (this.isDragging && this.draggedVertex) {
             console.log('MouseUp: Resetting drag state, hasDragged was:', this.hasDragged);
+            
+            // Debug: Log final vertex state
+            if (this.debugMode) {
+                console.log(`Drag ended for vertex ${this.draggedVertex.label} at (${this.draggedVertex.x}, ${this.draggedVertex.y})`);
+                console.log('Total vertices in array:', this.vertices.length);
+                this.vertices.forEach((v, i) => {
+                    console.log(`Vertex ${i}: ${v.label} at (${v.x}, ${v.y})`);
+                });
+            }
+            
             this.isDragging = false;
             this.draggedVertex = null;
             this.canvas.style.cursor = 'crosshair';
@@ -1747,6 +1856,9 @@ export class GraphCreator {
                 document.removeEventListener('mouseup', this.globalMouseUpHandler);
                 this.globalMouseUpHandler = null;
             }
+            
+            // Final redraw to ensure clean state (no phantom nodes)
+            this.draw();
         }
         
         if (this.isDraggingEdge && this.draggedEdge) {
@@ -2099,6 +2211,7 @@ export class GraphCreator {
     getVertexAt(x, y) {
         return this.vertices.find(vertex => {
             const distance = Math.sqrt((vertex.x - x) ** 2 + (vertex.y - y) ** 2);
+            // Use vertexSize in CSS pixels for consistent hit detection
             return distance <= this.vertexSize;
         });
     }
@@ -2138,7 +2251,7 @@ export class GraphCreator {
         
         this.vertices.push(vertex);
         this.updateInfo();
-        this.draw();
+        this.forceRedraw();
         this.updateStatus(`Vertex "${label}" added!`);
         
         // Set the newly created vertex as the target
@@ -2193,7 +2306,7 @@ export class GraphCreator {
             // Edge already exists
             this.updateStatus(`Edge already exists between vertices "${vertex1.label}" and "${vertex2.label}"`);
         }
-        this.draw();
+    this.forceRedraw();
         this.updateInfo();
         
         // Auto-save if enabled
@@ -2753,8 +2866,17 @@ export class GraphCreator {
     }
     
     draw() {
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Clear canvas completely - use fillRect for more thorough clearing
+        this.ctx.fillStyle = this.currentTheme === 'dark' ? '#0f172a' : '#ffffff';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Reset any canvas state that might cause artifacts
+        this.ctx.globalAlpha = 1.0;
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
         
         // Draw coordinate grid first (behind everything)
         this.drawCoordinateGrid();
@@ -2762,8 +2884,27 @@ export class GraphCreator {
         // Draw edges
         this.edges.forEach(edge => this.drawEdge(edge));
         
-        // Draw vertices
-        this.vertices.forEach(vertex => this.drawVertex(vertex));
+        // Draw vertices with debug logging and duplicate detection
+        this.vertices.forEach(vertex => {
+            // Debug: Log each vertex being drawn
+            if (this.debugMode) {
+                console.log(`Drawing vertex: ${vertex.label} at (${vertex.x}, ${vertex.y})`);
+                
+                // Track how many times each vertex is drawn
+                const key = `${vertex.label}-${vertex.x}-${vertex.y}`;
+                this.vertexDrawCount.set(key, (this.vertexDrawCount.get(key) || 0) + 1);
+                
+                if (this.vertexDrawCount.get(key) > 1) {
+                    console.warn(`VERTEX DRAWN MULTIPLE TIMES: ${vertex.label} at (${vertex.x}, ${vertex.y}) - drawn ${this.vertexDrawCount.get(key)} times`);
+                }
+            }
+            this.drawVertex(vertex);
+        });
+        
+        // Draw delete buttons if in delete mode
+        if (this.isDeleteMode) {
+            this.vertices.forEach(vertex => this.drawDeleteButton(vertex));
+        }
     }
     
     drawEdge(edge) {
@@ -2850,7 +2991,7 @@ export class GraphCreator {
     
     drawVertex(vertex) {
         const ctx = this.ctx;
-        let size = vertex.size || this.vertexSize;
+        let size = (vertex.size || this.vertexSize);
         let label = vertex.label;
         let isPendingDeleteEdit = false;
         // If in edit mode and this is the vertex being edited, use preview state
@@ -2883,7 +3024,7 @@ export class GraphCreator {
         let drawY = vertex.y;
         if (isInEditMode && this.shakeOffset !== undefined) {
             drawX += this.shakeOffset;
-            drawY += this.shakeOffset * 0.5; // Slight vertical shake too
+            drawY += this.shakeOffset * 0.5;
         }
         
         // Set colors based on selection state
@@ -2915,25 +3056,18 @@ export class GraphCreator {
         // Draw red glow effect for held vertex
         if (isBeingHeld) {
             ctx.save();
-            
-            // Calculate glow properties based on progress
             const maxGlowRadius = size * 2; // Maximum glow radius
             const glowRadius = size + (maxGlowRadius - size) * this.holdProgress;
-            const glowAlpha = 0.3 + 0.4 * this.holdProgress; // Alpha from 0.3 to 0.7
-            const glowIntensity = 0.5 + 0.5 * this.holdProgress; // Intensity from 0.5 to 1.0
-            
-            // Create gradient for the glow
+            const glowAlpha = 0.3 + 0.4 * this.holdProgress;
+            const glowIntensity = 0.5 + 0.5 * this.holdProgress;
             const gradient = ctx.createRadialGradient(drawX, drawY, size, drawX, drawY, glowRadius);
-            gradient.addColorStop(0, `rgba(239, 68, 68, ${glowAlpha * glowIntensity})`); // Red at center
-            gradient.addColorStop(0.5, `rgba(239, 68, 68, ${glowAlpha * 0.7})`); // Medium red
-            gradient.addColorStop(1, `rgba(239, 68, 68, 0)`); // Transparent at edge
-            
-            // Draw the glow
+            gradient.addColorStop(0, `rgba(239, 68, 68, ${glowAlpha * glowIntensity})`);
+            gradient.addColorStop(0.5, `rgba(239, 68, 68, ${glowAlpha * 0.7})`);
+            gradient.addColorStop(1, `rgba(239, 68, 68, 0)`);
             ctx.beginPath();
             ctx.arc(drawX, drawY, glowRadius, 0, 2 * Math.PI);
             ctx.fillStyle = gradient;
             ctx.fill();
-            
             ctx.restore();
         }
         
@@ -2945,7 +3079,6 @@ export class GraphCreator {
             borderColor = '#f472b6';
         }
         
-        // Draw vertex circle
         ctx.beginPath();
         ctx.arc(drawX, drawY, size, 0, 2 * Math.PI);
         ctx.fillStyle = fillColor;
@@ -2953,32 +3086,23 @@ export class GraphCreator {
         ctx.strokeStyle = borderColor;
         ctx.lineWidth = 2;
         ctx.stroke();
-        
         // Draw vertex label
-        const fontSize = vertex.fontSize || this.vertexFontSize;
+        const fontSize = (vertex.fontSize || this.vertexFontSize);
         const fontFamily = vertex.fontFamily || this.vertexFontFamily;
         const fontColor = vertex.fontColor || this.vertexFontColor;
-        
         ctx.font = `${fontSize}px ${fontFamily}`;
         ctx.fillStyle = fontColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
-        // Add a subtle text shadow for better readability
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         ctx.shadowBlur = 2;
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 1;
-        
         ctx.fillText(label, drawX, drawY);
-        
-        // Reset shadow
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
-        
-        // Restore opacity for deleted vertices
         if (isMarkedForDeletion || isPendingDeleteEdit) {
             ctx.restore();
         }
@@ -3934,19 +4058,7 @@ export class GraphCreator {
         }
     }
 
-    // Override draw to show delete buttons in delete mode
-    draw() {
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // Draw edges
-        this.edges.forEach(edge => this.drawEdge(edge));
-        // Draw vertices
-        this.vertices.forEach(vertex => this.drawVertex(vertex));
-        // Draw delete buttons if in delete mode
-        if (this.isDeleteMode) {
-            this.vertices.forEach(vertex => this.drawDeleteButton(vertex));
-        }
-    }
+
 
     drawDeleteButton(vertex) {
         // Draw a red X button at the top right of the vertex
