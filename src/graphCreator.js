@@ -1495,11 +1495,23 @@ export class GraphCreator {
             const vertex2 = vertex;
             
             if (vertex1.id === vertex2.id) {
-                this.updateStatus('Cannot create edge to same vertex');
+                // Create a self-loop (edge from vertex to itself)
+                // Add second vertex to selection for visual feedback
+                this.selectedVertices.push(vertex2);
+                this.draw(); // Redraw to show both vertices in purple
+                
+                // Get edge weight from input
+                const weightInput = document.getElementById('edgeWeight');
+                const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
+                
+                // Create the self-loop edge
+                this.addSelfLoop(vertex1, weight);
                 this.selectedVertices = [];
-                this.draw(); // Redraw to clear highlighting
-            return;
-        }
+                
+                // Flash the vertex briefly
+                this.flashVertices(vertex1, vertex1);
+                return;
+            }
         
             // Check if edge already exists
             const existingEdge = this.edges.find(edge => 
@@ -2171,7 +2183,14 @@ export class GraphCreator {
     
     getEdgeAt(x, y) {
         return this.edges.find(edge => {
-            if (edge.type === 'curved' && edge.controlPoint) {
+            if (edge.type === 'self-loop') {
+                // For self-loops, check if click is near the circular arc
+                const vertexSize = edge.from.size || this.vertexSize;
+                const radius = vertexSize + 15;
+                const distanceFromCenter = Math.sqrt((edge.from.x - x) ** 2 + (edge.from.y - y) ** 2);
+                const tolerance = 8; // Click tolerance for self-loops
+                return Math.abs(distanceFromCenter - radius) <= tolerance;
+            } else if (edge.type === 'curved' && edge.controlPoint) {
                 const distance = Math.sqrt((edge.controlPoint.x - x) ** 2 + (edge.controlPoint.y - y) ** 2);
                 return distance <= this.edgeControlPointSize;
             }
@@ -2271,7 +2290,39 @@ export class GraphCreator {
             // Edge already exists
             this.updateStatus(`Edge already exists between vertices "${vertex1.label}" and "${vertex2.label}"`);
         }
-    this.forceRedraw();
+        this.forceRedraw();
+        this.updateInfo();
+        
+        // Auto-save if enabled
+        if (this.autosaveEnabled) {
+            this.saveGraph(true);
+        }
+    }
+    
+    addSelfLoop(vertex, weight = null) {
+        // Check if self-loop already exists
+        const existingSelfLoop = this.edges.find(edge => 
+            edge.from === vertex && edge.to === vertex
+        );
+        
+        if (!existingSelfLoop) {
+            const edge = {
+                from: vertex,
+                to: vertex,
+                weight: weight,
+                type: 'self-loop', // Special type for self-loops
+                direction: this.edgeDirection
+            };
+            this.edges.push(edge);
+            
+            // Update status with self-loop creation message
+            const weightText = weight ? ` (weight: ${weight})` : '';
+            this.updateStatus(`Self-loop created on vertex "${vertex.label}"${weightText}`);
+        } else {
+            // Self-loop already exists
+            this.updateStatus(`Self-loop already exists on vertex "${vertex.label}"`);
+        }
+        this.forceRedraw();
         this.updateInfo();
         
         // Auto-save if enabled
@@ -3242,7 +3293,16 @@ export class GraphCreator {
         this.ctx.lineCap = 'round';
         this.ctx.beginPath();
         
-        if (edge.type === 'curved') {
+        if (edge.type === 'self-loop') {
+            // Draw self-loop as a circular arc
+            const vertexSize = edge.from.size || this.vertexSize;
+            const radius = vertexSize + 15; // Radius of the self-loop circle
+            const startAngle = -Math.PI / 2; // Start from top
+            const endAngle = 3 * Math.PI / 2; // End at bottom (full circle)
+            
+            this.ctx.beginPath();
+            this.ctx.arc(drawFromX, drawFromY, radius, startAngle, endAngle);
+        } else if (edge.type === 'curved') {
             // Draw curved edge with quadratic Bézier curve using fixed control point
             const controlPoint = {
                 x: (drawFromX + drawToX) / 2,
@@ -3265,7 +3325,13 @@ export class GraphCreator {
         // Draw weight if exists
         if (edge.weight !== null && edge.weight !== '') {
             let midX, midY;
-            if (edge.type === 'curved') {
+            if (edge.type === 'self-loop') {
+                // For self-loops, position weight to the right of the vertex
+                const vertexSize = edge.from.size || this.vertexSize;
+                const radius = vertexSize + 15;
+                midX = drawFromX + radius + 20;
+                midY = drawFromY;
+            } else if (edge.type === 'curved') {
                 // For curved edges, position weight near the fixed control point
                 midX = (drawFromX + drawToX) / 2;
                 midY = (drawFromY + drawToY) / 2 - 60;
@@ -3470,7 +3536,14 @@ export class GraphCreator {
         let endX, endY;
         let angle;
         
-        if (edge.type === 'curved' && edge.controlPoint) {
+        if (edge.type === 'self-loop') {
+            // For self-loops, draw arrow at the bottom of the circle
+            const vertexSize = edge.from.size || this.vertexSize;
+            const radius = vertexSize + 15;
+            angle = Math.PI / 2; // Point downward (90 degrees)
+            endX = edge.from.x;
+            endY = edge.from.y + radius;
+        } else if (edge.type === 'curved' && edge.controlPoint) {
             // For curved edges, calculate the angle at the end point using control point
             const controlPoint = edge.controlPoint;
             
@@ -3488,24 +3561,35 @@ export class GraphCreator {
         // Determine arrow direction based on edge direction setting
         if (edge.direction === 'directed-backward') {
             angle += Math.PI; // Reverse the arrow
-            endX = edge.from.x;
-            endY = edge.from.y;
+            if (edge.type !== 'self-loop') {
+                endX = edge.from.x;
+                endY = edge.from.y;
+            }
         } else {
             // directed-forward or default
-            endX = edge.to.x;
-            endY = edge.to.y;
+            if (edge.type !== 'self-loop') {
+                endX = edge.to.x;
+                endY = edge.to.y;
+            }
         }
         
         // Calculate arrow position (slightly inside the vertex)
-        const vertexRadius = this.vertexSize;
+        const vertexRadius = edge.from.size || this.vertexSize;
         const arrowDistance = vertexRadius + 5;
         
-        const arrowX = endX - arrowDistance * Math.cos(angle);
-        const arrowY = endY - arrowDistance * Math.sin(angle);
+        let arrowX, arrowY;
+        if (edge.type === 'self-loop') {
+            // For self-loops, position arrow at the bottom of the circle
+            arrowX = endX;
+            arrowY = endY - arrowDistance;
+        } else {
+            arrowX = endX - arrowDistance * Math.cos(angle);
+            arrowY = endY - arrowDistance * Math.sin(angle);
+        }
         
         // Draw arrow
-        this.ctx.strokeStyle = this.edgeColor;
-        this.ctx.lineWidth = this.edgeWidth;
+        this.ctx.strokeStyle = edge.color || this.edgeColor;
+        this.ctx.lineWidth = edge.width || this.edgeWidth;
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
         
