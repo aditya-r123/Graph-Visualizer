@@ -1135,12 +1135,12 @@ body {
 /* Scrollable wrapper for the canvas */
 .canvas-scroll-wrapper {
     width: 100%;
-    height: calc(100vh - 200px); /* Adjust for header/footer space */
+    height: calc(100vh - 60px); /* Reduced to 60px to extend all the way to footer */
     overflow: auto;
     position: relative;
     margin: 0;
     background: var(--bg-primary);
-    margin-bottom: 12px;
+    margin-bottom: 0px; /* Removed margin to touch footer */
     display: block;
     /* Ensure scrollbars appear between editor and footer */
     z-index: 1;
