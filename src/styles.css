@@ -1368,11 +1368,12 @@ body {
     transition: var(--transition);
     position: fixed;
     bottom: 0;
-    left: 320px; /* Account for left sidebar */
-    right: 280px; /* Account for right sidebar */
+    left: 0;
+    right: 0;
     z-index: 1000;
     overflow: hidden;
     gap: 1.5rem;
+    margin-right: 280px; /* Account for right sidebar */
 }
 
 .status-bar::before {
@@ -2185,8 +2186,6 @@ body {
 /* Responsive Status Bar */
 @media (max-width: 768px) {
     .status-bar {
-        left: 0;
-        right: 0;
         padding: 0.75rem 1rem;
         flex-wrap: wrap;
         gap: 1rem;
