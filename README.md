@@ -9,7 +9,8 @@ A powerful, interactive web application for creating, visualizing, and analyzing
 - **Smart Interaction System**: 
   - **Drag Threshold**: 5-pixel movement threshold to distinguish dragging from clicking
   - **Edit Mode**: Hold vertex for 2.5 seconds to enter edit mode (red glow appears at 1 second)
-  - **Edge Creation**: Click two vertices consecutively (dragging prevents edge creation)
+  - **Edge Creation**: Right-click two vertices consecutively for edge creation
+  - **Clean Separation**: Left-click for selection, right-click for edge creation, drag for movement
 - **Real-time Visualization**: Smooth animations and visual feedback for all interactions
 - **Multiple Edge Types**: Support for straight and curved edges, directed and undirected graphs
 - **Edge Weights**: Add numerical weights to edges for weighted graph analysis
@@ -18,7 +19,7 @@ A powerful, interactive web application for creating, visualizing, and analyzing
 ### Advanced Editing
 - **Edit Mode**: Hold vertex for 2.5 seconds to enter edit mode with comprehensive controls
 - **Visual Hold Feedback**: Red glow appears after 1 second of holding, gradually expanding until edit mode activates
-- **Smart State Management**: Dragging prevents both edge creation and edit mode activation
+- **Smart State Management**: Dragging prevents edit mode activation but allows immediate re-dragging
 - **Apply to All**: Apply changes to all vertices simultaneously (size, label, etc.)
 - **Pending Deletion**: Mark vertices for deletion with visual preview before confirming
 - **Delete Mode**: Dedicated deletion mode with red X buttons on vertices
@@ -49,6 +50,8 @@ A powerful, interactive web application for creating, visualizing, and analyzing
 - **Eye Tracking**: Interactive sun/moon icons that follow your mouse
 - **Collapsible Sections**: Expandable search algorithms panel
 - **Smart Scroll Indicator**: "More options" indicator that disappears after 150px of scrolling
+- **Enhanced Scrollbars**: Visible, theme-aware scrollbars with improved styling
+- **Maximized Editing Space**: Canvas extends to touch the footer for maximum vertical space
 - **Status Bar**: Real-time status updates, local time, and contact information
 - **Contact Modal**: Built-in contact form for feedback and support
 
@@ -97,16 +100,18 @@ npm run build
 ### Basic Operations
 - **Add Vertex**: Left-click anywhere on the canvas
 - **Move Vertex**: Drag vertices to reposition them (5-pixel movement threshold)
-- **Create Edge**: Click two vertices consecutively to connect them
+- **Create Edge**: Right-click two vertices consecutively to connect them
+- **Select Vertex**: Left-click to select a vertex (shows status message)
 - **Edit Vertex**: Hold vertex for 2.5 seconds to enter edit mode (red glow appears at 1 second)
 - **Delete Vertex**: Use edit mode or dedicated delete mode
 
 ### Interaction Timing
-- **Quick Click** (< 1 second): Normal edge creation behavior
-- **Short Hold** (1-1.25 seconds): Red glow appears, edge creation still works
-- **Medium Hold** (1.25-2.5 seconds): Red glow continues, edge creation prevented
+- **Quick Left Click** (< 1 second): Vertex selection (shows status message)
+- **Quick Right Click** (< 1 second): Edge creation mode (vertex turns purple)
+- **Short Hold** (1-1.25 seconds): Red glow appears, edit mode preparation
+- **Medium Hold** (1.25-2.5 seconds): Red glow continues, edit mode preparation
 - **Long Hold** (2.5+ seconds): Edit mode activated
-- **Dragging**: Prevents both edge creation and edit mode activation
+- **Dragging**: Prevents edit mode activation but allows immediate re-dragging
 
 ### Edit Mode Features
 - **Hold to Enter**: Hold vertex for 2.5 seconds to enter edit mode
@@ -118,7 +123,7 @@ npm run build
 - **Save/Cancel**: Confirm changes or revert to original state
 
 ### Search Algorithms
-- **Select Target**: Click the target selection area to choose a vertex
+- **Select Target**: Right-click on a vertex to set it as the target for search algorithms
 - **Run BFS/DFS**: Click the respective buttons to start animated traversal
 - **Stop Search**: Interrupt ongoing searches at any time
 - **Calculate Distance**: Measure shortest path between two vertices
@@ -128,6 +133,18 @@ npm run build
 - **Manual Save**: Click "Save Graph" to save with custom name
 - **Load Graph**: Click "Load Graph" or click on recent graphs
 - **Screenshot**: Capture current graph state in your preferred format
+
+## 🆕 Recent Improvements
+
+### Latest Updates
+- **Enhanced Interaction Model**: Separated left-click (selection) and right-click (edge creation) for cleaner user experience
+- **Improved Drag Behavior**: Vertices can be immediately re-dragged after a drag operation without delays
+- **Better Scrollbar Visibility**: Enhanced scrollbar styling with theme-aware colors and larger size
+- **Maximized Editing Space**: Canvas now extends to touch the footer, providing maximum vertical editing space
+- **Fixed Vertex Cloning Bug**: Documented and tracked the vertex cloning issue that occurs near window edges
+
+### Known Issues
+- **Vertex Cloning Bug**: When dragging vertices near the bottom and right borders (around coordinates 1450+), vertices may appear to clone or "paint". This is tracked in `VERTEX_CLONING_BUG_ISSUE.md` and is related to mouse position calculation with scroll offsets.
 
 ## 🛠️ Technical Details
 
