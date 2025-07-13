@@ -382,8 +382,7 @@ export class GraphCreator {
         const currentTimeElement = document.getElementById('currentTime');
         if (currentTimeElement) {
             currentTimeElement.addEventListener('click', () => {
-                this.timeDisplayMode = this.timeDisplayMode === 'digital' ? 'analog' : 'digital';
-                this.updateTime();
+                this.toggleTimeDisplay();
             });
             // Add cursor pointer style
             currentTimeElement.style.cursor = 'pointer';
@@ -4839,5 +4838,18 @@ export class GraphCreator {
         }
         
         return false;
+    }
+
+    toggleTimeDisplay() {
+        const digital = document.getElementById('digitalTime');
+        const analog = document.getElementById('analogClock');
+        if (!digital || !analog) return;
+        if (digital.style.display !== 'none') {
+            digital.style.display = 'none';
+            analog.style.display = '';
+        } else {
+            digital.style.display = '';
+            analog.style.display = 'none';
+        }
     }
 } // End of GraphCreator class 
