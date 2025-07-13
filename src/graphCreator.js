@@ -2741,12 +2741,12 @@ export class GraphCreator {
     }
     
     async animateBFS(targetVertex, startVertex) {
-        const adjacencyList = this.getAdjacencyList();
-        const queue = [startVertex]; // Start from the specified starting vertex
+        // Instead of using adjacencyList, use edges directly for direction-aware traversal
         const visited = new Set();
         const parent = {};
-        const distances = {}; // Track distances from start vertex
-        const visitOrder = []; // Track the order vertices were visited
+        const distances = {};
+        const visitOrder = [];
+        const queue = [startVertex];
         
         // Clear previous animation state
         this.visitedVertices.clear();
@@ -2760,48 +2760,52 @@ export class GraphCreator {
         distances[startVertex.id] = 0;
         visitOrder.push(startVertex);
         
-        while (queue.length > 0 && this.isSearching) {
-            const current = queue.shift();
-            
-            // Mark as visited (this makes the current node glow green)
-            this.visitedVertices.add(current);
-            
-            this.draw();
-            await this.sleep();
-            
-            if (current.id === targetVertex.id) {
-                // Found target, reconstruct path
-                this.reconstructPath(parent, targetVertex);
-                const distance = distances[current.id];
-                const visitedCount = visited.size;
-                this.showSearchResult(true, 'BFS', distance, visitedCount, visitOrder);
-                return;
-            }
-            
-            // Animate edge traversal to neighbors (waterfall effect)
-            const neighbors = adjacencyList[current.id] || [];
-            for (const neighbor of neighbors) {
-                if (!visited.has(neighbor.id)) {
+                    while (queue.length > 0 && this.isSearching) {
+                const current = queue.shift();
+                this.visitedVertices.add(current);
+                this.draw();
+                await this.sleep();
+                if (current.id === targetVertex.id) {
+                    this.reconstructPath(parent, targetVertex);
+                    const distance = distances[current.id];
+                    const visitedCount = visited.size;
+                    this.showSearchResult(true, 'BFS', distance, visitedCount, visitOrder);
+                    return;
+                }
+                // Traverse only along edges that allow traversal from current to neighbor
+                for (const edge of this.edges) {
+                    let neighbor = null;
+                    // Check if we can traverse from current vertex to the neighbor
+                    if (edge.from.id === current.id) {
+                        // We're at the 'from' vertex, can traverse to 'to' vertex if:
+                        // - edge is undirected (bidirectional)
+                        // - edge is directed-forward (forward direction)
+                        if (edge.direction === 'undirected' || edge.direction === 'directed-forward') {
+                            neighbor = edge.to;
+                        }
+                    } else if (edge.to.id === current.id) {
+                        // We're at the 'to' vertex, can traverse to 'from' vertex if:
+                        // - edge is undirected (bidirectional)
+                        // - edge is directed-backward (reverse direction)
+                        if (edge.direction === 'undirected' || edge.direction === 'directed-backward') {
+                            neighbor = edge.from;
+                        }
+                    }
+                if (neighbor && !visited.has(neighbor.id)) {
                     visited.add(neighbor.id);
                     parent[neighbor.id] = current;
                     distances[neighbor.id] = distances[current.id] + 1;
                     queue.push(neighbor);
                     visitOrder.push(neighbor);
-                    
                     // Animate edge traversal from current node to neighbor
-                    const edge = this.findEdge(current, neighbor);
-                    if (edge) {
-                        await this.animateEdgeTraversal(edge, null, () => {
-                            // Only mark the neighbor as visited when the waterfall reaches it
-                            this.visitedVertices.add(neighbor);
-                            this.draw();
-                        }, current, neighbor);
-                        await this.sleep();
-                    }
+                    await this.animateEdgeTraversal(edge, null, () => {
+                        this.visitedVertices.add(neighbor);
+                        this.draw();
+                    }, current, neighbor);
+                    await this.sleep();
                 }
             }
         }
-        
         if (this.isSearching) {
             const visitedCount = visited.size;
             this.showSearchResult(false, 'BFS', null, visitedCount, visitOrder);
@@ -2809,11 +2813,10 @@ export class GraphCreator {
     }
     
     async animateDFS(targetVertex, startVertex) {
-        const adjacencyList = this.getAdjacencyList();
+        // Instead of using adjacencyList, use edges directly for direction-aware traversal
         const visited = new Set();
         const parent = {};
-        const visitOrder = []; // Track the order vertices were visited
-        
+        const visitOrder = [];
         // Clear previous animation state
         this.visitedVertices.clear();
         this.pathVertices.clear();
@@ -2821,48 +2824,51 @@ export class GraphCreator {
         this.pathEdges.clear();
         this.currentTraversalEdge = null;
         this.traversalProgress = 0;
-        
         const dfs = async (current) => {
             if (!this.isSearching) return false;
-            
             visited.add(current.id);
             this.visitedVertices.add(current);
             visitOrder.push(current);
-            
             this.draw();
             await this.sleep();
-            
             if (current.id === targetVertex.id) {
                 this.reconstructPath(parent, targetVertex);
                 const visitedCount = visited.size;
                 this.showSearchResult(true, 'DFS', null, visitedCount, visitOrder);
                 return true;
             }
-            
-            const neighbors = adjacencyList[current.id] || [];
-            for (const neighbor of neighbors) {
-                if (!visited.has(neighbor.id)) {
-                    parent[neighbor.id] = current;
-                    
-                    // Animate edge traversal from current node to neighbor
-                    const edge = this.findEdge(current, neighbor);
-                    if (edge) {
-                        await this.animateEdgeTraversal(edge, null, () => {
-                            // Only mark the neighbor as visited when the waterfall reaches it
-                            this.visitedVertices.add(neighbor);
-                            this.draw();
-                        }, current, neighbor);
-                        await this.sleep();
+            // Traverse only along edges that allow traversal from current to neighbor
+            for (const edge of this.edges) {
+                let neighbor = null;
+                // Check if we can traverse from current vertex to the neighbor
+                if (edge.from.id === current.id) {
+                    // We're at the 'from' vertex, can traverse to 'to' vertex if:
+                    // - edge is undirected (bidirectional)
+                    // - edge is directed-forward (forward direction)
+                    if (edge.direction === 'undirected' || edge.direction === 'directed-forward') {
+                        neighbor = edge.to;
                     }
-                    
+                } else if (edge.to.id === current.id) {
+                    // We're at the 'to' vertex, can traverse to 'from' vertex if:
+                    // - edge is undirected (bidirectional)
+                    // - edge is directed-backward (reverse direction)
+                    if (edge.direction === 'undirected' || edge.direction === 'directed-backward') {
+                        neighbor = edge.from;
+                    }
+                }
+                if (neighbor && !visited.has(neighbor.id)) {
+                    parent[neighbor.id] = current;
+                    await this.animateEdgeTraversal(edge, null, () => {
+                        this.visitedVertices.add(neighbor);
+                        this.draw();
+                    }, current, neighbor);
+                    await this.sleep();
                     const found = await dfs(neighbor);
                     if (found) return true;
                 }
             }
-            
             return false;
         };
-        
         const found = await dfs(startVertex);
         if (!found && this.isSearching) {
             const visitedCount = visited.size;
@@ -4937,9 +4943,7 @@ export class GraphCreator {
         if (editSection) editSection.style.display = 'none';
         // Show all other control sections
         document.querySelectorAll('.control-section').forEach(section => {
-            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') {
-                section.style.display = 'block';
-            }
+            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
         });
         this.updateInfo();
         this.updateRootDropdown();
@@ -4966,9 +4970,7 @@ export class GraphCreator {
         if (editSection) editSection.style.display = 'none';
         // Show all other control sections
         document.querySelectorAll('.control-section').forEach(section => {
-            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') {
-                section.style.display = 'block';
-            }
+            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
         });
         this.updateInfo();
         this.updateRootDropdown();
