@@ -2249,7 +2249,7 @@ export class GraphCreator {
         // Check if vertex would be within canvas boundaries
         const size = this.vertexSize;
         if (this.isVertexTouchingCanvasBoundary(x, y, size)) {
-            this.updateStatus('Cannot add vertex outside the canvas boundaries!');
+            //this.updateStatus('Cannot add vertex outside the canvas boundaries!');
             return;
         }
         
