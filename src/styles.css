@@ -102,6 +102,15 @@ body {
     min-width: 0;
 }
 
+/* Fade out sidebars and footer when instructions are active */
+.app-container.instructions-active .sidebar,
+.app-container.instructions-active .right-sidebar,
+.app-container.instructions-active .status-bar {
+    opacity: 0.3;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
 /* Sidebar */
 .sidebar {
     background: var(--bg-card);
@@ -1067,8 +1076,8 @@ body {
     position: fixed;
     top: 0;
     right: 0;
+    bottom: 60px; /* Account for footer height */
     width: 280px;
-    height: calc(100vh - 60px); /* Account for footer height */
     background: var(--bg-card);
     backdrop-filter: blur(20px);
     border-left: 1px solid var(--border-color);

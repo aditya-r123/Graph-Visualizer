@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
             overlay.classList.remove('show');
             overlay.style.display = 'none';
         }
+        // Remove fade class from app container
+        document.querySelector('.app-container').classList.remove('instructions-active');
     }
 
     function showInstructionsModal() {
@@ -23,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
             overlay.classList.add('show');
             overlay.style.display = 'flex';
         }
+        // Add fade class to app container
+        document.querySelector('.app-container').classList.add('instructions-active');
     }
 
     // Make showInstructionsModal globally available

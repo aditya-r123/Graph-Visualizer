@@ -360,69 +360,70 @@
                 <div class="white-box-container"></div>
                 <canvas id="graphCanvas"></canvas>
                 
-                <!-- Instructions Overlay as Bootstrap Modal -->
-                <div class="modal fade show" id="instructionsOverlay" tabindex="-1" aria-modal="true" role="dialog" style="display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.95);" data-autodismiss="10">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content instructions-content p-3" style="max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
-                            <button type="button" class="btn-close position-absolute end-0 top-0 m-2" id="closeInstructionsX" aria-label="Close"></button>
-                            <h3 class="modal-title text-center mb-3"><i class="fas fa-lightbulb"></i> How to Use</h3>
-                            <div class="instruction-grid mb-3">
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-mouse-pointer"></i></div>
-                                    <div class="instruction-text"><strong>Add Vertex:</strong> Left-click on canvas</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-hand-pointer"></i></div>
-                                    <div class="instruction-text"><strong>Move Vertex:</strong> Drag to reposition (5px threshold)</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-mouse"></i></div>
-                                    <div class="instruction-text"><strong>Create Edge:</strong> Right-click two vertices consecutively</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-edit"></i></div>
-                                    <div class="instruction-text"><strong>Edit Mode:</strong> Hold vertex for 2.5 seconds (red glow appears at 1s)</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-exclamation-triangle"></i></div>
-                                    <div class="instruction-text"><strong>Note:</strong> Dragging prevents edit mode</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-sliders-h"></i></div>
-                                    <div class="instruction-text"><strong>Customize:</strong> Adjust size, colors, fonts</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-search"></i></div>
-                                    <div class="instruction-text"><strong>Search:</strong> Run BFS/DFS algorithms</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-bullseye"></i></div>
-                                    <div class="instruction-text"><strong>Set Target:</strong> Right-click on vertex</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-ruler"></i></div>
-                                    <div class="instruction-text"><strong>Calculate:</strong> Measure distances between vertices</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-save"></i></div>
-                                    <div class="instruction-text"><strong>Save/Load:</strong> Save and load graphs</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-camera"></i></div>
-                                    <div class="instruction-text"><strong>Screenshot:</strong> Capture your graph</div>
-                                </div>
-                                <div class="instruction-item d-flex align-items-center mb-2">
-                                    <div class="instruction-icon me-2"><i class="fas fa-moon"></i></div>
-                                    <div class="instruction-text"><strong>Theme:</strong> Toggle dark/light mode</div>
-                                </div>
-                            </div>
-                            <button class="btn btn-secondary w-100" id="hideInstructions"><i class="fas fa-times"></i> Got it!</button>
-                        </div>
-                    </div>
-                </div>
             </div> <!-- end .canvas-container -->
             </div> <!-- end .canvas-scroll-wrapper -->
         </main>
+
+        <!-- Instructions Overlay as Bootstrap Modal -->
+        <div class="modal fade show" id="instructionsOverlay" tabindex="-1" aria-modal="true" role="dialog" style="display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.95);" data-autodismiss="10">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content instructions-content p-3" style="max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-2" id="closeInstructionsX" aria-label="Close"></button>
+                    <h3 class="modal-title text-center mb-3"><i class="fas fa-lightbulb"></i> How to Use</h3>
+                    <div class="instruction-grid mb-3">
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-mouse-pointer"></i></div>
+                            <div class="instruction-text"><strong>Add Vertex:</strong> Left-click on canvas</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-hand-pointer"></i></div>
+                            <div class="instruction-text"><strong>Move Vertex:</strong> Drag to reposition (5px threshold)</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-mouse"></i></div>
+                            <div class="instruction-text"><strong>Create Edge:</strong> Right-click two vertices consecutively</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-edit"></i></div>
+                            <div class="instruction-text"><strong>Edit Mode:</strong> Hold vertex for 2.5 seconds (red glow appears at 1s)</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="instruction-text"><strong>Note:</strong> Dragging prevents edit mode</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-sliders-h"></i></div>
+                            <div class="instruction-text"><strong>Customize:</strong> Adjust size, colors, fonts</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-search"></i></div>
+                            <div class="instruction-text"><strong>Search:</strong> Run BFS/DFS algorithms</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-bullseye"></i></div>
+                            <div class="instruction-text"><strong>Set Target:</strong> Right-click on vertex</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-ruler"></i></div>
+                            <div class="instruction-text"><strong>Calculate:</strong> Measure distances between vertices</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-save"></i></div>
+                            <div class="instruction-text"><strong>Save/Load:</strong> Save and load graphs</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-camera"></i></div>
+                            <div class="instruction-text"><strong>Screenshot:</strong> Capture your graph</div>
+                        </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-moon"></i></div>
+                            <div class="instruction-text"><strong>Theme:</strong> Toggle dark/light mode</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary w-100" id="hideInstructions"><i class="fas fa-times"></i> Got it!</button>
+                </div>
+            </div>
+        </div>
         
         <!-- Right Sidebar -->
         <aside class="right-sidebar">
