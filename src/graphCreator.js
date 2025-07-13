@@ -244,7 +244,7 @@ export class GraphCreator {
         document.getElementById('vertexSize').addEventListener('input', (e) => {
             this.vertexSize = parseInt(e.target.value);
             document.getElementById('vertexSizeValue').textContent = this.vertexSize;
-            this.forceRedraw();
+            // Do NOT update existing vertices or redraw
         });
         
         document.getElementById('edgeType').addEventListener('change', (e) => {
@@ -1741,7 +1741,13 @@ export class GraphCreator {
             }
             
             // CANVAS BOUNDARY: Check if vertex would touch the canvas boundary
-            const size = this.draggedVertex.size || this.vertexSize;
+            let size = this.draggedVertex.size || this.vertexSize;
+            
+            // If in edit mode and this is the vertex being edited, use the preview size
+            if (this.editModeElement === this.draggedVertex && this._editPreview) {
+                size = this._editPreview.size;
+            }
+            
             if (this.isVertexTouchingCanvasBoundary(pos.x, pos.y, size)) {
                 // Don't allow movement - vertex would touch the canvas boundary
                 return;
@@ -1882,6 +1888,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             pendingDelete: false
         };
+        // Store original sizes for all vertices (for cancel/undo)
         this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
         this.startShakeAnimation();
         const editSection = document.getElementById('editControlsSection');
@@ -1989,13 +1996,14 @@ export class GraphCreator {
         deleteBtn.disabled = false;
     }
     
-    exitEditMode() {
-            // Stop shaking animation
-            this.stopShakeAnimation();
-            this.editModeElement = null;
-            this.editModeType = null;
+        exitEditMode() {
+        // Stop shaking animation
+        this.stopShakeAnimation();
+        this.editModeElement = null;
+        this.editModeType = null;
         this._editOriginal = null;
         this._editPreview = null;
+        this._originalAllVertexSizes = null;
         // Hide edit controls
         const editSection = document.getElementById('editControlsSection');
         if (editSection) editSection.style.display = 'none';
@@ -2208,8 +2216,15 @@ export class GraphCreator {
     getVertexAt(x, y) {
         return this.vertices.find(vertex => {
             const distance = Math.sqrt((vertex.x - x) ** 2 + (vertex.y - y) ** 2);
-            // Use vertexSize in CSS pixels for consistent hit detection
-            return distance <= this.vertexSize;
+            // Use the vertex's actual size (or default if not set) for hit detection
+            let size = vertex.size || this.vertexSize;
+            
+            // If in edit mode and this is the vertex being edited, use the preview size
+            if (this.editModeElement === vertex && this._editPreview) {
+                size = this._editPreview.size;
+            }
+            
+            return distance <= size;
         });
     }
     
@@ -2258,6 +2273,7 @@ export class GraphCreator {
             x: x,
             y: y,
             label: label,
+            size: size, // Use the current slider value for new vertex
             color: this.vertexColor,
             borderColor: this.vertexBorderColor,
             fontSize: this.vertexFontSize,
@@ -3886,6 +3902,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             pendingDelete: false
         };
+        // Store original sizes for all vertices (for cancel/undo)
         this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
         this.startShakeAnimation();
         const editSection = document.getElementById('editControlsSection');
@@ -3950,7 +3967,9 @@ export class GraphCreator {
             } else {
                 // Revert all other vertices to their original sizes
                 this.vertices.forEach((v, idx) => {
-                    if (v !== this.editModeElement) v.size = this._originalAllVertexSizes[idx];
+                    if (v !== this.editModeElement && this._originalAllVertexSizes) {
+                        v.size = this._originalAllVertexSizes[idx];
+                    }
                 });
             }
             this.draw();
@@ -3966,6 +3985,7 @@ export class GraphCreator {
         this.editModeType = null;
         this._editOriginal = null;
         this._editPreview = null;
+        this._originalAllVertexSizes = null;
         // Hide edit controls
         const editSection = document.getElementById('editControlsSection');
         if (editSection) editSection.style.display = 'none';
@@ -4097,9 +4117,19 @@ export class GraphCreator {
             if (this.editModeElement && this._editPreview) {
                 // Revert preview
                 this._editPreview = null;
-                // Restore original values
+                // Restore original values for the selected vertex
                 this.editModeElement.label = this._editOriginal.label;
                 this.editModeElement.size = this._editOriginal.size;
+                
+                // Restore original sizes for ALL vertices if we have them stored
+                if (this._originalAllVertexSizes) {
+                    this.vertices.forEach((v, idx) => {
+                        if (this._originalAllVertexSizes[idx] !== undefined) {
+                            v.size = this._originalAllVertexSizes[idx];
+                        }
+                    });
+                }
+                
                 const labelInput = document.getElementById('editVertexLabel');
                 if (labelInput) { labelInput.style.borderColor = ''; labelInput.style.boxShadow = ''; }
                 let warningMsg = document.getElementById('editVertexLabelWarning');
@@ -4529,7 +4559,13 @@ export class GraphCreator {
 
     drawDeleteButton(vertex) {
         // Draw a red X button at the top right of the vertex
-        const size = vertex.size || this.vertexSize;
+        let size = vertex.size || this.vertexSize;
+        
+        // If in edit mode and this is the vertex being edited, use the preview size
+        if (this.editModeElement === vertex && this._editPreview) {
+            size = this._editPreview.size;
+        }
+        
         const x = vertex.x + size * 0.7;
         const y = vertex.y - size * 0.7;
         const r = 10;
@@ -4560,7 +4596,13 @@ export class GraphCreator {
         
         // Check if a delete button was clicked
         for (const vertex of this.vertices) {
-            const size = vertex.size || this.vertexSize;
+            let size = vertex.size || this.vertexSize;
+            
+            // If in edit mode and this is the vertex being edited, use the preview size
+            if (this.editModeElement === vertex && this._editPreview) {
+                size = this._editPreview.size;
+            }
+            
             const x = vertex.x + size * 0.7;
             const y = vertex.y - size * 0.7;
             const r = 10;
