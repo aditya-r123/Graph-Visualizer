@@ -428,13 +428,24 @@ export class GraphCreator {
             console.error('Load Graph button not found!');
         }
         
-        if (takeScreenshotBtn) {
+                if (takeScreenshotBtn) {
             takeScreenshotBtn.addEventListener('click', () => {
                 console.log('Take Screenshot button clicked');
-            this.takeScreenshot();
-        });
+                this.takeScreenshot();
+            });
         } else {
             console.error('Take Screenshot button not found!');
+        }
+
+        // Share Graph button
+        const shareGraphBtn = document.getElementById('shareGraph');
+        if (shareGraphBtn) {
+            shareGraphBtn.addEventListener('click', () => {
+                console.log('Share Graph button clicked');
+                this.shareGraph();
+            });
+        } else {
+            console.error('Share Graph button not found!');
         }
         
         // Delete all saved graphs button
@@ -852,6 +863,89 @@ export class GraphCreator {
             this.updateStatus('Error taking screenshot');
         }
     }
+
+    shareGraph() {
+        console.log('shareGraph function called');
+        
+        try {
+            // Create a temporary canvas for the screenshot
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            console.log('Created temporary canvas for sharing');
+            
+            // Set canvas size to fixed canvas dimensions
+            tempCanvas.width = this.whiteBoxWidth;
+            tempCanvas.height = this.whiteBoxHeight;
+            
+            console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
+            
+            // Get the selected format
+            const formatSelect = document.getElementById('screenshotFormat');
+            const format = formatSelect ? formatSelect.value : 'jpg';
+            
+            // Fill background - transparent for PNG, theme-based color for JPG
+            if (format === 'png') {
+                // Clear the canvas for transparency (no fill)
+                tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+            } else {
+                // Fill with theme-based background for JPG
+                tempCtx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            }
+            
+            console.log('Filled background for sharing');
+            
+            // Draw the graph using the fixed coordinate system
+            console.log('Drawing graph on share canvas...');
+            this.drawOnCanvas(tempCtx, this.whiteBoxWidth, this.whiteBoxHeight);
+            
+            console.log('Starting blob conversion for sharing...');
+            
+            // Convert to blob and share
+            tempCanvas.toBlob((blob) => {
+                console.log('Share blob callback executed, blob:', blob);
+                if (blob) {
+                    console.log('Share blob size:', blob.size, 'bytes');
+                    
+                    // Create file with appropriate name
+                    const fileName = `graph-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`;
+                    const file = new File([blob], fileName, { 
+                        type: format === 'png' ? 'image/png' : 'image/jpeg' 
+                    });
+                    
+                    // Check if Web Share API is supported
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            title: 'Graph Visualizer Pro - My Graph',
+                            text: 'Hey, check out this cool graph I made with Graph Visualizer Pro',
+                            files: [file]
+                        }).then(() => {
+                            console.log('Share successful');
+                            this.updateStatus('Graph shared successfully!');
+                        }).catch((error) => {
+                            console.error('Share failed:', error);
+                            this.updateStatus('Share cancelled or failed');
+                        });
+                    } else {
+                        console.log('Web Share API not supported');
+                        this.updateStatus('Sharing not supported on this device');
+                    }
+                } else {
+                    console.error('Failed to create blob for sharing');
+                    this.updateStatus('Failed to create share image');
+                }
+            }, format === 'png' ? 'image/png' : 'image/jpeg', format === 'png' ? 1.0 : 0.9);
+            
+            console.log('toBlob called for sharing, waiting for callback...');
+        } catch (error) {
+            console.error('Error sharing graph:', error);
+            console.error('Error stack:', error.stack);
+            this.updateStatus('Error sharing graph');
+        }
+    }
+
+
     
     drawSimpleEdge(ctx, edge) {
         // Simple edge drawing - just a line between vertices
