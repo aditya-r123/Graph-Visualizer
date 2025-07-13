@@ -102,6 +102,9 @@ export class GraphCreator {
         this.debugMode = false;
         this.vertexDrawCount = new Map();
         
+        // Hide labels mode
+        this.hideLabels = false;
+        
         // Initialize the application
         this.initializeCanvas();
         this.initializeEventListeners();
@@ -313,6 +316,18 @@ export class GraphCreator {
             });
         } else {
             console.error('Grid density slider not found!');
+        }
+        
+        // Hide labels toggle
+        const hideLabelsToggle = document.getElementById('hideLabelsToggle');
+        if (hideLabelsToggle) {
+            hideLabelsToggle.addEventListener('change', (e) => {
+                this.hideLabels = e.target.checked;
+                this.draw(); // Redraw to show/hide labels
+                this.updateStatus(`Vertex labels ${this.hideLabels ? 'hidden' : 'shown'}`);
+            });
+        } else {
+            console.error('Hide labels toggle not found!');
         }
         
         document.getElementById('hideInstructions').addEventListener('click', () => {
@@ -1058,25 +1073,27 @@ export class GraphCreator {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Draw vertex label
-        ctx.font = `${fontSize}px ${fontFamily}`;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Add text shadow for better readability
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 2;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-        
-        ctx.fillText(vertex.label, vertex.x, vertex.y);
-        
-        // Reset shadow
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
+        // Draw vertex label (only if not hidden)
+        if (!this.hideLabels) {
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.fillStyle = fontColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Add text shadow for better readability
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 2;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+            
+            ctx.fillText(vertex.label, vertex.x, vertex.y);
+            
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
     }
     
     drawOnCanvas(ctx, width, height) {
@@ -1229,17 +1246,27 @@ export class GraphCreator {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Draw vertex label
-        ctx.font = `${fontSize}px ${fontFamily}`;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Add a subtle text shadow for better readability
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 2;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
+        // Draw vertex label (only if not hidden)
+        if (!this.hideLabels) {
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.fillStyle = fontColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Add a subtle text shadow for better readability
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 2;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+            
+            ctx.fillText(vertex.label, vertex.x, vertex.y);
+            
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
         
         ctx.fillText(vertex.label, vertex.x, vertex.y);
         
@@ -1478,6 +1505,11 @@ export class GraphCreator {
     }
     
     handleVertexRightClick(vertex) {
+        // Prevent edge creation during edit mode
+        if (this.editModeElement) {
+            return;
+        }
+        
         if (this.isDistanceMode) {
             // In distance mode, right-click sets target vertex
             this.selectTargetVertex(vertex);
@@ -1510,8 +1542,8 @@ export class GraphCreator {
                 
                 // Flash the vertex briefly
                 this.flashVertices(vertex1, vertex1);
-                return;
-            }
+            return;
+        }
         
             // Check if edge already exists
             const existingEdge = this.edges.find(edge => 
@@ -2290,7 +2322,7 @@ export class GraphCreator {
             // Edge already exists
             this.updateStatus(`Edge already exists between vertices "${vertex1.label}" and "${vertex2.label}"`);
         }
-        this.forceRedraw();
+    this.forceRedraw();
         this.updateInfo();
         
         // Auto-save if enabled
@@ -2370,9 +2402,9 @@ export class GraphCreator {
         
         if (verticesWithEdges.length === 0) {
             // If no vertices have edges, fall back to the original behavior
-            return this.vertices.reduce((mostUpward, vertex) => {
-                return vertex.y < mostUpward.y ? vertex : mostUpward;
-            });
+        return this.vertices.reduce((mostUpward, vertex) => {
+            return vertex.y < mostUpward.y ? vertex : mostUpward;
+        });
         }
         
         // Find the most upward vertex among those with edges
@@ -2724,7 +2756,7 @@ export class GraphCreator {
         }, 8000);
         
         // Redraw immediately to show cleared visual effects
-        this.draw();
+            this.draw();
     }
     
     sleep(ms = null) {
@@ -3178,11 +3210,11 @@ export class GraphCreator {
             
             // Draw the base edge in normal color
             this.ctx.strokeStyle = edge.color || this.edgeColor;
-            this.ctx.lineWidth = edgeWidth;
-            this.ctx.lineCap = 'round';
-            this.ctx.beginPath();
-            
-            if (edge.type === 'curved') {
+        this.ctx.lineWidth = edgeWidth;
+        this.ctx.lineCap = 'round';
+        this.ctx.beginPath();
+        
+        if (edge.type === 'curved') {
                 const controlPoint = {
                     x: (drawFromX + drawToX) / 2,
                     y: (drawFromY + drawToY) / 2 - 40
@@ -3529,23 +3561,25 @@ export class GraphCreator {
         if (this.visitedVertices.has(vertex) || this.pathVertices.has(vertex)) {
             ctx.restore();
         }
-        // Draw vertex label
-        const fontSize = (vertex.fontSize || this.vertexFontSize);
-        const fontFamily = vertex.fontFamily || this.vertexFontFamily;
-        const fontColor = vertex.fontColor || this.vertexFontColor;
-        ctx.font = `${fontSize}px ${fontFamily}`;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 2;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-        ctx.fillText(label, drawX, drawY);
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
+        // Draw vertex label (only if not hidden)
+        if (!this.hideLabels) {
+            const fontSize = (vertex.fontSize || this.vertexFontSize);
+            const fontFamily = vertex.fontFamily || this.vertexFontFamily;
+            const fontColor = vertex.fontColor || this.vertexFontColor;
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.fillStyle = fontColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 2;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+            ctx.fillText(label, drawX, drawY);
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
         if (isMarkedForDeletion || isPendingDeleteEdit) {
             ctx.restore();
         }
@@ -3590,14 +3624,14 @@ export class GraphCreator {
         if (edge.direction === 'directed-backward') {
             angle += Math.PI; // Reverse the arrow
             if (edge.type !== 'self-loop') {
-                endX = edge.from.x;
-                endY = edge.from.y;
+            endX = edge.from.x;
+            endY = edge.from.y;
             }
         } else {
             // directed-forward or default
             if (edge.type !== 'self-loop') {
-                endX = edge.to.x;
-                endY = edge.to.y;
+            endX = edge.to.x;
+            endY = edge.to.y;
             }
         }
         
