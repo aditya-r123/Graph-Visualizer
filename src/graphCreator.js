@@ -3096,13 +3096,18 @@ export class GraphCreator {
             item.className = 'load-graph-item';
             item.innerHTML = `
                 <div class="load-graph-info">
-                    <div class="load-graph-name">${savedGraph.name}</div>
+                    <div class="load-graph-name" data-index="${index}">${savedGraph.name}</div>
                     <div class="load-graph-details">${savedGraph.vertices} vertices, ${savedGraph.edges} edges</div>
                     <div class="load-graph-time">${new Date(savedGraph.timestamp).toLocaleString()}</div>
                 </div>
-                <button class="btn btn-primary load-graph-btn" data-index="${index}">
-                    <i class="fas fa-download"></i> Load
-                </button>
+                <div class="load-graph-actions">
+                    <button class="edit-name-btn" title="Edit graph name">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-primary load-graph-btn" data-index="${index}">
+                        <i class="fas fa-download"></i> Load
+                    </button>
+                </div>
             `;
             
             const loadBtn = item.querySelector('.load-graph-btn');
@@ -3110,7 +3115,15 @@ export class GraphCreator {
                 this.loadSavedGraphWithConfirmation(savedGraph);
                 document.body.removeChild(document.querySelector('.modal-overlay'));
             });
-            
+
+            // Add rename functionality
+            const editNameBtn = item.querySelector('.edit-name-btn');
+            const nameElement = item.querySelector('.load-graph-name');
+            editNameBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.editSavedGraphName(index, nameElement);
+            });
+
             container.appendChild(item);
         });
     }

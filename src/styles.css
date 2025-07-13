@@ -624,7 +624,7 @@ body {
 }
 
 .load-graphs-list {
-    max-height: 200px;
+    max-height: 350px;
     overflow-y: auto;
 }
 
@@ -632,12 +632,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem;
+    padding: 0.4rem 0.6rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
     background: var(--bg-secondary);
     transition: var(--transition);
+    min-height: 38px;
 }
 
 .load-graph-item:hover {
@@ -652,23 +653,24 @@ body {
 .load-graph-name {
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.12rem;
+    font-size: 0.92rem;
 }
 
 .load-graph-details {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     color: var(--text-secondary);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.12rem;
 }
 
 .load-graph-time {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
 }
 
 .load-graph-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.78rem;
 }
 
 .no-graphs {
@@ -822,7 +824,7 @@ body {
 }
 
 .saved-graphs-list {
-    max-height: 200px;
+    max-height: 350px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -840,6 +842,35 @@ body {
     justify-content: space-between;
     align-items: center;
     position: relative;
+}
+
+.saved-graph-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.saved-graph-details {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.saved-graph-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+.saved-graph-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
 }
 
 .saved-graph-item:hover {
@@ -869,22 +900,22 @@ body {
 }
 
 .saved-graph-name {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.12rem;
 }
 
 .saved-graph-details {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
 }
 
 .saved-graph-time {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     font-style: italic;
-    margin-top: 0.25rem;
+    margin-top: 0.12rem;
 }
 
 .saved-graph-actions {
@@ -893,13 +924,8 @@ body {
 }
 
 .saved-graph-actions button {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: var(--radius-sm);
-    transition: var(--transition);
+    padding: 0.18rem 0.3rem;
+    font-size: 0.8rem;
 }
 
 .saved-graph-actions button:hover {
