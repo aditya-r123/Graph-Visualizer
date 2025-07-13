@@ -2015,20 +2015,19 @@ export class GraphCreator {
     }
     
     startShakeAnimation() {
-        this.shakeOffset = 0;
-        this.shakeDirection = 1;
-        
+        this.shakeFrame = 0;
+        const amplitude = 2.0; // updated distance
+        const frequency = 0.2; // updated frequency (radians per frame)
         const shake = () => {
             if (this.editModeElement) {
-                this.shakeOffset += this.shakeDirection * 2;
-                if (Math.abs(this.shakeOffset) > 8) {
-                    this.shakeDirection *= -1;
-                }
+                // Circular vibration pattern
+                this.shakeX = amplitude * Math.cos(this.shakeFrame * 2 * Math.PI * frequency);
+                this.shakeY = amplitude * Math.sin(this.shakeFrame * 2 * Math.PI * frequency);
+                this.shakeFrame = (this.shakeFrame + 1) % 1000;
                 this.draw();
                 this.shakeAnimation = requestAnimationFrame(shake);
             }
         };
-        
         this.shakeAnimation = requestAnimationFrame(shake);
     }
     
@@ -2037,7 +2036,8 @@ export class GraphCreator {
             cancelAnimationFrame(this.shakeAnimation);
             this.shakeAnimation = null;
         }
-        this.shakeOffset = 0;
+        this.shakeX = 0;
+        this.shakeY = 0;
         this.draw();
     }
     
@@ -3170,10 +3170,10 @@ export class GraphCreator {
         let drawToY = edge.to.y;
         
         if (this.editModeElement === edge && this.editModeType === 'edge') {
-            drawFromX += this.shakeOffset;
-            drawFromY += this.shakeOffset * 0.5;
-            drawToX += this.shakeOffset;
-            drawToY += this.shakeOffset * 0.5;
+            drawFromX += this.shakeX;
+            drawFromY += this.shakeY;
+            drawToX += this.shakeX;
+            drawToY += this.shakeY;
         }
         
         // Determine edge styling based on individual properties
@@ -3458,9 +3458,9 @@ export class GraphCreator {
         // Apply shake offset if in edit mode
         let drawX = vertex.x;
         let drawY = vertex.y;
-        if (isInEditMode && this.shakeOffset !== undefined) {
-            drawX += this.shakeOffset;
-            drawY += this.shakeOffset * 0.5;
+        if (isInEditMode && this.shakeX !== undefined && this.shakeY !== undefined) {
+            drawX += this.shakeX;
+            drawY += this.shakeY;
         }
         
         // Set colors based on selection state
