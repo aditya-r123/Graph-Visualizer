@@ -3548,10 +3548,10 @@ export class GraphCreator {
                 const curveIncrement = 50;
                 const curveAmount = baseCurve + (edgeIndex * curveIncrement);
                 
-                // Check if vertices are vertically aligned (similar x-coordinates)
+                // Check if vertices are mostly vertically aligned (using ratio-based detection)
                 const xDiff = Math.abs(drawFromX - drawToX);
                 const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                const isVerticalEdge = xDiff < (yDiff * 0.2) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
                 
                 let controlPoint;
                 if (isVerticalEdge) {
@@ -3594,10 +3594,10 @@ export class GraphCreator {
                 const curveIncrement = 50;
                 const curveAmount = baseCurve + (edgeIndex * curveIncrement);
                 
-                // Check if vertices are vertically aligned (similar x-coordinates)
+                // Check if vertices are mostly vertically aligned (using ratio-based detection)
                 const xDiff = Math.abs(drawFromX - drawToX);
                 const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
                 
                 let controlPoint;
                 if (isVerticalEdge) {
@@ -3644,10 +3644,10 @@ export class GraphCreator {
                 const curveIncrement = 50;
                 const curveAmount = baseCurve + (edgeIndex * curveIncrement);
                 
-                // Check if vertices are vertically aligned (similar x-coordinates)
+                // Check if vertices are mostly vertically aligned (using ratio-based detection)
                 const xDiff = Math.abs(drawFromX - drawToX);
                 const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
                 
                 let controlPoint;
                 if (isVerticalEdge) {
@@ -3758,10 +3758,10 @@ export class GraphCreator {
             const curveIncrement = 50; // Additional curve for each additional edge
             const curveAmount = baseCurve + (edgeIndex * curveIncrement);
             
-            // Check if vertices are vertically aligned (similar x-coordinates)
+            // Check if vertices are mostly vertically aligned (using ratio-based detection)
             const xDiff = Math.abs(drawFromX - drawToX);
             const yDiff = Math.abs(drawFromY - drawToY);
-            const isVerticalEdge = xDiff < 20 && yDiff > 20; // If x difference is small and y difference is large
+            const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
             
             let controlPoint;
             if (isVerticalEdge) {
@@ -3810,10 +3810,10 @@ export class GraphCreator {
                 const curveIncrement = 50;
                 const curveAmount = baseCurve + (edgeIndex * curveIncrement);
                 
-                // Check if vertices are vertically aligned (similar x-coordinates)
+                // Check if vertices are mostly vertically aligned (using ratio-based detection)
                 const xDiff = Math.abs(drawFromX - drawToX);
                 const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
                 
                 if (isVerticalEdge) {
                     // For vertical edges, position weight horizontally offset
