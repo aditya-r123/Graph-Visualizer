@@ -923,8 +923,8 @@ export class GraphCreator {
                             console.log('Share successful');
                             this.updateStatus('Graph shared successfully!');
                         }).catch((error) => {
-                            console.error('Share failed:', error);
-                            this.updateStatus('Share cancelled or failed');
+                            // console.error('Share failed:', error);
+                            // this.updateStatus('Share cancelled or failed');
                         });
                     } else {
                         console.log('Web Share API not supported');
@@ -1652,17 +1652,19 @@ export class GraphCreator {
             return;
         }
         
-            // Check if edge already exists
-            const existingEdge = this.edges.find(edge => 
-                (edge.from.id === vertex1.id && edge.to.id === vertex2.id) ||
-                (edge.from.id === vertex2.id && edge.to.id === vertex1.id)
-            );
-            
-            if (existingEdge) {
-                this.updateStatus('Edge already exists between these vertices');
-                this.selectedVertices = [];
-                this.draw(); // Redraw to clear highlighting
-                return;
+            // Check if edge already exists (only prevent for non-curved edges)
+            if (this.edgeType !== 'curved') {
+                const existingEdge = this.edges.find(edge => 
+                    (edge.from.id === vertex1.id && edge.to.id === vertex2.id) ||
+                    (edge.from.id === vertex2.id && edge.to.id === vertex1.id)
+                );
+                
+                if (existingEdge) {
+                    this.updateStatus('Straight line edge already exists between these vertices');
+                    this.selectedVertices = [];
+                    this.draw(); // Redraw to clear highlighting
+                    return;
+                }
             }
             
             // Add second vertex to selection for visual feedback
@@ -2420,32 +2422,59 @@ export class GraphCreator {
     }
     
     addEdge(vertex1, vertex2, weight = null) {
-        // Check if edge already exists
-        const existingEdge = this.edges.find(edge => 
-            (edge.from === vertex1 && edge.to === vertex2) ||
-            (edge.from === vertex2 && edge.to === vertex1)
-        );
-        
-        if (!existingEdge) {
+        // For curved edges, allow multiple edges between the same vertices
+        if (this.edgeType === 'curved') {
+            // Count existing edges between these vertices to determine curvature
+            const existingEdges = this.edges.filter(edge => 
+                (edge.from === vertex1 && edge.to === vertex2) ||
+                (edge.from === vertex2 && edge.to === vertex1)
+            );
+            
+            const edgeIndex = existingEdges.length;
+            
             const edge = {
                 from: vertex1,
                 to: vertex2,
                 weight: weight,
                 type: this.edgeType,
-                direction: this.edgeDirection
+                direction: this.edgeDirection,
+                edgeIndex: edgeIndex // Track which edge this is between these vertices
             };
-            // Remove control point for curved edges (always use fixed curve)
-            // No edge.controlPoint
+            
             this.edges.push(edge);
             
             // Update status with edge creation message
             const weightText = weight ? ` (weight: ${weight})` : '';
-            this.updateStatus(`Edge created between vertices "${vertex1.label}" and "${vertex2.label}"${weightText}`);
+            const edgeNumberText = edgeIndex > 0 ? ` (edge ${edgeIndex + 1})` : '';
+            this.updateStatus(`Curved edge created between vertices "${vertex1.label}" and "${vertex2.label}"${weightText}${edgeNumberText}`);
         } else {
-            // Edge already exists
-            this.updateStatus(`Edge already exists between vertices "${vertex1.label}" and "${vertex2.label}"`);
+            // For non-curved edges, check if edge already exists
+            const existingEdge = this.edges.find(edge => 
+                (edge.from === vertex1 && edge.to === vertex2) ||
+                (edge.from === vertex2 && edge.to === vertex1)
+            );
+            
+            if (!existingEdge) {
+                const edge = {
+                    from: vertex1,
+                    to: vertex2,
+                    weight: weight,
+                    type: this.edgeType,
+                    direction: this.edgeDirection
+                };
+                
+                this.edges.push(edge);
+                
+                // Update status with edge creation message
+                const weightText = weight ? ` (weight: ${weight})` : '';
+                this.updateStatus(`Edge created between vertices "${vertex1.label}" and "${vertex2.label}"${weightText}`);
+            } else {
+                // Edge already exists
+                this.updateStatus(`Edge already exists between vertices "${vertex1.label}" and "${vertex2.label}"`);
+            }
         }
-    this.forceRedraw();
+        
+        this.forceRedraw();
         this.updateInfo();
         
         // Auto-save if enabled
@@ -3256,6 +3285,14 @@ export class GraphCreator {
         document.getElementById('vertexCount').textContent = this.vertices.length;
         document.getElementById('edgeCount').textContent = this.edges.length;
         
+        // Calculate and display cycle count
+        const cycleCount = this.countCycles();
+        document.getElementById('cycleCount').textContent = cycleCount;
+        
+        // Calculate and display self-loop count
+        const selfLoopCount = this.countSelfLoops();
+        document.getElementById('selfLoopCount').textContent = selfLoopCount;
+        
         // Hide/show delete nodes button based on vertex count
         const deleteNodesBtn = document.getElementById('deleteNodesBtn');
         if (deleteNodesBtn) {
@@ -3265,6 +3302,84 @@ export class GraphCreator {
                 deleteNodesBtn.style.display = 'block';
             }
         }
+    }
+    
+    countSelfLoops() {
+        return this.edges.filter(edge => edge.from.id === edge.to.id).length;
+    }
+    
+    countCycles() {
+        if (this.vertices.length === 0) return 0;
+        
+        // Build adjacency list (excluding self-loops)
+        const adjacencyList = new Map();
+        this.vertices.forEach(vertex => {
+            adjacencyList.set(vertex.id, []);
+        });
+        
+        this.edges.forEach(edge => {
+            // Skip self-loops
+            if (edge.from.id === edge.to.id) return;
+            
+            adjacencyList.get(edge.from.id).push(edge.to.id);
+            // For undirected edges, add reverse edge
+            if (edge.direction === 'undirected') {
+                adjacencyList.get(edge.to.id).push(edge.from.id);
+            }
+        });
+        
+        const cycles = new Set(); // Store unique cycles
+        
+        // Find all cycles using DFS
+        const findCycles = (startVertex, currentVertex, path = [], visited = new Set()) => {
+            // Add current vertex to path
+            path.push(currentVertex);
+            visited.add(currentVertex);
+            
+            // Get neighbors of current vertex
+            const neighbors = adjacencyList.get(currentVertex) || [];
+            
+            for (const neighbor of neighbors) {
+                // If we find the start vertex and path has at least 3 vertices, we found a cycle
+                if (neighbor === startVertex && path.length >= 3) {
+                    // Create a normalized cycle representation
+                    const cyclePath = [...path, startVertex];
+                    const normalizedCycle = this.normalizeCycle(cyclePath);
+                    cycles.add(normalizedCycle);
+                }
+                // Continue DFS if neighbor not visited and not the start vertex (to avoid immediate back-tracking)
+                else if (!visited.has(neighbor) && neighbor !== startVertex) {
+                    findCycles(startVertex, neighbor, [...path], new Set(visited));
+                }
+            }
+        };
+        
+        // Start DFS from each vertex to find all cycles
+        for (const vertex of this.vertices) {
+            findCycles(vertex.id, vertex.id);
+        }
+        
+        return cycles.size;
+    }
+    
+    normalizeCycle(cyclePath) {
+        // Normalize cycle by finding the lexicographically smallest rotation
+        if (cyclePath.length <= 1) return cyclePath.join('->');
+        
+        // Remove the last vertex if it's the same as the first (to avoid A->B->C->A->A)
+        const cleanPath = cyclePath[0] === cyclePath[cyclePath.length - 1] 
+            ? cyclePath.slice(0, -1) 
+            : cyclePath;
+        
+        if (cleanPath.length < 3) return cleanPath.join('->');
+        
+        const rotations = [];
+        for (let i = 0; i < cleanPath.length; i++) {
+            const rotation = [...cleanPath.slice(i), ...cleanPath.slice(0, i)];
+            rotations.push(rotation.join('->'));
+        }
+        
+        return rotations.sort()[0]; // Return the lexicographically smallest rotation
     }
     
     updateStatus(message) {
@@ -3428,10 +3543,32 @@ export class GraphCreator {
         this.ctx.beginPath();
         
         if (edge.type === 'curved') {
-                const controlPoint = {
-                    x: (drawFromX + drawToX) / 2,
-                    y: (drawFromY + drawToY) / 2 - 40
-                };
+                const edgeIndex = edge.edgeIndex || 0;
+                const baseCurve = 40;
+                const curveIncrement = 50;
+                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                
+                // Check if vertices are vertically aligned (similar x-coordinates)
+                const xDiff = Math.abs(drawFromX - drawToX);
+                const yDiff = Math.abs(drawFromY - drawToY);
+                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                
+                let controlPoint;
+                if (isVerticalEdge) {
+                    // For vertical edges, curve horizontally
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                        y: (drawFromY + drawToY) / 2
+                    };
+                } else {
+                    // For non-vertical edges, curve vertically (original behavior)
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (drawFromX + drawToX) / 2,
+                        y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                    };
+                }
                 this.ctx.moveTo(drawFromX, drawFromY);
                 this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, drawToX, drawToY);
             } else {
@@ -3452,10 +3589,33 @@ export class GraphCreator {
             // Calculate the end point based on progress
             let endX, endY;
             if (edge.type === 'curved') {
-                const controlPoint = {
-                    x: (drawFromX + drawToX) / 2,
-                    y: (drawFromY + drawToY) / 2 - 40
-                };
+                const edgeIndex = edge.edgeIndex || 0;
+                const baseCurve = 40;
+                const curveIncrement = 50;
+                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                
+                // Check if vertices are vertically aligned (similar x-coordinates)
+                const xDiff = Math.abs(drawFromX - drawToX);
+                const yDiff = Math.abs(drawFromY - drawToY);
+                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                
+                let controlPoint;
+                if (isVerticalEdge) {
+                    // For vertical edges, curve horizontally
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                        y: (drawFromY + drawToY) / 2
+                    };
+                } else {
+                    // For non-vertical edges, curve vertically (original behavior)
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (drawFromX + drawToX) / 2,
+                        y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                    };
+                }
+                
                 // For curved edges, we need to calculate the point along the curve
                 const t = this.traversalProgress;
                 if (this.traversalDirection === 'backward') {
@@ -3479,10 +3639,32 @@ export class GraphCreator {
             
             this.ctx.beginPath();
             if (edge.type === 'curved') {
-                const controlPoint = {
-                    x: (drawFromX + drawToX) / 2,
-                    y: (drawFromY + drawToY) / 2 - 40
-                };
+                const edgeIndex = edge.edgeIndex || 0;
+                const baseCurve = 40;
+                const curveIncrement = 50;
+                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                
+                // Check if vertices are vertically aligned (similar x-coordinates)
+                const xDiff = Math.abs(drawFromX - drawToX);
+                const yDiff = Math.abs(drawFromY - drawToY);
+                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                
+                let controlPoint;
+                if (isVerticalEdge) {
+                    // For vertical edges, curve horizontally
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                        y: (drawFromY + drawToY) / 2
+                    };
+                } else {
+                    // For non-vertical edges, curve vertically (original behavior)
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (drawFromX + drawToX) / 2,
+                        y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                    };
+                }
                 if (this.traversalDirection === 'backward') {
                     this.ctx.moveTo(actualFromX, actualFromY);
                     this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endX, endY);
@@ -3570,11 +3752,34 @@ export class GraphCreator {
             this.ctx.arc(arcCenterX, arcCenterY, loopRadius, startAngle, endAngle, false);
             this.ctx.stroke();
         } else if (edge.type === 'curved') {
-            // Draw curved edge with quadratic Bézier curve using fixed control point
-            const controlPoint = {
-                x: (drawFromX + drawToX) / 2,
-                y: (drawFromY + drawToY) / 2 - 40
-            };
+            // Draw curved edge with progressive curvature for multiple edges
+            const edgeIndex = edge.edgeIndex || 0;
+            const baseCurve = 40; // Base curve amount
+            const curveIncrement = 50; // Additional curve for each additional edge
+            const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+            
+            // Check if vertices are vertically aligned (similar x-coordinates)
+            const xDiff = Math.abs(drawFromX - drawToX);
+            const yDiff = Math.abs(drawFromY - drawToY);
+            const isVerticalEdge = xDiff < 20 && yDiff > 20; // If x difference is small and y difference is large
+            
+            let controlPoint;
+            if (isVerticalEdge) {
+                // For vertical edges, curve horizontally
+                const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                controlPoint = {
+                    x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                    y: (drawFromY + drawToY) / 2
+                };
+            } else {
+                // For non-vertical edges, curve vertically (original behavior)
+                const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                controlPoint = {
+                    x: (drawFromX + drawToX) / 2,
+                    y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                };
+            }
+            
             this.ctx.moveTo(drawFromX, drawFromY);
             this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, drawToX, drawToY);
         } else {
@@ -3599,9 +3804,28 @@ export class GraphCreator {
                 midX = drawFromX + radius + 20;
                 midY = drawFromY;
             } else if (edge.type === 'curved') {
-                // For curved edges, position weight near the fixed control point
-                midX = (drawFromX + drawToX) / 2;
-                midY = (drawFromY + drawToY) / 2 - 60;
+                // For curved edges, position weight near the control point with offset for multiple edges
+                const edgeIndex = edge.edgeIndex || 0;
+                const baseCurve = 40;
+                const curveIncrement = 50;
+                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                
+                // Check if vertices are vertically aligned (similar x-coordinates)
+                const xDiff = Math.abs(drawFromX - drawToX);
+                const yDiff = Math.abs(drawFromY - drawToY);
+                const isVerticalEdge = xDiff < 20 && yDiff > 20;
+                
+                if (isVerticalEdge) {
+                    // For vertical edges, position weight horizontally offset
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    midX = (drawFromX + drawToX) / 2 + (curveAmount * curveDirection) + 20;
+                    midY = (drawFromY + drawToY) / 2;
+                } else {
+                    // For non-vertical edges, position weight vertically offset
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    midX = (drawFromX + drawToX) / 2;
+                    midY = (drawFromY + drawToY) / 2 - (curveAmount * curveDirection) - 20;
+                }
             } else {
                 // For straight edges, position weight at midpoint
                 midX = (drawFromX + drawToX) / 2;
