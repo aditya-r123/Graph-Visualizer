@@ -996,12 +996,27 @@ export class GraphCreator {
             endY = edge.to.y;
         }
         
-        // Calculate arrow position
+        // Calculate arrow position at the exact intersection with vertex boundary
         const vertexRadius = this.vertexSize;
-        const arrowDistance = vertexRadius + 3;
         
-        const arrowX = endX - arrowDistance * Math.cos(angle);
-        const arrowY = endY - arrowDistance * Math.sin(angle);
+        // Calculate the exact intersection point between the edge and vertex boundary
+        const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+        
+        // Calculate intersection of line with circle
+        const intersectionDx = endX - targetVertex.x;
+        const intersectionDy = endY - targetVertex.y;
+        const distance = Math.sqrt(intersectionDx * intersectionDx + intersectionDy * intersectionDy);
+        
+        let arrowX, arrowY;
+        if (distance > 0) {
+            // Normalize and scale to vertex radius
+            arrowX = targetVertex.x + (intersectionDx / distance) * vertexRadius;
+            arrowY = targetVertex.y + (intersectionDy / distance) * vertexRadius;
+        } else {
+            // Fallback if distance is 0
+            arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
+            arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+        }
         
         // Draw arrow
         ctx.strokeStyle = '#000000';
@@ -1135,12 +1150,27 @@ export class GraphCreator {
             endY = edge.to.y;
         }
         
-        // Calculate arrow position
+        // Calculate arrow position at the exact intersection with vertex boundary
         const vertexRadius = edge.from.size || this.vertexSize;
-        const arrowDistance = vertexRadius + 5;
         
-        const arrowX = endX - arrowDistance * Math.cos(angle);
-        const arrowY = endY - arrowDistance * Math.sin(angle);
+        // Calculate the exact intersection point between the edge and vertex boundary
+        const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+        
+        // Calculate intersection of line/curve with circle
+        const dx = endX - targetVertex.x;
+        const dy = endY - targetVertex.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        let arrowX, arrowY;
+        if (distance > 0) {
+            // Normalize and scale to vertex radius
+            arrowX = targetVertex.x + (dx / distance) * vertexRadius;
+            arrowY = targetVertex.y + (dy / distance) * vertexRadius;
+        } else {
+            // Fallback if distance is 0
+            arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
+            arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+        }
         
         // Draw arrow
         ctx.strokeStyle = edge.color || this.edgeColor;
@@ -1308,12 +1338,27 @@ export class GraphCreator {
             endY = edge.to.y;
         }
         
-        // Calculate arrow position (slightly inside the vertex)
+        // Calculate arrow position at the exact intersection with vertex boundary
         const vertexRadius = edge.from.size || this.vertexSize;
-        const arrowDistance = vertexRadius + 5;
         
-        const arrowX = endX - arrowDistance * Math.cos(angle);
-        const arrowY = endY - arrowDistance * Math.sin(angle);
+        // Calculate the exact intersection point between the edge and vertex boundary
+        const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+        
+        // Calculate intersection of line/curve with circle
+        const dx = endX - targetVertex.x;
+        const dy = endY - targetVertex.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        let arrowX, arrowY;
+        if (distance > 0) {
+            // Normalize and scale to vertex radius
+            arrowX = targetVertex.x + (dx / distance) * vertexRadius;
+            arrowY = targetVertex.y + (dy / distance) * vertexRadius;
+        } else {
+            // Fallback if distance is 0
+            arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
+            arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+        }
         
         // Draw arrow
         ctx.strokeStyle = edge.color || this.edgeColor;
@@ -3549,31 +3594,30 @@ export class GraphCreator {
         this.ctx.beginPath();
         
         if (edge.type === 'curved') {
-                const edgeIndex = edge.edgeIndex || 0;
-                const baseCurve = 40;
-                const curveIncrement = 50;
-                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
-                
-                // Check if vertices are mostly vertically aligned (using ratio-based detection)
-                const xDiff = Math.abs(drawFromX - drawToX);
-                const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < (yDiff * 0.2) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
-                
-                let controlPoint;
-                if (isVerticalEdge) {
-                    // For vertical edges, curve horizontally
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
-                        y: (drawFromY + drawToY) / 2
-                    };
-                } else {
-                    // For non-vertical edges, curve vertically (original behavior)
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (drawFromX + drawToX) / 2,
-                        y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
-                    };
+                // Use the actual control point if present
+                let controlPoint = edge.controlPoint;
+                if (!controlPoint) {
+                    // Fallback to automatic calculation
+                    const edgeIndex = edge.edgeIndex || 0;
+                    const baseCurve = 40;
+                    const curveIncrement = 50;
+                    const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                    const xDiff = Math.abs(drawFromX - drawToX);
+                    const yDiff = Math.abs(drawFromY - drawToY);
+                    const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                    if (isVerticalEdge) {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                            y: (drawFromY + drawToY) / 2
+                        };
+                    } else {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2,
+                            y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                        };
+                    }
                 }
                 this.ctx.moveTo(drawFromX, drawFromY);
                 this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, drawToX, drawToY);
@@ -3595,37 +3639,34 @@ export class GraphCreator {
             // Calculate the end point based on progress
             let endX, endY;
             if (edge.type === 'curved') {
-                const edgeIndex = edge.edgeIndex || 0;
-                const baseCurve = 40;
-                const curveIncrement = 50;
-                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
-                
-                // Check if vertices are mostly vertically aligned (using ratio-based detection)
-                const xDiff = Math.abs(drawFromX - drawToX);
-                const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
-                
-                let controlPoint;
-                if (isVerticalEdge) {
-                    // For vertical edges, curve horizontally
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
-                        y: (drawFromY + drawToY) / 2
-                    };
-                } else {
-                    // For non-vertical edges, curve vertically (original behavior)
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (drawFromX + drawToX) / 2,
-                        y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
-                    };
+                // Use the actual control point if present
+                let controlPoint = edge.controlPoint;
+                if (!controlPoint) {
+                    // Fallback to automatic calculation
+                    const edgeIndex = edge.edgeIndex || 0;
+                    const baseCurve = 40;
+                    const curveIncrement = 50;
+                    const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                    const xDiff = Math.abs(drawFromX - drawToX);
+                    const yDiff = Math.abs(drawFromY - drawToY);
+                    const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                    if (isVerticalEdge) {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                            y: (drawFromY + drawToY) / 2
+                        };
+                    } else {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2,
+                            y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                        };
+                    }
                 }
-                
                 // For curved edges, we need to calculate the point along the curve
                 const t = this.traversalProgress;
                 if (this.traversalDirection === 'backward') {
-                    // Reverse the curve calculation for backward traversal
                     endX = Math.pow(1 - t, 2) * drawToX + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * drawFromX;
                     endY = Math.pow(1 - t, 2) * drawToY + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * drawFromY;
                 } else {
@@ -3645,31 +3686,30 @@ export class GraphCreator {
             
             this.ctx.beginPath();
             if (edge.type === 'curved') {
-                const edgeIndex = edge.edgeIndex || 0;
-                const baseCurve = 40;
-                const curveIncrement = 50;
-                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
-                
-                // Check if vertices are mostly vertically aligned (using ratio-based detection)
-                const xDiff = Math.abs(drawFromX - drawToX);
-                const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
-                
-                let controlPoint;
-                if (isVerticalEdge) {
-                    // For vertical edges, curve horizontally
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
-                        y: (drawFromY + drawToY) / 2
-                    };
-                } else {
-                    // For non-vertical edges, curve vertically (original behavior)
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (drawFromX + drawToX) / 2,
-                        y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
-                    };
+                // Use the actual control point if present
+                let controlPoint = edge.controlPoint;
+                if (!controlPoint) {
+                    // Fallback to automatic calculation
+                    const edgeIndex = edge.edgeIndex || 0;
+                    const baseCurve = 40;
+                    const curveIncrement = 50;
+                    const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                    const xDiff = Math.abs(drawFromX - drawToX);
+                    const yDiff = Math.abs(drawFromY - drawToY);
+                    const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                    if (isVerticalEdge) {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                            y: (drawFromY + drawToY) / 2
+                        };
+                    } else {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2,
+                            y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                        };
+                    }
                 }
                 if (this.traversalDirection === 'backward') {
                     this.ctx.moveTo(actualFromX, actualFromY);
@@ -4139,18 +4179,51 @@ export class GraphCreator {
             }
         }
         
-        // Calculate arrow position (slightly inside the vertex)
+        // Calculate arrow position at the exact intersection with vertex boundary
         const vertexRadius = edge.from.size || this.vertexSize;
-        const arrowDistance = vertexRadius + 5;
         
         let arrowX, arrowY;
         if (edge.type === 'self-loop') {
             // For self-loops, position arrow at the bottom of the circle
             arrowX = endX;
-            arrowY = endY - arrowDistance;
+            arrowY = endY - vertexRadius;
         } else {
-            arrowX = endX - arrowDistance * Math.cos(angle);
-            arrowY = endY - arrowDistance * Math.sin(angle);
+            // Calculate the exact intersection point between the edge and vertex boundary
+            const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+            
+            // Calculate intersection of line/curve with circle
+            if (edge.type === 'curved') {
+                // For curved edges, we need to find where the curve intersects the vertex boundary
+                // We'll use the end point we calculated and adjust it to be exactly on the vertex boundary
+                const dx = endX - targetVertex.x;
+                const dy = endY - targetVertex.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    // Normalize and scale to vertex radius
+                    arrowX = targetVertex.x + (dx / distance) * vertexRadius;
+                    arrowY = targetVertex.y + (dy / distance) * vertexRadius;
+                } else {
+                    // Fallback if distance is 0
+                    arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
+                    arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+                }
+            } else {
+                // For straight edges, calculate intersection of line with circle
+                const dx = endX - targetVertex.x;
+                const dy = endY - targetVertex.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    // Normalize and scale to vertex radius
+                    arrowX = targetVertex.x + (dx / distance) * vertexRadius;
+                    arrowY = targetVertex.y + (dy / distance) * vertexRadius;
+                } else {
+                    // Fallback if distance is 0
+                    arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
+                    arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+                }
+            }
         }
         
         // Draw arrow
