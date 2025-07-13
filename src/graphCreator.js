@@ -2387,18 +2387,47 @@ export class GraphCreator {
         });
         
         this.edges.forEach(edge => {
-            adjacencyList[edge.from.id].push(edge.to);
-            adjacencyList[edge.to.id].push(edge.from);
+            // Handle different edge directions
+            if (edge.direction === 'undirected') {
+                // Undirected edges can be traversed in both directions
+                adjacencyList[edge.from.id].push(edge.to);
+                adjacencyList[edge.to.id].push(edge.from);
+            } else if (edge.direction === 'directed') {
+                // Directed edges can only be traversed from 'from' to 'to'
+                adjacencyList[edge.from.id].push(edge.to);
+            } else if (edge.direction === 'directed-backward') {
+                // Backward directed edges can only be traversed from 'to' to 'from'
+                adjacencyList[edge.to.id].push(edge.from);
+            } else {
+                // Default to undirected behavior for any other direction values
+                adjacencyList[edge.from.id].push(edge.to);
+                adjacencyList[edge.to.id].push(edge.from);
+            }
         });
         
         return adjacencyList;
     }
     
     findEdge(from, to) {
-        return this.edges.find(edge => 
-            (edge.from.id === from.id && edge.to.id === to.id) ||
-            (edge.from.id === to.id && edge.to.id === from.id)
-        );
+        return this.edges.find(edge => {
+            // Check if this edge connects the two vertices
+            const connectsVertices = (edge.from.id === from.id && edge.to.id === to.id) ||
+                                   (edge.from.id === to.id && edge.to.id === from.id);
+            
+            if (!connectsVertices) return false;
+            
+            // For directed edges, check if the direction allows traversal from 'from' to 'to'
+            if (edge.direction === 'directed') {
+                // Only allow traversal from edge.from to edge.to
+                return edge.from.id === from.id && edge.to.id === to.id;
+            } else if (edge.direction === 'directed-backward') {
+                // Only allow traversal from edge.to to edge.from
+                return edge.to.id === from.id && edge.from.id === to.id;
+            } else {
+                // Undirected edges allow traversal in both directions
+                return true;
+            }
+        });
     }
     
     findVertexByLabel(label) {
@@ -2486,7 +2515,7 @@ export class GraphCreator {
         // Check if root node is connected to at least one other node
         const adjacencyList = this.getAdjacencyList();
         if (!adjacencyList[startVertex.id] || adjacencyList[startVertex.id].length === 0) {
-            this.updateStatus('Root node must be connected to at least one other node');
+            this.updateStatus(`Target vertex "${targetVertex.label}" is not reachable from root vertex "${startVertex.label}"`);
             return;
         }
         
