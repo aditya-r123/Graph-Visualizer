@@ -3197,24 +3197,24 @@ export class GraphCreator {
         const minuteAngle = minutes * 6; // 6 degrees per minute
         const secondAngle = seconds * 6; // 6 degrees per second
         
-        // Update hour hand
+        // Update hour hand (shorter for modern look)
         const hourHand = document.getElementById('hourHand');
-        const hourX = 20 + 8 * Math.sin(hourAngle * Math.PI / 180);
-        const hourY = 20 - 8 * Math.cos(hourAngle * Math.PI / 180);
+        const hourX = 50 + 20 * Math.sin(hourAngle * Math.PI / 180);
+        const hourY = 50 - 20 * Math.cos(hourAngle * Math.PI / 180);
         hourHand.setAttribute('x2', hourX);
         hourHand.setAttribute('y2', hourY);
         
-        // Update minute hand
+        // Update minute hand (medium length)
         const minuteHand = document.getElementById('minuteHand');
-        const minuteX = 20 + 10 * Math.sin(minuteAngle * Math.PI / 180);
-        const minuteY = 20 - 10 * Math.cos(minuteAngle * Math.PI / 180);
+        const minuteX = 50 + 27 * Math.sin(minuteAngle * Math.PI / 180);
+        const minuteY = 50 - 27 * Math.cos(minuteAngle * Math.PI / 180);
         minuteHand.setAttribute('x2', minuteX);
         minuteHand.setAttribute('y2', minuteY);
         
-        // Update second hand
+        // Update second hand (longest)
         const secondHand = document.getElementById('secondHand');
-        const secondX = 20 + 12 * Math.sin(secondAngle * Math.PI / 180);
-        const secondY = 20 - 12 * Math.cos(secondAngle * Math.PI / 180);
+        const secondX = 50 + 33 * Math.sin(secondAngle * Math.PI / 180);
+        const secondY = 50 - 33 * Math.cos(secondAngle * Math.PI / 180);
         secondHand.setAttribute('x2', secondX);
         secondHand.setAttribute('y2', secondY);
     }

@@ -426,16 +426,25 @@
         
         <!-- Status Bar -->
         <div class="status-bar">
-            <!-- Statistics -->
-            <div class="status-item footer-stats">
-                <div class="stats-compact">
-                    <div class="stat-compact-item">
-                        <span class="stat-compact-value" id="vertexCount">0</span>
-                        <span class="stat-compact-label">Vertices</span>
+            <!-- Combined Stats and Status Panel -->
+            <div class="status-item footer-stats-status">
+                <div class="stats-status-container">
+                    <!-- Statistics Section -->
+                    <div class="stats-section">
+                        <div class="stat-item">
+                            <span class="stat-value" id="vertexCount">0</span>
+                            <span class="stat-label">Vertices</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="edgeCount">0</span>
+                            <span class="stat-label">Edges</span>
+                        </div>
                     </div>
-                    <div class="stat-compact-item">
-                        <span class="stat-compact-value" id="edgeCount">0</span>
-                        <span class="stat-compact-label">Edges</span>
+                    
+                    <!-- Status Message Section -->
+                    <div class="status-section">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="statusMessage">Ready to create your graph!</span>
                     </div>
                 </div>
             </div>
@@ -499,32 +508,60 @@
                 </button>
             </div>
             
-            <!-- Status Message -->
-            <div class="status-item">
-                <i class="fas fa-info-circle"></i>
-                <span id="statusMessage">Ready to create your graph!</span>
-            </div>
-            
             <!-- Current Time -->
             <div class="status-item footer-time">
                 <div id="currentTime" class="time-display">
                     <span id="digitalTime"></span>
-                    <svg id="analogClock" class="analog-clock" width="120" height="120" viewBox="0 0 40 40" style="display: none;">
-                        <!-- Clock face -->
-                        <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/>
-                        <!-- Hour markers -->
-                        <line x1="20" y1="4" x2="20" y2="6" stroke="currentColor" stroke-width="2"/>
-                        <line x1="20" y1="34" x2="20" y2="36" stroke="currentColor" stroke-width="2"/>
-                        <line x1="4" y1="20" x2="6" y2="20" stroke="currentColor" stroke-width="2"/>
-                        <line x1="34" y1="20" x2="36" y2="20" stroke="currentColor" stroke-width="2"/>
-                        <!-- Hour hand -->
-                        <line id="hourHand" x1="20" y1="20" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <!-- Minute hand -->
-                        <line id="minuteHand" x1="20" y1="20" x2="20" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        <!-- Second hand -->
-                        <line id="secondHand" x1="20" y1="20" x2="20" y2="6" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
-                        <!-- Center dot -->
-                        <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
+                    <svg id="analogClock" class="analog-clock" width="120" height="120" viewBox="0 0 100 100" style="display: none;">
+                        <!-- Outer ring with gradient -->
+                        <defs>
+                            <linearGradient id="clockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:var(--primary-color);stop-opacity:0.1" />
+                                <stop offset="100%" style="stop-color:var(--accent-color);stop-opacity:0.2" />
+                            </linearGradient>
+                            <linearGradient id="handGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:var(--text-primary);stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:var(--text-primary);stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="secondHandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Background circle with subtle gradient -->
+                        <circle cx="50" cy="50" r="48" fill="url(#clockGradient)" stroke="var(--border-color)" stroke-width="1"/>
+                        
+                        <!-- Inner circle for clean look -->
+                        <circle cx="50" cy="50" r="45" fill="var(--bg-tertiary)" stroke="none"/>
+                        
+                        <!-- Hour markers - modern dots -->
+                        <circle cx="50" cy="8" r="2" fill="var(--text-muted)" opacity="0.7"/>
+                        <circle cx="50" cy="92" r="2" fill="var(--text-muted)" opacity="0.7"/>
+                        <circle cx="8" cy="50" r="2" fill="var(--text-muted)" opacity="0.7"/>
+                        <circle cx="92" cy="50" r="2" fill="var(--text-muted)" opacity="0.7"/>
+                        
+                        <!-- Quarter markers - slightly larger -->
+                        <circle cx="50" cy="15" r="1.5" fill="var(--text-primary)" opacity="0.9"/>
+                        <circle cx="50" cy="85" r="1.5" fill="var(--text-primary)" opacity="0.9"/>
+                        <circle cx="15" cy="50" r="1.5" fill="var(--text-primary)" opacity="0.9"/>
+                        <circle cx="85" cy="50" r="1.5" fill="var(--text-primary)" opacity="0.9"/>
+                        
+                        <!-- Hour hand - thicker and more modern -->
+                        <line id="hourHand" x1="50" y1="50" x2="50" y2="25" stroke="url(#handGradient)" stroke-width="4" stroke-linecap="round"/>
+                        
+                        <!-- Minute hand - medium thickness -->
+                        <line id="minuteHand" x1="50" y1="50" x2="50" y2="18" stroke="url(#handGradient)" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- Second hand - thin and red -->
+                        <line id="secondHand" x1="50" y1="50" x2="50" y2="12" stroke="url(#secondHandGradient)" stroke-width="2" stroke-linecap="round"/>
+                        
+                        <!-- Center dot with shadow effect -->
+                        <circle cx="50" cy="50" r="6" fill="var(--bg-secondary)" stroke="var(--border-color)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="var(--text-primary)"/>
+                        
+                        <!-- Subtle inner ring for depth -->
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-color)" stroke-width="0.5" opacity="0.3"/>
                     </svg>
                 </div>
             </div>
