@@ -105,6 +105,9 @@ export class GraphCreator {
         // Hide labels mode
         this.hideLabels = false;
         
+        // Theme and display settings
+        this.timeDisplayMode = 'digital'; // 'digital' or 'analog'
+        
         // Initialize the application
         this.initializeCanvas();
         this.initializeEventListeners();
@@ -374,6 +377,17 @@ export class GraphCreator {
         document.querySelector('.contact-status-item').addEventListener('click', () => {
             this.showContactModal();
         });
+        
+        // Time display toggle
+        const currentTimeElement = document.getElementById('currentTime');
+        if (currentTimeElement) {
+            currentTimeElement.addEventListener('click', () => {
+                this.timeDisplayMode = this.timeDisplayMode === 'digital' ? 'analog' : 'digital';
+                this.updateTime();
+            });
+            // Add cursor pointer style
+            currentTimeElement.style.cursor = 'pointer';
+        }
         
         // Contact form submission
         document.getElementById('contactForm').addEventListener('submit', (e) => {
@@ -3153,8 +3167,56 @@ export class GraphCreator {
     
     updateTime() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString();
-        document.getElementById('currentTime').textContent = timeString;
+        const digitalTimeElement = document.getElementById('digitalTime');
+        const analogClockElement = document.getElementById('analogClock');
+        
+        if (this.timeDisplayMode === 'analog') {
+            // Show analog clock
+            digitalTimeElement.style.display = 'none';
+            analogClockElement.style.display = 'block';
+            
+            // Update analog clock hands
+            this.updateAnalogClock(now);
+        } else {
+            // Show digital time
+            digitalTimeElement.style.display = 'block';
+            analogClockElement.style.display = 'none';
+            
+            // Digital format (12-hour with AM/PM)
+            digitalTimeElement.textContent = now.toLocaleTimeString();
+        }
+    }
+    
+    updateAnalogClock(now) {
+        const hours = now.getHours() % 12;
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        
+        // Calculate angles for hands
+        const hourAngle = (hours * 30) + (minutes * 0.5); // 30 degrees per hour + 0.5 degrees per minute
+        const minuteAngle = minutes * 6; // 6 degrees per minute
+        const secondAngle = seconds * 6; // 6 degrees per second
+        
+        // Update hour hand
+        const hourHand = document.getElementById('hourHand');
+        const hourX = 20 + 8 * Math.sin(hourAngle * Math.PI / 180);
+        const hourY = 20 - 8 * Math.cos(hourAngle * Math.PI / 180);
+        hourHand.setAttribute('x2', hourX);
+        hourHand.setAttribute('y2', hourY);
+        
+        // Update minute hand
+        const minuteHand = document.getElementById('minuteHand');
+        const minuteX = 20 + 10 * Math.sin(minuteAngle * Math.PI / 180);
+        const minuteY = 20 - 10 * Math.cos(minuteAngle * Math.PI / 180);
+        minuteHand.setAttribute('x2', minuteX);
+        minuteHand.setAttribute('y2', minuteY);
+        
+        // Update second hand
+        const secondHand = document.getElementById('secondHand');
+        const secondX = 20 + 12 * Math.sin(secondAngle * Math.PI / 180);
+        const secondY = 20 - 12 * Math.cos(secondAngle * Math.PI / 180);
+        secondHand.setAttribute('x2', secondX);
+        secondHand.setAttribute('y2', secondY);
     }
     
     draw() {
