@@ -1,26 +1,37 @@
 # Graph Creator Pro
 
-[![Version](https://img.shields.io/badge/version-v1.0.0--stable-brightgreen.svg)](https://github.com/aditya-r123/Graph-Visualizer/releases/tag/v1.0.0-stable)
+[![Version](https://img.shields.io/badge/version-v1.1.0--stable-brightgreen.svg)](https://github.com/aditya-r123/Graph-Visualizer/releases/tag/v1.1.0-stable)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A powerful, interactive web application for creating, visualizing, and analyzing graphs with an intuitive drag-and-drop interface.
 
-## 🎉 Stable Version v1.0.0
+## 🎉 Stable Version v1.1.0
 
-This release includes all core features for graph creation and analysis:
+This release includes all core features for graph creation and analysis, plus enhanced sharing and UI improvements:
 - ✅ **Complete graph creation and editing system**
 - ✅ **BFS/DFS search algorithms with animations**
 - ✅ **Connectivity checks and path finding**
 - ✅ **Waterfall effect animations**
-- ✅ **Save/load functionality**
-- ✅ **Screenshot capabilities**
+- ✅ **Save/load functionality with graph renaming**
+- ✅ **Screenshot and sharing capabilities**
 - ✅ **Modern UI with theme switching**
+- ✅ **Interactive time display (digital/analog)**
+- ✅ **Enhanced recent graphs management**
 
 *Note: Custom appearance editing for edges and vertices is planned for future releases.*
 
 ## 📋 Changelog
 
-### v1.0.0-stable (Current Release)
+### v1.1.0-stable (Current Release)
+- **📤 Share Functionality**: Native sharing via Web Share API with custom messaging
+- **⏰ Interactive Time Display**: Toggle between digital and analog clock formats
+- **✏️ Graph Renaming**: Rename graphs from both sidebar and load modal
+- **📱 Enhanced Recent Graphs**: Show up to 5 recent graphs with improved UI
+- **🎨 UI Refinements**: Unified footer design, better spacing, and modern aesthetics
+- **🔧 Improved Help System**: Reliable help button functionality
+- **📊 Better Statistics**: Combined status and statistics panel
+
+### v1.0.0-stable (Previous Release)
 - **🎯 Core Features Complete**: All essential graph creation and analysis features implemented
 - **🔍 Search Algorithms**: BFS and DFS with animated traversal and path highlighting
 - **🌊 Waterfall Effects**: Directional edge traversal animations that follow actual paths
@@ -69,22 +80,26 @@ This release includes all core features for graph creation and analysis:
 ### Save & Load System
 - **Auto-Save**: Automatic saving when adding vertices/edges (toggleable)
 - **Manual Save/Load**: Save graphs with custom names and timestamps
-- **Recent Graphs**: Quick access to recently saved graphs with click-to-load
+- **Recent Graphs**: Quick access to up to 5 recently saved graphs with click-to-load
+- **Graph Renaming**: Rename graphs from both the sidebar and load modal
 - **Graph Management**: Delete individual graphs or all saved graphs
 - **File Import/Export**: Load graphs from JSON files and export current graphs
 
-### Screenshot & Export
+### Screenshot & Sharing
 - **High-Quality Screenshots**: Capture graphs in JPG or PNG format
+- **Native Sharing**: Share graphs directly via Web Share API (iMessage, Email, etc.)
+- **Custom Share Text**: "Hey, check out this cool graph I made with Graph Visualizer Pro"
+- **Fallback Support**: Download option when Web Share API is not available
 - **Full Graph Data**: Screenshots include all vertex and edge information
-- **Custom Format Selection**: Choose between smaller JPG files or higher quality PNG
 
 ### User Interface
-- **Modern Design**: Clean, responsive interface with Bootstrap styling
+- **Modern Design**: Clean, responsive interface with unified footer design
 - **Dark/Light Theme**: Toggle between themes with animated sun/moon icons
+- **Interactive Time Display**: Click to toggle between digital and analog clock formats
 - **Eye Tracking**: Interactive sun/moon icons that follow your mouse
 - **Collapsible Sections**: Expandable search algorithms panel
 - **Smart Scroll Indicator**: "More options" indicator that disappears after 150px of scrolling
-- **Status Bar**: Real-time status updates, local time, and contact information
+- **Unified Status Panel**: Combined statistics and status messages in footer
 - **Contact Modal**: Built-in contact form for feedback and support
 
 ### Accessibility & UX
@@ -104,7 +119,7 @@ This release includes all core features for graph creation and analysis:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/graph-creator.git
+   git clone https://github.com/aditya-r123/Graph-Visualizer.git
    cd graph-creator
    ```
 
@@ -157,12 +172,18 @@ npm run build
 - **Run BFS/DFS**: Click the respective buttons to start animated traversal
 - **Stop Search**: Interrupt ongoing searches at any time
 
-
 ### Save & Load
 - **Auto-Save**: Toggle automatic saving in the Save & Load section
 - **Manual Save**: Click "Save Graph" to save with custom name
-- **Load Graph**: Click "Load Graph" or click on recent graphs
+- **Load Graph**: Click "Load Or Rename Graph" or click on recent graphs
+- **Rename Graphs**: Click the edit icon next to any graph name to rename it
 - **Screenshot**: Capture current graph state in your preferred format
+- **Share Graph**: Share your graph directly to other apps using the share button
+
+### Time Display
+- **Digital/Analog Toggle**: Click the time display to switch between formats
+- **Real-time Updates**: Time updates automatically every second
+- **Interactive Clock**: Analog clock with smooth hand movements
 
 ## 🛠️ Technical Details
 
@@ -178,6 +199,7 @@ npm run build
 - **Animation Engine**: Smooth animations for search algorithms and UI feedback
 - **Storage System**: Local storage for graph persistence
 - **Theme System**: Dynamic theme switching with CSS custom properties
+- **Share System**: Web Share API integration with fallback support
 
 ### Performance Features
 - **Canvas Optimization**: Efficient rendering with requestAnimationFrame
