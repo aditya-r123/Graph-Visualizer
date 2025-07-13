@@ -4042,9 +4042,42 @@ export class GraphCreator {
             endY = arcCenterY + loopRadius * Math.sin(endAngle);
             // Tangent angle at end of arc (add 90deg/π/2 to arc angle)
             angle = endAngle + Math.PI / 2;
-        } else if (edge.type === 'curved' && edge.controlPoint) {
-            // For curved edges, calculate the angle at the end point using control point
-            const controlPoint = edge.controlPoint;
+        } else if (edge.type === 'curved') {
+            // For curved edges, calculate the actual end point and tangent
+            const edgeIndex = edge.edgeIndex || 0;
+            const baseCurve = 40;
+            const curveIncrement = 50;
+            const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+            
+            // Check if vertices are mostly vertically aligned (using ratio-based detection)
+            const xDiff = Math.abs(edge.from.x - edge.to.x);
+            const yDiff = Math.abs(edge.from.y - edge.to.y);
+            const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+            
+            let controlPoint;
+            if (isVerticalEdge) {
+                // For vertical edges, curve horizontally
+                const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                controlPoint = {
+                    x: (edge.from.x + edge.to.x) / 2 + (curveAmount * curveDirection),
+                    y: (edge.from.y + edge.to.y) / 2
+                };
+            } else {
+                // For non-vertical edges, curve vertically (original behavior)
+                const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                controlPoint = {
+                    x: (edge.from.x + edge.to.x) / 2,
+                    y: (edge.from.y + edge.to.y) / 2 - (curveAmount * curveDirection)
+                };
+            }
+            
+            // Calculate the arrow position along the curve (not at the very end)
+            // Use a parameter t that varies based on edge index to spread arrows out
+            const t = 0.85 - (edgeIndex * 0.1); // Start at 85% of curve, reduce by 10% per edge
+            const clampedT = Math.max(0.3, t); // Don't go below 30% of the curve
+            
+            endX = Math.pow(1 - clampedT, 2) * edge.from.x + 2 * (1 - clampedT) * clampedT * controlPoint.x + Math.pow(clampedT, 2) * edge.to.x;
+            endY = Math.pow(1 - clampedT, 2) * edge.from.y + 2 * (1 - clampedT) * clampedT * controlPoint.y + Math.pow(clampedT, 2) * edge.to.y;
             
             // Calculate the tangent at the end point
             const dx = edge.to.x - controlPoint.x;
@@ -4055,20 +4088,48 @@ export class GraphCreator {
             const dx = edge.to.x - edge.from.x;
             const dy = edge.to.y - edge.from.y;
             angle = Math.atan2(dy, dx);
+            endX = edge.to.x;
+            endY = edge.to.y;
         }
         
         // Determine arrow direction based on edge direction setting
         if (edge.direction === 'directed-backward') {
             angle += Math.PI; // Reverse the arrow
-            if (edge.type !== 'self-loop') {
-            endX = edge.from.x;
-            endY = edge.from.y;
-            }
-        } else {
-            // directed-forward or default
-            if (edge.type !== 'self-loop') {
-            endX = edge.to.x;
-            endY = edge.to.y;
+            if (edge.type === 'curved') {
+                // For curved edges, calculate the start point of the curve (t = 0)
+                const edgeIndex = edge.edgeIndex || 0;
+                const baseCurve = 40;
+                const curveIncrement = 50;
+                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                
+                const xDiff = Math.abs(edge.from.x - edge.to.x);
+                const yDiff = Math.abs(edge.from.y - edge.to.y);
+                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                
+                let controlPoint;
+                if (isVerticalEdge) {
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (edge.from.x + edge.to.x) / 2 + (curveAmount * curveDirection),
+                        y: (edge.from.y + edge.to.y) / 2
+                    };
+                } else {
+                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                    controlPoint = {
+                        x: (edge.from.x + edge.to.x) / 2,
+                        y: (edge.from.y + edge.to.y) / 2 - (curveAmount * curveDirection)
+                    };
+                }
+                
+                // Calculate the arrow position along the curve for backward direction
+                const t = 0.15 + (edgeIndex * 0.1); // Start at 15% of curve, increase by 10% per edge
+                const clampedT = Math.min(0.7, t); // Don't go above 70% of the curve
+                
+                endX = Math.pow(1 - clampedT, 2) * edge.from.x + 2 * (1 - clampedT) * clampedT * controlPoint.x + Math.pow(clampedT, 2) * edge.to.x;
+                endY = Math.pow(1 - clampedT, 2) * edge.from.y + 2 * (1 - clampedT) * clampedT * controlPoint.y + Math.pow(clampedT, 2) * edge.to.y;
+            } else if (edge.type !== 'self-loop') {
+                endX = edge.from.x;
+                endY = edge.from.y;
             }
         }
         
