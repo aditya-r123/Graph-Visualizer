@@ -1820,10 +1820,57 @@ body {
 .analog-clock {
     color: var(--text-primary);
     transition: var(--transition);
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .time-display:hover .analog-clock {
     color: var(--primary-color);
+}
+
+/* Current time display specific styles */
+#currentTime {
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    min-width: 120px;
+    justify-content: center;
+}
+
+#currentTime:hover {
+    background: var(--bg-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#currentTime .analog-clock {
+    width: 60px;
+    height: 60px;
+}
+
+#currentTime .analog-clock line {
+    transition: transform 0.1s ease-out;
+}
+
+#currentTime #hourHand {
+    transform-origin: 50px 50px;
+}
+
+#currentTime #minuteHand {
+    transform-origin: 50px 50px;
+}
+
+#currentTime #secondHand {
+    transform-origin: 50px 50px;
 }
 
 /* LinkedIn link styling */
