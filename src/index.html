@@ -34,46 +34,6 @@
                     <h3><i class="fas fa-sliders-h"></i> Controls</h3>
                     
                     <div class="control-group">
-                            <label class="switch-label" for="mouseCoordinateToggle">
-                                <i class="fas fa-eye"></i>
-                                Show Mouse Coordinates
-                                <div class="switch-container">
-                                    <input type="checkbox" id="mouseCoordinateToggle" checked>
-                                    <span class="switch-slider"></span>
-                                </div>
-                            </label>
-                        <div class="coordinate-tooltip">
-                            <div class="coordinate-tooltip-label">
-                                <i class="fas fa-mouse-pointer"></i>
-                                Mouse Position
-                            </div>
-                            <div class="coordinate-tooltip-value" id="mouseCoordinates">
-                                (0, 0)
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="control-group">
-                            <label class="switch-label" for="coordinateGridToggle">
-                                <i class="fas fa-th"></i>
-                                Show Coordinate Grid
-                                <div class="switch-container">
-                                    <input type="checkbox" id="coordinateGridToggle">
-                                    <span class="switch-slider"></span>
-                                </div>
-                            </label>
-                        <div class="coordinate-grid-density" id="gridDensityContainer" style="display: none;">
-                            <label for="gridDensity">
-                                <i class="fas fa-sliders-h"></i>
-                                Grid Density
-                            </label>
-                            <div class="slider-container">
-                                <input type="range" id="gridDensity" min="10" max="100" value="50">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="control-group">
                         <label class="switch-label" for="hideLabelsToggle">
                             <i class="fas fa-tag"></i>
                             Hide Vertex Labels
@@ -435,25 +395,42 @@
         
         <!-- Status Bar -->
         <div class="status-bar">
-            <!-- Statistics -->
-            <div class="status-item footer-stats">
-                <div class="stats-compact">
-                    <div class="stat-compact-item">
-                        <span class="stat-compact-value" id="vertexCount">0</span>
-                        <span class="stat-compact-label">Vertices</span>
-                    </div>
-                    <div class="stat-compact-item">
-                        <span class="stat-compact-value" id="edgeCount">0</span>
-                        <span class="stat-compact-label">Edges</span>
-                    </div>
-                    <div class="stat-compact-item">
-                        <span class="stat-compact-value" id="cycleCount">0</span>
-                        <span class="stat-compact-label">Cycles</span>
-                    </div>
-                    <div class="stat-compact-item">
-                        <span class="stat-compact-value" id="selfLoopCount">0</span>
-                        <span class="stat-compact-label">Self Loops</span>
-                    </div>
+            
+            <!-- Coordinate Controls Panel -->
+            <div class="status-item footer-coords-panel">
+                <div class="footer-coords-controls">
+                    <label class="switch-label" for="mouseCoordinateToggle" style="margin-right: 1rem;">
+                        <i class="fas fa-eye"></i>
+                        Show Mouse Coordinates
+                        <div class="switch-container">
+                            <input type="checkbox" id="mouseCoordinateToggle" checked>
+                            <span class="switch-slider"></span>
+                        </div>
+                    </label>
+                    <span class="coordinate-tooltip-label" style="margin-right: 1rem;">
+                        <i class="fas fa-mouse-pointer"></i>
+                        Mouse Position
+                    </span>
+                    <span class="coordinate-tooltip-value" id="mouseCoordinates" style="margin-right: 1rem;">
+                        (0, 0)
+                    </span>
+                    <label class="switch-label" for="coordinateGridToggle" style="margin-right: 1rem;">
+                        <i class="fas fa-th"></i>
+                        Show Coordinate Grid
+                        <div class="switch-container">
+                            <input type="checkbox" id="coordinateGridToggle">
+                            <span class="switch-slider"></span>
+                        </div>
+                    </label>
+                    <span class="coordinate-grid-density" id="gridDensityContainer" style="display: none; margin-right: 1rem;">
+                        <label for="gridDensity">
+                            <i class="fas fa-sliders-h"></i>
+                            Grid Density
+                        </label>
+                        <span class="slider-container">
+                            <input type="range" id="gridDensity" min="10" max="100" value="50">
+                        </span>
+                    </span>
                 </div>
             </div>
             

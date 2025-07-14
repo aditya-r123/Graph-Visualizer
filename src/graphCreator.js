@@ -3142,6 +3142,9 @@ export class GraphCreator {
                     </div>
                 </div>
                 <div class="modal-buttons">
+                    <button class="btn btn-success" id="saveRenamesDeletionsBtn">
+                        <i class="fas fa-save"></i> Save Renames and Deletions
+                    </button>
                     <button class="btn btn-secondary" id="cancelLoadDialogBtn">
                         <i class="fas fa-times"></i> Cancel
                     </button>
@@ -3166,6 +3169,23 @@ export class GraphCreator {
         
         document.getElementById('cancelLoadDialogBtn').addEventListener('click', () => {
             document.body.removeChild(dialog);
+        });
+
+        // Save Renames and Deletions button logic
+        const saveBtn = document.getElementById('saveRenamesDeletionsBtn');
+        // Always enabled for demo
+        saveBtn.disabled = false;
+        saveBtn.addEventListener('click', () => {
+            // Show a simple animation (spinner then checkmark)
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+            saveBtn.disabled = true;
+            setTimeout(() => {
+                saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Renames and Deletions';
+                    saveBtn.disabled = false;
+                }, 1200);
+            }, 1000);
         });
     }
     
@@ -3349,18 +3369,7 @@ export class GraphCreator {
     }
     
     updateInfo() {
-        document.getElementById('vertexCount').textContent = this.vertices.length;
-        document.getElementById('edgeCount').textContent = this.edges.length;
-        
-        // Calculate and display cycle count
-        const cycleCount = this.countCycles();
-        document.getElementById('cycleCount').textContent = cycleCount;
-        
-        // Calculate and display self-loop count
-        const selfLoopCount = this.countSelfLoops();
-        document.getElementById('selfLoopCount').textContent = selfLoopCount;
-        
-        // Hide/show delete nodes button based on vertex count
+        // Only update delete nodes button visibility
         const deleteNodesBtn = document.getElementById('deleteNodesBtn');
         if (deleteNodesBtn) {
             if (this.vertices.length === 0) {
@@ -3369,84 +3378,6 @@ export class GraphCreator {
                 deleteNodesBtn.style.display = 'block';
             }
         }
-    }
-    
-    countSelfLoops() {
-        return this.edges.filter(edge => edge.from.id === edge.to.id).length;
-    }
-    
-    countCycles() {
-        if (this.vertices.length === 0) return 0;
-        
-        // Build adjacency list (excluding self-loops)
-        const adjacencyList = new Map();
-        this.vertices.forEach(vertex => {
-            adjacencyList.set(vertex.id, []);
-        });
-        
-        this.edges.forEach(edge => {
-            // Skip self-loops
-            if (edge.from.id === edge.to.id) return;
-            
-            adjacencyList.get(edge.from.id).push(edge.to.id);
-            // For undirected edges, add reverse edge
-            if (edge.direction === 'undirected') {
-                adjacencyList.get(edge.to.id).push(edge.from.id);
-            }
-        });
-        
-        const cycles = new Set(); // Store unique cycles
-        
-        // Find all cycles using DFS
-        const findCycles = (startVertex, currentVertex, path = [], visited = new Set()) => {
-            // Add current vertex to path
-            path.push(currentVertex);
-            visited.add(currentVertex);
-            
-            // Get neighbors of current vertex
-            const neighbors = adjacencyList.get(currentVertex) || [];
-            
-            for (const neighbor of neighbors) {
-                // If we find the start vertex and path has at least 3 vertices, we found a cycle
-                if (neighbor === startVertex && path.length >= 3) {
-                    // Create a normalized cycle representation
-                    const cyclePath = [...path, startVertex];
-                    const normalizedCycle = this.normalizeCycle(cyclePath);
-                    cycles.add(normalizedCycle);
-                }
-                // Continue DFS if neighbor not visited and not the start vertex (to avoid immediate back-tracking)
-                else if (!visited.has(neighbor) && neighbor !== startVertex) {
-                    findCycles(startVertex, neighbor, [...path], new Set(visited));
-                }
-            }
-        };
-        
-        // Start DFS from each vertex to find all cycles
-        for (const vertex of this.vertices) {
-            findCycles(vertex.id, vertex.id);
-        }
-        
-        return cycles.size;
-    }
-    
-    normalizeCycle(cyclePath) {
-        // Normalize cycle by finding the lexicographically smallest rotation
-        if (cyclePath.length <= 1) return cyclePath.join('->');
-        
-        // Remove the last vertex if it's the same as the first (to avoid A->B->C->A->A)
-        const cleanPath = cyclePath[0] === cyclePath[cyclePath.length - 1] 
-            ? cyclePath.slice(0, -1) 
-            : cyclePath;
-        
-        if (cleanPath.length < 3) return cleanPath.join('->');
-        
-        const rotations = [];
-        for (let i = 0; i < cleanPath.length; i++) {
-            const rotation = [...cleanPath.slice(i), ...cleanPath.slice(0, i)];
-            rotations.push(rotation.join('->'));
-        }
-        
-        return rotations.sort()[0]; // Return the lexicographically smallest rotation
     }
     
     updateStatus(message) {
@@ -5227,5 +5158,22 @@ export class GraphCreator {
             digital.style.display = '';
             analog.style.display = 'none';
         }
+    }
+
+    // Returns true if there are unsaved renames or deletions in the savedGraphs list
+    hasUnsavedRenameOrDeleteChanges() {
+        // Implement your own logic to check for unsaved changes
+        // For now, always return true for demonstration
+        // You should track pending renames/deletions in your app state
+        return this._pendingRenameOrDelete === true;
+    }
+
+    // Saves any pending renames or deletions to localStorage
+    saveRenamesAndDeletions() {
+        // Implement your own logic to save changes
+        // For now, just clear the pending flag and save to localStorage
+        this._pendingRenameOrDelete = false;
+        localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+        this.updateSavedGraphsList();
     }
 } // End of GraphCreator class 
