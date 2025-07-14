@@ -2573,8 +2573,8 @@ export class GraphCreator {
                 // Undirected edges can be traversed in both directions
                 adjacencyList[edge.from.id].push(edge.to);
                 adjacencyList[edge.to.id].push(edge.from);
-            } else if (edge.direction === 'directed') {
-                // Directed edges can only be traversed from 'from' to 'to'
+            } else if (edge.direction === 'directed-forward') {
+                // Forward directed edges can only be traversed from 'from' to 'to'
                 adjacencyList[edge.from.id].push(edge.to);
             } else if (edge.direction === 'directed-backward') {
                 // Backward directed edges can only be traversed from 'to' to 'from'
@@ -2598,7 +2598,7 @@ export class GraphCreator {
             if (!connectsVertices) return false;
             
             // For directed edges, check if the direction allows traversal from 'from' to 'to'
-            if (edge.direction === 'directed') {
+            if (edge.direction === 'directed-forward') {
                 // Only allow traversal from edge.from to edge.to
                 return edge.from.id === from.id && edge.to.id === to.id;
             } else if (edge.direction === 'directed-backward') {
@@ -2815,7 +2815,7 @@ export class GraphCreator {
                     const distance = distances[current.id];
                     const visitedCount = visited.size;
                     this.showSearchResult(true, 'BFS', distance, visitedCount, visitOrder);
-                    return;
+                    return; // Ensure BFS stops immediately after finding the target
                 }
                 // Traverse only along edges that allow traversal from current to neighbor
                 for (const edge of this.edges) {
@@ -2878,6 +2878,10 @@ export class GraphCreator {
             await this.sleep();
             if (current.id === targetVertex.id) {
                 this.reconstructPath(parent, targetVertex);
+                // Debug: Log pathVertices size
+                if (window && window.console) {
+                    console.log('DFS pathVertices size:', this.pathVertices.size, Array.from(this.pathVertices).map(v => v.label));
+                }
                 const visitedCount = visited.size;
                 this.showSearchResult(true, 'DFS', null, visitedCount, visitOrder);
                 return true;
@@ -2962,8 +2966,9 @@ export class GraphCreator {
         let resultText = '';
         
         if (found) {
-            const pathLength = this.pathVertices.size;
-            const distanceText = distance !== null ? `Distance: ${distance} edges` : `Path length: ${pathLength} vertices`;
+            // --- FIX: Report path length as number of edges (vertices - 1) ---
+            const pathLength = Math.max(0, this.pathVertices.size - 1);
+            const distanceText = distance !== null ? `Distance: ${distance} edges` : `Path length: ${pathLength} edges`;
             const visitedText = visitedCount !== null ? `, Visited: ${visitedCount} vertices` : '';
             resultText = `${algorithm} found target! ${distanceText}${visitedText}`;
             this.updateStatus(`${algorithm} found target vertex!`);
@@ -3120,7 +3125,7 @@ export class GraphCreator {
         dialog.className = 'modal-overlay';
         dialog.innerHTML = `
             <div class="modal-content">
-                <h3><i class="fas fa-folder-open"></i> Load Graph</h3>
+                <h3><i class="fas fa-folder-open"></i> Load</h3>
                 <div class="load-options">
                     <div class="load-section">
                         <h4><i class="fas fa-history"></i> Recent Graphs</h4>
@@ -3180,8 +3185,11 @@ export class GraphCreator {
                     <div class="load-graph-time">${new Date(savedGraph.timestamp).toLocaleString()}</div>
                 </div>
                 <div class="load-graph-actions">
-                    <button class="edit-name-btn" title="Edit graph name">
+                    <button class="edit-name-btn btn btn-sm btn-outline-primary" title="Rename">
                         <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="delete-btn btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="fas fa-trash"></i>
                     </button>
                     <button class="btn btn-primary load-graph-btn" data-index="${index}">
                         <i class="fas fa-download"></i> Load
@@ -3201,6 +3209,14 @@ export class GraphCreator {
             editNameBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.editSavedGraphName(index, nameElement);
+            });
+
+            // Add delete functionality
+            const deleteBtn = item.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteSavedGraph(index);
+                this.populateLoadRecentGraphs();
             });
 
             container.appendChild(item);
