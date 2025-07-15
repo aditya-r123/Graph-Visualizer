@@ -55,7 +55,10 @@ This release includes all core features for graph creation and analysis, plus en
 - **Smart Interaction System**: 
   - **Drag Threshold**: 5-pixel movement threshold to distinguish dragging from clicking
   - **Edit Mode**: Hold vertex for 2.5 seconds to enter edit mode (red glow appears at 1 second)
-  - **Edge Creation**: Click two vertices consecutively (dragging prevents edge creation)
+  - **Edge Creation**: Left-click two different vertices consecutively to create an edge
+  - **Self-Loop Creation**: Left-click the same vertex twice in a row (within 1 second) to create a self-loop
+  - **Right Click**: Right click on a vertex to set it as the target for search/pathfinding
+  - **All other mouse-vertex interactions (dragging, edit mode, right click) are unaffected by this logic**
 - **Real-time Visualization**: Smooth animations and visual feedback for all interactions
 - **Multiple Edge Types**: Support for straight and curved edges, directed and undirected graphs
 - **Edge Weights**: Add numerical weights to edges for weighted graph analysis
@@ -147,7 +150,8 @@ npm run build
 ### Basic Operations
 - **Add Vertex**: Left-click anywhere on the canvas
 - **Move Vertex**: Drag vertices to reposition them (5-pixel movement threshold)
-- **Create Edge**: Click two vertices consecutively to connect them
+- **Create Edge**: Left-click two different vertices consecutively to connect them
+- **Create Self-Loop**: Left-click the same vertex twice in a row (within 1 second)
 - **Edit Vertex**: Hold vertex for 2.5 seconds to enter edit mode (red glow appears at 1 second)
 - **Delete Vertex**: Use edit mode or dedicated delete mode
 
