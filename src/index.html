@@ -68,6 +68,7 @@
                 </button>
                 <!-- Move time panel here -->
                 <div class="status-item" style="background: none; border: none; box-shadow: none; padding: 0; min-width: 90px;">
+                    <i class="fas fa-clock"></i>
                     <span id="currentTime">
                         <span id="digitalTime"></span>
                         <span id="analogClock" style="display:none">
@@ -453,7 +454,7 @@
                 <div class="button-group mt-3">
                     <button id="clearGraph" class="btn btn-warning w-100">
                         <i class="fas fa-trash"></i>
-                        Clear Current Canvas
+                        Reset Current Graph
                     </button>
                 </div>
             </div>
@@ -466,7 +467,7 @@
                     <!-- Section 1: Mouse Coordinates Toggle -->
                     <div class="footer-coords-section section-toggle">
                         <label class="switch-label" for="mouseCoordinateToggle" style="flex-direction: column; align-items: flex-start; gap: 0.2rem;">
-                            <span style="display: block;"><i class="fas fa-eye"></i> Mouse Position</span>
+                            <span style="display: block;"><i class="fas fa-eye"></i> Show Mouse Coordinates</span>
                             <div class="switch-container">
                                 <input type="checkbox" id="mouseCoordinateToggle" checked>
                                 <span class="switch-slider"></span>
@@ -486,7 +487,7 @@
                     <!-- Section 3: Coordinate Grid Toggle -->
                     <div class="footer-coords-section section-grid-toggle">
                         <label class="switch-label" for="coordinateGridToggle" style="flex-direction: column; align-items: flex-start; gap: 0.2rem;">
-                            <span style="display: block;"><i class="fas fa-th"></i> Grid Lines</span>
+                            <span style="display: block;"><i class="fas fa-th"></i> Show Coordinate Grid</span>
                             <div class="switch-container">
                                 <input type="checkbox" id="coordinateGridToggle">
                                 <span class="switch-slider"></span>
