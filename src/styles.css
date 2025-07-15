@@ -1239,7 +1239,7 @@ body {
 /* Scrollable wrapper for the canvas */
 .canvas-scroll-wrapper {
     width: 100%;
-    height: calc(100vh - 280px); /* Account for footer height (280px) */
+    height: calc(100vh - 120px); /* Account for footer height (120px) */
     overflow: auto;
     position: relative;
     margin: 0;
@@ -1252,22 +1252,22 @@ body {
 
 /* Custom scrollbar styling for canvas scroll wrapper - matching horizontal scrollbar */
 .canvas-scroll-wrapper::-webkit-scrollbar {
-    width: 20px;
-    height: 20px;
+    width: 10px;
+    height: 10px;
 }
 
 .canvas-scroll-wrapper::-webkit-scrollbar-track {
     background: #374151;
     border-radius: 10px;
-    margin: 4px;
+    margin: 2px;
 }
 
 .canvas-scroll-wrapper::-webkit-scrollbar-thumb {
     background: #6b7280;
     border-radius: 10px;
-    border: 2px solid #374151;
-    min-height: 50px;
-    min-width: 50px;
+    border: 1px solid #374151;
+    min-height: 30px;
+    min-width: 30px;
 }
 
 .canvas-scroll-wrapper::-webkit-scrollbar-thumb:hover {
