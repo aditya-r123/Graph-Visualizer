@@ -1691,32 +1691,6 @@ export class GraphCreator {
         if (this.handleDeleteButtonClick(pos)) {
             return;
         }
-        
-        const clickedVertex = this.getVertexAt(pos.x, pos.y);
-        const clickedEdge = this.getEdgeAt(pos.x, pos.y);
-
-        // If clicking a curved edge control point, do nothing
-        if (clickedEdge && clickedEdge.type === 'curved' && clickedEdge.controlPoint) {
-            return;
-        }
-
-        // Prevent interactions during edit mode, delete mode, or search animations
-        if (this.editModeElement || this.isDeleteMode || this.isSearching) {
-            return;
-        }
-
-        // Prevent clicks if hold timer was active (to prevent edge creation)
-        if (this.holdTimerWasActive) {
-            console.log('Click prevented - hold timer was active');
-            this.holdTimerWasActive = false; // Reset the flag
-            return;
-        }
-
-        // Handle vertex clicks - allow target vertex selection even after dragging
-        if (clickedVertex) {
-            this.handleVertexClick(clickedVertex);
-            return;
-        }
 
         // Prevent adding new vertices if we just finished dragging (to prevent accidental vertex creation)
         if (this.justFinishedDragging) {
@@ -1724,8 +1698,11 @@ export class GraphCreator {
             return;
         }
 
-        // Otherwise, add a vertex
-        this.addVertex(pos.x, pos.y);
+        // Only add a vertex if you click empty space (not on a vertex)
+        const clickedVertex = this.getVertexAt(pos.x, pos.y);
+        if (!clickedVertex) {
+            this.addVertex(pos.x, pos.y);
+        }
     }
     
     handleRightClick(e) {
@@ -1745,9 +1722,65 @@ export class GraphCreator {
         const vertex = this.getVertexAt(pos.x, pos.y);
         
         if (vertex) {
-            // Right-click on vertex - handle edge creation
-            this.handleVertexRightClick(vertex);
+            // Right-click on vertex - select as target
+            this.handleVertexRightSelect(vertex);
         }
+    }
+    
+    handleVertexLeftEdge(vertex) {
+        // Prevent edge creation during edit mode or if dragging
+        if (this.editModeElement || this.isDragging || this.hasDragged) {
+            return;
+        }
+        // If the same vertex is clicked twice, create a self-loop
+        if (this.selectedVertices.length === 1 && this.selectedVertices[0].id === vertex.id) {
+            this.selectedVertices.push(vertex);
+            this.draw();
+            const weightInput = document.getElementById('edgeWeight');
+            const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
+            this.addSelfLoop(vertex, weight);
+            this.selectedVertices = [];
+            this.flashVertices(vertex, vertex);
+            return;
+        }
+        // Handle edge creation logic - left-click two vertices to create edge
+        if (this.selectedVertices.length === 0) {
+            this.selectedVertices.push(vertex);
+            this.updateStatus(`Selected vertex "${vertex.label}" for edge creation - left-click another vertex to create edge`);
+            this.draw();
+        } else if (this.selectedVertices.length === 1) {
+            const vertex1 = this.selectedVertices[0];
+            const vertex2 = vertex;
+            if (this.edgeType !== 'curved') {
+                const existingEdge = this.edges.find(edge => 
+                    (edge.from.id === vertex1.id && edge.to.id === vertex2.id) ||
+                    (edge.from.id === vertex2.id && edge.to.id === vertex1.id)
+                );
+                if (existingEdge) {
+                    this.updateStatus('Straight line edge already exists between these vertices');
+                    this.selectedVertices = [];
+                    this.draw();
+                    return;
+                }
+            }
+            this.selectedVertices.push(vertex2);
+            this.draw();
+            const weightInput = document.getElementById('edgeWeight');
+            const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
+            this.addEdge(vertex1, vertex2, weight);
+            this.selectedVertices = [];
+            this.flashVertices(vertex1, vertex2);
+        }
+    }
+
+    handleVertexRightSelect(vertex) {
+        // Set target vertex
+        this.selectTargetVertex(vertex);
+        if (this.isDistanceMode) {
+            this.handleDistanceModeClick(vertex);
+            return;
+        }
+        this.updateStatus(`Target vertex set to "${vertex.label}" (right-click)`);
     }
     
     handleVertexRightClick(vertex) {
@@ -1903,37 +1936,33 @@ export class GraphCreator {
             if (this.editModeElement || this.isDeleteMode || this.isSearching) {
                 return;
             }
-            
             // Only handle left mouse button (button 0) for dragging and edit mode
             if (e.button !== 0) {
                 return;
             }
-            
             // Allow dragging even if vertex is selected for edge creation
             // Clear edge selection when starting to drag
             if (this.selectedVertices.includes(vertex)) {
                 this.selectedVertices = [];
                 this.draw(); // Redraw to clear purple highlighting
             }
-            
             // Initialize drag state
             this.draggedVertex = vertex;
-            this.isDragging = true;
+            this.isDragging = false; // Only set to true if drag threshold is exceeded
             this.dragStartX = pos.x;
             this.dragStartY = pos.y;
             this.hasDragged = false;
             this.holdTimerWasActive = false; // Reset hold timer flag for new interaction
+            this.mouseDownOnVertex = vertex; // Track for click detection
+            this.mouseDownPos = { x: pos.x, y: pos.y };
             this.canvas.style.cursor = 'grabbing';
-            
             // Add global mouse event listeners to handle dragging outside canvas
             this.globalMouseMoveHandler = (e) => this.handleMouseMove(e);
             this.globalMouseUpHandler = (e) => this.handleMouseUp(e);
             document.addEventListener('mousemove', this.globalMouseMoveHandler);
             document.addEventListener('mouseup', this.globalMouseUpHandler);
-            
             // Start edit mode timer (only for left mouse button)
             this.startEditModeTimer(vertex);
-            
             // Prevent default to avoid text selection
             e.preventDefault();
         }
@@ -1960,8 +1989,7 @@ export class GraphCreator {
         if (this.isSearching) {
             return;
         }
-        
-        if (this.isDragging && this.draggedVertex) {
+        if (this.draggedVertex) {
             const pos = this.getMousePos(e); // Now in CSS pixels
             // Calculate drag distance
             const dragDistance = Math.sqrt(
@@ -1971,6 +1999,7 @@ export class GraphCreator {
             // Check if we've started dragging
             if (dragDistance > this.dragThreshold && !this.hasDragged) {
                 this.hasDragged = true;
+                this.isDragging = true;
                 console.log('Drag started - distance:', dragDistance);
                 // Cancel edit mode timer when dragging starts
                 if (this.longPressTimer) {
@@ -1987,38 +2016,30 @@ export class GraphCreator {
                 // Restart edit mode timer when dragging stops
                 this.startEditModeTimer(this.draggedVertex);
             }
-            
             // CANVAS BOUNDARY: Check if vertex would touch the canvas boundary
             let size = this.draggedVertex.size || this.vertexSize;
-            
             // If in edit mode and this is the vertex being edited, use the preview size
             if (this.editModeElement === this.draggedVertex && this._editPreview) {
                 size = this._editPreview.size;
             }
-            
             if (this.isVertexTouchingCanvasBoundary(pos.x, pos.y, size)) {
                 // Don't allow movement - vertex would touch the canvas boundary
                 return;
             }
-            
             // Store old position for debug
             const oldX = this.draggedVertex.x;
             const oldY = this.draggedVertex.y;
-            
             // Update vertex position in place (no copying, no removal/re-addition)
             this.draggedVertex.x = pos.x;
             this.draggedVertex.y = pos.y;
-            
             // Debug: Log position changes
             if (this.debugMode && (oldX !== this.draggedVertex.x || oldY !== this.draggedVertex.y)) {
-                console.log(`Vertex ${this.draggedVertex.label} moved from (${oldX}, ${oldY}) to (${this.draggedVertex.x}, ${this.draggedVertex.y})`);
+                console.log(`Vertex ${this.draggedVertex.label} moved from (${oldX}, ${this.draggedVertex.x}) to (${this.draggedVertex.x}, ${this.draggedVertex.y})`);
             }
-            
             // Update edit mode info if in edit mode
             if (this.editModeElement === this.draggedVertex && this.editModeType === 'vertex') {
                 this.updateEditModeInfo();
             }
-            
             // Only redraw once during drag
             this.draw();
         } else if (this.isDraggingEdge && this.draggedEdge) {
@@ -2071,45 +2092,51 @@ export class GraphCreator {
             this.longPressTimer = null;
         }
         this.clearHoldProgress();
-        
-        if (this.isDragging && this.draggedVertex) {
-            console.log('MouseUp: Resetting drag state, hasDragged was:', this.hasDragged);
-            
-            // Debug: Log final vertex state
-            if (this.debugMode) {
-                console.log(`Drag ended for vertex ${this.draggedVertex.label} at (${this.draggedVertex.x}, ${this.draggedVertex.y})`);
-                console.log('Total vertices in array:', this.vertices.length);
-                this.vertices.forEach((v, i) => {
-                    console.log(`Vertex ${i}: ${v.label} at (${v.x}, ${v.y})`);
-                });
+        if (this.draggedVertex) {
+            if (this.isDragging) {
+                // End of a drag
+                this.isDragging = false;
+                this.draggedVertex = null;
+                this.canvas.style.cursor = 'crosshair';
+                this.hasDragged = false;
+                this.selectedVertices = [];
+                this.justFinishedDragging = true;
+                setTimeout(() => {
+                    this.justFinishedDragging = false;
+                }, 100);
+                // Remove global mouse event listeners
+                if (this.globalMouseMoveHandler) {
+                    document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                    this.globalMouseMoveHandler = null;
+                }
+                if (this.globalMouseUpHandler) {
+                    document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                    this.globalMouseUpHandler = null;
+                }
+                return;
+            } else {
+                // Not a drag: treat as click for edge creation
+                const pos = this.getMousePos(e);
+                const vertex = this.getVertexAt(pos.x, pos.y);
+                if (vertex && this.mouseDownOnVertex && vertex.id === this.mouseDownOnVertex.id) {
+                    // Simulate a click for edge creation
+                    this.handleVertexLeftEdge(vertex);
+                }
+                this.draggedVertex = null;
+                this.mouseDownOnVertex = null;
+                this.mouseDownPos = null;
+                this.canvas.style.cursor = 'crosshair';
+                // Remove global mouse event listeners
+                if (this.globalMouseMoveHandler) {
+                    document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                    this.globalMouseMoveHandler = null;
+                }
+                if (this.globalMouseUpHandler) {
+                    document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                    this.globalMouseUpHandler = null;
+                }
+                return;
             }
-            
-            this.isDragging = false;
-            this.draggedVertex = null;
-            this.canvas.style.cursor = 'crosshair';
-            // FIX: Reset hasDragged so vertex creation works after drag
-            this.hasDragged = false;
-            console.log('MouseUp: hasDragged reset to:', this.hasDragged);
-            
-            // Set flag to prevent clicks after drag
-            this.justFinishedDragging = true;
-            // Clear the flag after a short delay to allow future clicks
-            setTimeout(() => {
-                this.justFinishedDragging = false;
-            }, 100);
-            
-            // Remove global mouse event listeners
-            if (this.globalMouseMoveHandler) {
-                document.removeEventListener('mousemove', this.globalMouseMoveHandler);
-                this.globalMouseMoveHandler = null;
-            }
-            if (this.globalMouseUpHandler) {
-                document.removeEventListener('mouseup', this.globalMouseUpHandler);
-                this.globalMouseUpHandler = null;
-            }
-            
-            // Final redraw to ensure clean state (no phantom nodes)
-            this.draw();
         }
         
         if (this.isDraggingEdge && this.draggedEdge) {
