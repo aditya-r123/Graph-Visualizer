@@ -3276,3 +3276,33 @@ body {
 .slider {
     height: 4px;
 }
+
+#savePanelUtilities {
+    display: flex;
+    gap: 0.7rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+#savePanelUtilities > * {
+    margin-right: 0 !important;
+}
+
+#savePanelUtilities .status-item {
+    margin-left: 0.3rem;
+}
+
+.right-sidebar-content .control-group {
+    margin-bottom: 0.1rem;
+}
+
+.right-sidebar-content .button-group {
+    margin-top: 0;
+    gap: 0.2rem;
+}
+
+.right-sidebar-content .control-group + .saved-graphs {
+    margin-top: 0.2rem;
+}
