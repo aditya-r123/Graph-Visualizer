@@ -758,13 +758,25 @@ export class GraphCreator {
     }
     
     saveCurrentGraphAndLoadSpecific(targetGraph) {
-        // First save the current graph to localStorage without adding to savedGraphs list
+        // Use the same logic as saveGraph to properly handle current graph
+        let currentId = this.currentGraphId;
+        let name;
+        if (!currentId) {
+            // New graph: assign id and name as timestamp
+            currentId = Date.now();
+            this.currentGraphId = currentId;
+            name = this.getTimestampString();
+        } else {
+            // Existing graph: find its name
+            const existing = this.savedGraphs.find(g => g.id === currentId);
+            name = existing ? existing.name : this.getTimestampString();
+        }
+        
         const graphData = this.exportGraph();
         const timestamp = new Date().toISOString();
-        const name = this.getTimestampString();
         
-        const currentGraphData = {
-            id: this.currentGraphId || Date.now(),
+        const savedGraph = {
+            id: currentId,
             name: name,
             data: graphData,
             timestamp: timestamp,
@@ -772,13 +784,29 @@ export class GraphCreator {
             edges: this.edges.length
         };
         
-        // Save to localStorage as a temporary backup (not in savedGraphs list)
+        // Check if updating existing or creating new
+        const idx = this.savedGraphs.findIndex(g => g.id === currentId);
+        if (idx !== -1) {
+            // Update existing graph
+            this.savedGraphs[idx] = savedGraph;
+        } else {
+            // Create new graph entry
+            this.savedGraphs.unshift(savedGraph);
+        }
+        
+        // Keep only last 10 saved graphs
+        if (this.savedGraphs.length > 10) {
+            this.savedGraphs = this.savedGraphs.slice(0, 10);
+        }
+        
+        // Save to localStorage
         try {
-            localStorage.setItem('graph_temp_backup', JSON.stringify(currentGraphData));
-            this.updateStatus('Current graph backed up before loading new graph');
+            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            this.updateSavedGraphsList();
+            this.updateStatus(`Current graph saved before loading "${targetGraph.name}"`);
         } catch (error) {
-            console.error('Failed to backup current graph:', error);
-            this.updateStatus('Failed to backup current graph');
+            console.error('Failed to save current graph:', error);
+            this.updateStatus('Failed to save current graph');
         }
         
         // Now load the target graph
@@ -3105,13 +3133,25 @@ export class GraphCreator {
     }
     
     saveCurrentGraphAndLoad() {
-        // First save the current graph
+        // Use the same logic as saveGraph to properly handle current graph
+        let currentId = this.currentGraphId;
+        let name;
+        if (!currentId) {
+            // New graph: assign id and name as timestamp
+            currentId = Date.now();
+            this.currentGraphId = currentId;
+            name = this.getTimestampString();
+        } else {
+            // Existing graph: find its name
+            const existing = this.savedGraphs.find(g => g.id === currentId);
+            name = existing ? existing.name : this.getTimestampString();
+        }
+        
         const graphData = this.exportGraph();
         const timestamp = new Date().toISOString();
-        const name = this.getTimestampString();
         
         const savedGraph = {
-            id: Date.now(), // New graph gets a unique id
+            id: currentId,
             name: name,
             data: graphData,
             timestamp: timestamp,
@@ -3119,8 +3159,17 @@ export class GraphCreator {
             edges: this.edges.length
         };
         
-        // Add to saved graphs
-        this.savedGraphs.unshift(savedGraph);
+        // Check if updating existing or creating new
+        const idx = this.savedGraphs.findIndex(g => g.id === currentId);
+        if (idx !== -1) {
+            // Update existing graph
+            this.savedGraphs[idx] = savedGraph;
+        } else {
+            // Create new graph entry
+            this.savedGraphs.unshift(savedGraph);
+        }
+        
+        // Keep only last 10 saved graphs
         if (this.savedGraphs.length > 10) {
             this.savedGraphs = this.savedGraphs.slice(0, 10);
         }
