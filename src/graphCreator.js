@@ -4955,18 +4955,17 @@ export class GraphCreator {
     
     // Update mouse coordinate display
     updateMouseCoordinateDisplay() {
-        const coordDisplay = document.getElementById('mouseCoordinates');
-        if (coordDisplay) {
-            if (!this.showMouseCoordinates) {
-                coordDisplay.textContent = '';
-            } else if (!this.mouseOverCanvas) {
-                coordDisplay.textContent = 'outside editor';
-            } else {
-                // Display coordinates in bottom-left origin system
-                const displayX = Math.round(this.mouseCoordinates.x);
-                const displayY = Math.round(this.mouseCoordinates.y);
-                coordDisplay.textContent = `(${displayX}, ${displayY})`;
-            }
+        const mousePositionDisplay = document.getElementById('mousePositionDisplay');
+        const mouseCoordinates = document.getElementById('mouseCoordinates');
+        if (!this.showMouseCoordinates) {
+            if (mousePositionDisplay) mousePositionDisplay.style.display = 'none';
+            return;
+        }
+        if (mousePositionDisplay) mousePositionDisplay.style.display = 'flex';
+        if (this.mouseIsOutsideEditor) {
+            if (mousePositionDisplay) mousePositionDisplay.style.display = 'none';
+        } else {
+            if (mouseCoordinates) mouseCoordinates.textContent = `(${this.mouseX}, ${this.mouseY})`;
         }
     }
     
