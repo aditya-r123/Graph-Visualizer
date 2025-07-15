@@ -276,15 +276,22 @@ export class GraphCreator {
             // Initialize the checkbox state
             mouseCoordinateToggle.checked = this.showMouseCoordinates;
             console.log('Mouse coordinate checkbox found and initialized:', this.showMouseCoordinates);
-            
+            // Hide or show the mouse position display on load
+            const mousePositionDisplay = document.getElementById('mousePositionDisplay');
+            if (mousePositionDisplay) {
+                mousePositionDisplay.style.display = this.showMouseCoordinates ? 'block' : 'none';
+            }
             // Add both change and click event listeners for maximum compatibility
             mouseCoordinateToggle.addEventListener('change', (e) => {
                 this.showMouseCoordinates = e.target.checked;
                 this.updateMouseCoordinateDisplay();
                 this.updateStatus(`Mouse coordinates ${this.showMouseCoordinates ? 'enabled' : 'disabled'}`);
                 console.log('Mouse coordinate checkbox changed to:', this.showMouseCoordinates);
+                // Hide or show the mouse position display
+                if (mousePositionDisplay) {
+                    mousePositionDisplay.style.display = this.showMouseCoordinates ? 'block' : 'none';
+                }
             });
-            
             mouseCoordinateToggle.addEventListener('click', (e) => {
                 // Prevent event bubbling
                 e.stopPropagation();
@@ -3518,23 +3525,23 @@ export class GraphCreator {
     
     updateTime() {
         const now = new Date();
-        const digitalTimeElement = document.getElementById('digitalTime');
+        // Use 24-hour format for digital clock
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const digitalTime = `${hours}:${minutes}:${seconds}`;
+        const digitalTimeElem = document.getElementById('digitalTime');
+        if (digitalTimeElem) {
+            digitalTimeElem.textContent = digitalTime;
+        }
         const analogClockElement = document.getElementById('analogClock');
-        
         if (this.timeDisplayMode === 'analog') {
-            // Show analog clock
-            digitalTimeElement.style.display = 'none';
+            digitalTimeElem.style.display = 'none';
             analogClockElement.style.display = 'block';
-            
-            // Update analog clock hands
-            this.updateAnalogClock(now);
         } else {
-            // Show digital time
-            digitalTimeElement.style.display = 'block';
+            digitalTimeElem.style.display = 'block';
             analogClockElement.style.display = 'none';
-            
-            // Digital format (12-hour with AM/PM)
-            digitalTimeElement.textContent = now.toLocaleTimeString();
+            // Remove fallback to toLocaleTimeString(); always use 24-hour format
         }
     }
     

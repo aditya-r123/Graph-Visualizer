@@ -21,6 +21,78 @@
                     <h1>Graph Creator Pro</h1>
                 </div>
             </div>
+            <!-- Moved utility controls here -->
+            <div class="d-flex gap-2 justify-content-center align-items-center mt-2" id="savePanelUtilities">
+                <button id="helpBtn" class="btn btn-outline-secondary help-btn" title="Show Help" style="min-width:40px;">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+                <button id="themeToggle" class="btn btn-outline-secondary theme-toggle" title="Toggle theme" style="min-width:40px;">
+                    <span class="theme-icon">
+                        <!-- Sun (visible in dark theme) -->
+                        <svg class="sun-icon" width="24" height="24" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="6" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
+                            <line x1="10" y1="2" x2="10" y2="0" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="10" y1="18" x2="10" y2="20" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="2" y1="10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="18" y1="10" x2="20" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="3" y1="3" x2="1.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="17" y1="17" x2="18.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="3" y1="17" x2="1.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="17" y1="3" x2="18.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                            <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                            <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                            <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                            <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                            <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
+                        </svg>
+                        <!-- Moon (visible in light theme) -->
+                        <svg class="moon-icon" width="24" height="24" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
+                            <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                            <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                            <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                            <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                            <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                            <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
+                            <circle cx="8" cy="5" r="0.8" fill="#9ca3af" opacity="0.6"/>
+                            <circle cx="12" cy="6" r="0.5" fill="#9ca3af" opacity="0.6"/>
+                            <circle cx="6" cy="10" r="0.6" fill="#9ca3af" opacity="0.6"/>
+                        </svg>
+                    </span>
+                </button>
+                <button id="contactBtn" class="btn btn-outline-secondary contact-link" title="Contact" style="min-width:40px;">
+                    <i class="fas fa-envelope"></i>
+                </button>
+                <!-- Move time panel here -->
+                <div class="status-item" style="background: none; border: none; box-shadow: none; padding: 0; min-width: 90px;">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime">
+                        <span id="digitalTime"></span>
+                        <span id="analogClock" style="display:none">
+                            <svg width="100" height="100" viewBox="0 0 100 100" class="analog-clock">
+                                <!-- Clock face -->
+                                <circle cx="50" cy="50" r="45" fill="var(--bg-secondary)" stroke="var(--border-color)" stroke-width="2"/>
+                                <!-- Clock center dot -->
+                                <circle cx="50" cy="50" r="3" fill="var(--text-primary)"/>
+                                <!-- Hour hand -->
+                                <line id="hourHand" x1="50" y1="50" x2="50" y2="30" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+                                <!-- Minute hand -->
+                                <line id="minuteHand" x1="50" y1="50" x2="50" y2="23" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"/>
+                                <!-- Second hand -->
+                                <line id="secondHand" x1="50" y1="50" x2="50" y2="17" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
+                                <!-- Hour markers -->
+                                <line x1="50" y1="5" x2="50" y2="10" stroke="var(--text-primary)" stroke-width="2"/>
+                                <line x1="50" y1="90" x2="50" y2="95" stroke="var(--text-primary)" stroke-width="2"/>
+                                <line x1="5" y1="50" x2="10" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
+                                <line x1="90" y1="50" x2="95" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
+                            </svg>
+                        </span>
+                    </span>
+                </div>
+            </div>
             
             <div class="sidebar-content">
                 <div class="scroll-indicator" id="scrollIndicator">
@@ -318,7 +390,6 @@
             <div class="right-sidebar-header">
                 <h3><i class="fas fa-save"></i> Save & Load</h3>
             </div>
-            
             <div class="right-sidebar-content">
                 <div class="control-group">
                     <label class="switch-label" for="autosaveToggle">
@@ -329,9 +400,8 @@
                             <span class="switch-slider"></span>
                         </div>
                     </label>
-                    <small>Automatically save changes when adding vertices/edges</small>
+                    
                 </div>
-                
                 <div class="button-group">
                     <button id="newGraph" class="btn btn-primary">
                         <i class="fas fa-plus"></i>
@@ -358,54 +428,7 @@
                             Share
                         </button>
                     </div>
-                    <!-- Moved utility controls here -->
-                    <div class="d-flex gap-2 justify-content-center align-items-center mt-2" id="savePanelUtilities">
-                        <button id="helpBtn" class="btn btn-outline-secondary help-btn" title="Show Help" style="min-width:40px;">
-                            <i class="fas fa-question-circle"></i>
-                        </button>
-                        <button id="themeToggle" class="btn btn-outline-secondary theme-toggle" title="Toggle theme" style="min-width:40px;">
-                            <span class="theme-icon">
-                                <!-- Sun (visible in dark theme) -->
-                                <svg class="sun-icon" width="24" height="24" viewBox="0 0 20 20">
-                                    <circle cx="10" cy="10" r="6" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
-                                    <line x1="10" y1="2" x2="10" y2="0" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="10" y1="18" x2="10" y2="20" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="2" y1="10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="18" y1="10" x2="20" y2="10" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="3" y1="3" x2="1.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="17" y1="17" x2="18.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="3" y1="17" x2="1.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="17" y1="3" x2="18.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
-                                    <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
-                                    <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
-                                </svg>
-                                <!-- Moon (visible in light theme) -->
-                                <svg class="moon-icon" width="24" height="24" viewBox="0 0 20 20">
-                                    <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
-                                    <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
-                                    <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
-                                    <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
-                                    <circle cx="8" cy="5" r="0.8" fill="#9ca3af" opacity="0.6"/>
-                                    <circle cx="12" cy="6" r="0.5" fill="#9ca3af" opacity="0.6"/>
-                                    <circle cx="6" cy="10" r="0.6" fill="#9ca3af" opacity="0.6"/>
-                                </svg>
-                            </span>
-                        </button>
-                        <button id="contactBtn" class="btn btn-outline-secondary contact-link" title="Contact" style="min-width:40px;">
-                            <i class="fas fa-envelope"></i>
-                        </button>
-                    </div>
                 </div>
-                
                 <div class="control-group">
                     <label for="screenshotFormat">
                         <i class="fas fa-image"></i>
@@ -416,7 +439,6 @@
                         <option value="png">PNG (Better quality)</option>
                     </select>
                 </div>
-                
                 <div class="saved-graphs">
                     <h4><i class="fas fa-history"></i> Recent Canvases</h4>
                     <div id="savedGraphsList" class="saved-graphs-list">
@@ -429,7 +451,6 @@
                         </button>
                     </div>
                 </div>
-                
                 <div class="button-group mt-3">
                     <button id="clearGraph" class="btn btn-warning w-100">
                         <i class="fas fa-trash"></i>
@@ -438,147 +459,121 @@
                 </div>
             </div>
         </aside>
-        
         <!-- Status Bar -->
         <div class="status-bar">
-            
             <!-- Coordinate Controls Panel -->
             <div class="status-item footer-coords-panel">
-                <div class="footer-coords-controls">
-                    <label class="switch-label" for="mouseCoordinateToggle" style="margin-right: 1rem;">
-                        <i class="fas fa-eye"></i>
-                        Show Mouse Coordinates
-                        <div class="switch-container">
-                            <input type="checkbox" id="mouseCoordinateToggle" checked>
-                            <span class="switch-slider"></span>
-                        </div>
-                    </label>
-                    <span class="coordinate-tooltip-label" style="margin-right: 1rem;">
-                        <i class="fas fa-mouse-pointer"></i>
-                        Mouse Position
-                    </span>
-                    <span class="coordinate-tooltip-value" id="mouseCoordinates" style="margin-right: 1rem;">
-                        (0, 0)
-                    </span>
-                    <label class="switch-label" for="coordinateGridToggle" style="margin-right: 1rem;">
-                        <i class="fas fa-th"></i>
-                        Show Coordinate Grid
-                        <div class="switch-container">
-                            <input type="checkbox" id="coordinateGridToggle">
-                            <span class="switch-slider"></span>
-                        </div>
-                    </label>
-                    <span class="coordinate-grid-density" id="gridDensityContainer" style="display: none; margin-right: 1rem;">
-                        <label for="gridDensity">
+                <div class="footer-coords-controls" style="display: flex; flex-direction: row; gap: 2rem; width: 100%; justify-content: space-between; align-items: flex-start;">
+                    <!-- Section 1: Mouse Coordinates Toggle -->
+                    <div class="footer-coords-section section-toggle">
+                        <label class="switch-label" for="mouseCoordinateToggle" style="flex-direction: column; align-items: flex-start; gap: 0.2rem;">
+                            <span style="display: block;"><i class="fas fa-eye"></i> Show Mouse Coordinates</span>
+                            <div class="switch-container">
+                                <input type="checkbox" id="mouseCoordinateToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    <!-- Section 2: Mouse Coordinates Display -->
+                    <div class="footer-coords-section section-display" id="mousePositionDisplay" style="min-width: 120px; text-align: center;">
+                        <span class="coordinate-tooltip-label">
+                            <i class="fas fa-mouse-pointer"></i>
+                            Mouse Position
+                        </span>
+                        <span class="coordinate-tooltip-value" id="mouseCoordinates">
+                            (0, 0)
+                        </span>
+                    </div>
+                    <!-- Section 3: Coordinate Grid Toggle -->
+                    <div class="footer-coords-section section-grid-toggle">
+                        <label class="switch-label" for="coordinateGridToggle" style="flex-direction: column; align-items: flex-start; gap: 0.2rem;">
+                            <span style="display: block;"><i class="fas fa-th"></i> Show Coordinate Grid</span>
+                            <div class="switch-container">
+                                <input type="checkbox" id="coordinateGridToggle">
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    <!-- Section 4: Coordinate Grid Density Slider -->
+                    <div class="footer-coords-section section-grid-density" id="gridDensityContainer" style="display: none; min-width: 160px;">
+                        <label for="gridDensity" style="display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-sliders-h"></i>
                             Grid Density
                         </label>
                         <span class="slider-container">
                             <input type="range" id="gridDensity" min="10" max="100" value="50">
                         </span>
-                    </span>
+                    </div>
                 </div>
             </div>
-            
             <!-- Status Message -->
             <div class="status-item">
                 <i class="fas fa-info-circle"></i>
                 <span id="statusMessage">Ready to create your graph!</span>
             </div>
-            
-            <!-- Current Time -->
-            <div class="status-item">
-                <i class="fas fa-clock"></i>
-                <span id="currentTime">
-                    <span id="digitalTime"></span>
-                    <span id="analogClock" style="display:none">
-                        <svg width="100" height="100" viewBox="0 0 100 100" class="analog-clock">
-                            <!-- Clock face -->
-                            <circle cx="50" cy="50" r="45" fill="var(--bg-secondary)" stroke="var(--border-color)" stroke-width="2"/>
-                            <!-- Clock center dot -->
-                            <circle cx="50" cy="50" r="3" fill="var(--text-primary)"/>
-                            <!-- Hour hand -->
-                            <line id="hourHand" x1="50" y1="50" x2="50" y2="30" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
-                            <!-- Minute hand -->
-                            <line id="minuteHand" x1="50" y1="50" x2="50" y2="23" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"/>
-                            <!-- Second hand -->
-                            <line id="secondHand" x1="50" y1="50" x2="50" y2="17" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
-                            <!-- Hour markers -->
-                            <line x1="50" y1="5" x2="50" y2="10" stroke="var(--text-primary)" stroke-width="2"/>
-                            <line x1="50" y1="90" x2="50" y2="95" stroke="var(--text-primary)" stroke-width="2"/>
-                            <line x1="5" y1="50" x2="10" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
-                            <line x1="90" y1="50" x2="95" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
-                        </svg>
-                    </span>
-                </span>
-            </div>
-            
-
         </div>
         
-
-    </div>
-    
-    <!-- Contact Modal -->
-    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="contactModalLabel">
-                        <i class="fas fa-envelope"></i>
-                        Contact Aditya Rao
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="contactForm">
-                        <div class="mb-3">
-                            <label for="contactName" class="form-label">
-                                <i class="fas fa-user"></i>
-                                Name
-                            </label>
-                            <input type="text" class="form-control" id="contactName" placeholder="Your name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="contactEmail" class="form-label">
-                                <i class="fas fa-envelope"></i>
-                                Email
-                            </label>
-                            <input type="email" class="form-control" id="contactEmail" placeholder="your.email@example.com" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="contactSubject" class="form-label">
-                                <i class="fas fa-tag"></i>
-                                Subject
-                            </label>
-                            <input type="text" class="form-control" id="contactSubject" placeholder="What's this about?" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="contactMessage" class="form-label">
-                                <i class="fas fa-comment"></i>
-                                Message
-                            </label>
-                            <textarea class="form-control" id="contactMessage" rows="4" placeholder="Your message here..." required></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" form="contactForm" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i>
-                        Send Message
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i>
-                        Cancel
-                    </button>
+        <!-- Contact Modal -->
+        <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="contactModalLabel">
+                            <i class="fas fa-envelope"></i>
+                            Contact Aditya Rao
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="contactForm">
+                            <div class="mb-3">
+                                <label for="contactName" class="form-label">
+                                    <i class="fas fa-user"></i>
+                                    Name
+                                </label>
+                                <input type="text" class="form-control" id="contactName" placeholder="Your name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactEmail" class="form-label">
+                                    <i class="fas fa-envelope"></i>
+                                    Email
+                                </label>
+                                <input type="email" class="form-control" id="contactEmail" placeholder="your.email@example.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactSubject" class="form-label">
+                                    <i class="fas fa-tag"></i>
+                                    Subject
+                                </label>
+                                <input type="text" class="form-control" id="contactSubject" placeholder="What's this about?" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactMessage" class="form-label">
+                                    <i class="fas fa-comment"></i>
+                                    Message
+                                </label>
+                                <textarea class="form-control" id="contactMessage" rows="4" placeholder="Your message here..." required></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" form="contactForm" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Message
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Hidden file input for loading graphs -->
+        <input type="file" id="loadFileInput" accept=".json" style="display: none;">
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
-    
-    <!-- Hidden file input for loading graphs -->
-    <input type="file" id="loadFileInput" accept=".json" style="display: none;">
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html> 
