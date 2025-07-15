@@ -646,6 +646,48 @@ body {
     border-color: var(--primary-color);
 }
 
+.load-graph-item.pending-delete {
+    opacity: 0.6;
+    filter: blur(1px);
+    background: var(--bg-tertiary);
+    border-color: var(--danger-color);
+    position: relative;
+}
+
+.load-graph-item.pending-delete::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--danger-color);
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.load-graph-item.pending-delete .load-graph-info {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.load-graph-item.pending-delete .load-graph-name {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.load-graph-item.pending-delete .load-graph-details {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.load-graph-item.pending-delete .load-graph-time {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+
+
 .load-graph-info {
     flex: 1;
 }
@@ -939,6 +981,63 @@ body {
 
 .saved-graph-actions .delete-btn:hover {
     color: var(--danger-color);
+}
+
+.saved-graph-item.pending-delete {
+    opacity: 0.6;
+    filter: blur(1px);
+    background: var(--bg-tertiary);
+    border-color: var(--danger-color);
+    position: relative;
+}
+
+.saved-graph-item.pending-delete::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--danger-color);
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.saved-graph-item.pending-delete .saved-graph-info {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.saved-graph-item.pending-delete .saved-graph-name {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.saved-graph-item.pending-delete .saved-graph-details {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.saved-graph-item.pending-delete .saved-graph-time {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.saved-graph-item.pending-rename {
+    border-color: var(--warning-color);
+    background: var(--bg-tertiary);
+}
+
+.saved-graph-item.pending-rename .saved-graph-name {
+    color: var(--warning-color);
+    font-weight: 700;
+}
+
+.saved-graph-item.pending-rename .saved-graph-name::after {
+    content: ' (renamed)';
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: normal;
 }
 
 /* Statistics */

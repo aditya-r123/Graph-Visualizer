@@ -580,6 +580,14 @@ export class GraphCreator {
         this.savedGraphs.slice(0, 5).forEach((savedGraph, index) => {
             const item = document.createElement('div');
             item.className = 'saved-graph-item';
+            // Add pending delete class if the graph is marked for deletion
+            if (savedGraph.pendingDelete) {
+                item.classList.add('pending-delete');
+            }
+            // Add pending rename class if the graph is marked for rename
+            if (savedGraph.pendingRename) {
+                item.classList.add('pending-rename');
+            }
             item.innerHTML = `
                 <div class="saved-graph-info">
                     <div class="saved-graph-name" data-index="${index}">${savedGraph.name}</div>
@@ -587,18 +595,20 @@ export class GraphCreator {
                     <div class="saved-graph-time">Last edited: ${new Date(savedGraph.timestamp).toLocaleString()}</div>
                 </div>
                 <div class="saved-graph-actions">
-                    <button class="edit-name-btn" title="Edit graph name">
+                    <button class="edit-name-btn" title="Edit graph name" ${savedGraph.pendingDelete ? 'disabled' : ''}>
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete-btn" title="Delete saved graph">
-                        <i class="fas fa-trash"></i>
+                    <button class="delete-btn" title="${savedGraph.pendingDelete ? 'Cancel Delete' : 'Delete saved graph'}">
+                        <i class="fas fa-${savedGraph.pendingDelete ? 'undo' : 'trash'}"></i>
                     </button>
                 </div>
             `;
             
             // Make the entire item clickable to load the graph
             item.addEventListener('click', () => {
-                this.loadSavedGraphWithConfirmation(savedGraph);
+                if (!savedGraph.pendingDelete) {
+                    this.loadSavedGraphWithConfirmation(savedGraph);
+                }
             });
             
             // Add event listeners for action buttons (with stopPropagation to prevent loading)
@@ -608,12 +618,21 @@ export class GraphCreator {
             
             editNameBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.editSavedGraphName(index, nameElement);
+                if (!savedGraph.pendingDelete) {
+                    this.editSavedGraphName(index, nameElement);
+                }
             });
             
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.deleteSavedGraph(savedGraph.id);
+                if (savedGraph.pendingDelete) {
+                    // Cancel deletion
+                    this.cancelDeleteSavedGraph(index);
+                } else {
+                    // Mark for deletion
+                    this.markSavedGraphForDeletion(index);
+                }
+                this.updateSavedGraphsList();
             });
             
             container.appendChild(item);
@@ -3121,6 +3140,9 @@ export class GraphCreator {
     }
     
     showLoadDialog() {
+        // Create a backup of the current savedGraphs state for potential rollback
+        this.originalSavedGraphs = JSON.parse(JSON.stringify(this.savedGraphs));
+        
         const dialog = document.createElement('div');
         dialog.className = 'modal-overlay';
         dialog.innerHTML = `
@@ -3143,7 +3165,7 @@ export class GraphCreator {
                 </div>
                 <div class="modal-buttons">
                     <button class="btn btn-success" id="saveRenamesDeletionsBtn">
-                        <i class="fas fa-save"></i> Save Renames and Deletions
+                        <i class="fas fa-save"></i> Save Changes & Exit
                     </button>
                     <button class="btn btn-secondary" id="cancelLoadDialogBtn">
                         <i class="fas fa-times"></i> Cancel
@@ -3168,24 +3190,20 @@ export class GraphCreator {
         });
         
         document.getElementById('cancelLoadDialogBtn').addEventListener('click', () => {
+            // Revert all changes when canceling
+            this.revertAllChanges();
             document.body.removeChild(dialog);
         });
 
         // Save Renames and Deletions button logic
         const saveBtn = document.getElementById('saveRenamesDeletionsBtn');
-        // Always enabled for demo
         saveBtn.disabled = false;
         saveBtn.addEventListener('click', () => {
-            // Show a simple animation (spinner then checkmark)
-            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-            saveBtn.disabled = true;
-            setTimeout(() => {
-                saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-                setTimeout(() => {
-                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Renames and Deletions';
-                    saveBtn.disabled = false;
-                }, 1200);
-            }, 1000);
+            // Commit all changes (deletions and renames)
+            this.commitAllChanges();
+            
+            // Close the dialog immediately
+            document.body.removeChild(dialog);
         });
     }
     
@@ -3198,6 +3216,10 @@ export class GraphCreator {
         this.savedGraphs.forEach((savedGraph, index) => {
             const item = document.createElement('div');
             item.className = 'load-graph-item';
+            // Add pending delete class if the graph is marked for deletion
+            if (savedGraph.pendingDelete) {
+                item.classList.add('pending-delete');
+            }
             item.innerHTML = `
                 <div class="load-graph-info">
                     <div class="load-graph-name" data-index="${index}">${savedGraph.name}</div>
@@ -3205,13 +3227,13 @@ export class GraphCreator {
                     <div class="load-graph-time">${new Date(savedGraph.timestamp).toLocaleString()}</div>
                 </div>
                 <div class="load-graph-actions">
-                    <button class="edit-name-btn btn btn-sm btn-outline-primary" title="Rename">
+                    <button class="edit-name-btn btn btn-sm btn-outline-primary" title="Rename" ${savedGraph.pendingDelete ? 'disabled' : ''}>
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete-btn btn btn-sm btn-outline-danger" title="Delete">
-                        <i class="fas fa-trash"></i>
+                    <button class="delete-btn btn btn-sm btn-outline-danger" title="${savedGraph.pendingDelete ? 'Cancel Delete' : 'Delete'}">
+                        <i class="fas fa-${savedGraph.pendingDelete ? 'undo' : 'trash'}"></i>
                     </button>
-                    <button class="btn btn-primary load-graph-btn" data-index="${index}">
+                    <button class="btn btn-primary load-graph-btn" data-index="${index}" ${savedGraph.pendingDelete ? 'disabled' : ''}>
                         <i class="fas fa-download"></i> Load
                     </button>
                 </div>
@@ -3219,8 +3241,10 @@ export class GraphCreator {
             
             const loadBtn = item.querySelector('.load-graph-btn');
             loadBtn.addEventListener('click', () => {
-                this.loadSavedGraphWithConfirmation(savedGraph);
-                document.body.removeChild(document.querySelector('.modal-overlay'));
+                if (!savedGraph.pendingDelete) {
+                    this.loadSavedGraphWithConfirmation(savedGraph);
+                    document.body.removeChild(document.querySelector('.modal-overlay'));
+                }
             });
 
             // Add rename functionality
@@ -3228,14 +3252,22 @@ export class GraphCreator {
             const nameElement = item.querySelector('.load-graph-name');
             editNameBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.editSavedGraphName(index, nameElement);
+                if (!savedGraph.pendingDelete) {
+                    this.editSavedGraphName(index, nameElement);
+                }
             });
 
             // Add delete functionality
             const deleteBtn = item.querySelector('.delete-btn');
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.deleteSavedGraph(index);
+                if (savedGraph.pendingDelete) {
+                    // Cancel deletion
+                    this.cancelDeleteSavedGraph(index);
+                } else {
+                    // Mark for deletion
+                    this.markSavedGraphForDeletion(index);
+                }
                 this.populateLoadRecentGraphs();
             });
 
@@ -4750,18 +4782,13 @@ export class GraphCreator {
                     return;
                 }
                 
-                // Update the saved graph name
+                // Update the saved graph name (pending change, not saved to localStorage yet)
                 savedGraph.name = newName;
+                savedGraph.pendingRename = true;
                 
-                // Save to localStorage
-                try {
-                    localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
-                    this.updateSavedGraphsList();
-                    this.updateStatus(`Graph renamed to "${newName}"`);
-                } catch (error) {
-                    console.error('Failed to save graph name:', error);
-                    this.updateStatus('Failed to save graph name');
-                }
+                // Update the display
+                nameElement.innerHTML = newName;
+                this.updateStatus(`Graph renamed to "${newName}" (pending save)`);
             } else {
                 // Restore original content if no change or empty
                 nameElement.innerHTML = originalContent;
@@ -4861,6 +4888,66 @@ export class GraphCreator {
     }
     
     // Delete a saved graph by id
+    markSavedGraphForDeletion(index) {
+        if (index >= 0 && index < this.savedGraphs.length) {
+            this.savedGraphs[index].pendingDelete = true;
+            this.updateStatus('Graph marked for deletion. Click "Save Renames and Deletions" to confirm.');
+        }
+    }
+    
+    cancelDeleteSavedGraph(index) {
+        if (index >= 0 && index < this.savedGraphs.length) {
+            this.savedGraphs[index].pendingDelete = false;
+            this.updateStatus('Graph deletion cancelled.');
+        }
+    }
+    
+    commitAllChanges() {
+        // Remove graphs marked for deletion
+        const graphsToDelete = this.savedGraphs.filter(graph => graph.pendingDelete);
+        this.savedGraphs = this.savedGraphs.filter(graph => !graph.pendingDelete);
+        
+        // Clear pending flags
+        this.savedGraphs.forEach(graph => {
+            delete graph.pendingDelete;
+            delete graph.pendingRename;
+        });
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            this.updateSavedGraphsList();
+            
+            let message = '';
+            if (graphsToDelete.length > 0) {
+                message += `${graphsToDelete.length} graph(s) deleted`;
+            }
+            
+            const renamedGraphs = this.savedGraphs.filter(graph => graph.pendingRename);
+            if (renamedGraphs.length > 0) {
+                if (message) message += ' and ';
+                message += `${renamedGraphs.length} graph(s) renamed`;
+            }
+            
+            if (message) {
+                message += ' successfully';
+                this.updateStatus(message);
+            }
+        } catch (error) {
+            console.error('Failed to save changes:', error);
+            this.updateStatus('Failed to save changes');
+        }
+    }
+    
+    revertAllChanges() {
+        // Restore original state
+        if (this.originalSavedGraphs) {
+            this.savedGraphs = JSON.parse(JSON.stringify(this.originalSavedGraphs));
+            this.updateSavedGraphsList();
+            this.updateStatus('All changes reverted');
+        }
+    }
+    
     deleteSavedGraph(id) {
         if (!confirm('Are you sure you want to delete this saved graph?')) return;
         const idx = this.savedGraphs.findIndex(g => g.id === id);
