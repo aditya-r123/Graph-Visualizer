@@ -2014,7 +2014,7 @@ body {
     position: relative;
     display: inline-block;
     cursor: pointer;
-    pointer-events: none;
+    /* pointer-events: none; */
 }
 
 .contact-status-item:hover .contact-link {
