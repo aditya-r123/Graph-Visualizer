@@ -580,13 +580,8 @@ export class GraphCreator {
         this.savedGraphs.slice(0, 5).forEach((savedGraph, index) => {
             const item = document.createElement('div');
             item.className = 'saved-graph-item';
-            // Add pending delete class if the graph is marked for deletion
             if (savedGraph.pendingDelete) {
                 item.classList.add('pending-delete');
-            }
-            // Add pending rename class if the graph is marked for rename
-            if (savedGraph.pendingRename) {
-                item.classList.add('pending-rename');
             }
             item.innerHTML = `
                 <div class="saved-graph-info">
@@ -595,46 +590,91 @@ export class GraphCreator {
                     <div class="saved-graph-time">Last edited: ${new Date(savedGraph.timestamp).toLocaleString()}</div>
                 </div>
                 <div class="saved-graph-actions">
-                    <button class="edit-name-btn" title="Edit graph name" ${savedGraph.pendingDelete ? 'disabled' : ''}>
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="delete-btn" title="${savedGraph.pendingDelete ? 'Cancel Delete' : 'Delete saved graph'}">
+                    ${savedGraph.pendingDelete
+                        ? `<button class="confirm-delete-btn btn btn-sm btn-success" title="Confirm Delete"><i class="fas fa-check"></i></button>`
+                        : `<button class="edit-name-btn btn btn-sm btn-outline-primary" title="Rename"><i class="fas fa-edit"></i></button>`}
+                    <button class="delete-btn btn btn-sm btn-outline-danger" title="${savedGraph.pendingDelete ? 'Undo Delete' : 'Delete'}">
                         <i class="fas fa-${savedGraph.pendingDelete ? 'undo' : 'trash'}"></i>
                     </button>
                 </div>
             `;
-            
             // Make the entire item clickable to load the graph
             item.addEventListener('click', () => {
                 if (!savedGraph.pendingDelete) {
                     this.loadSavedGraphWithConfirmation(savedGraph);
                 }
             });
-            
-            // Add event listeners for action buttons (with stopPropagation to prevent loading)
+            // Rename functionality (immediate effect)
             const editNameBtn = item.querySelector('.edit-name-btn');
-            const deleteBtn = item.querySelector('.delete-btn');
             const nameElement = item.querySelector('.saved-graph-name');
-            
-            editNameBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!savedGraph.pendingDelete) {
-                    this.editSavedGraphName(index, nameElement);
-                }
-            });
-            
+            if (editNameBtn) {
+                editNameBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = savedGraph.name;
+                    input.style.cssText = `width: 100%; padding: 0.25rem 0.5rem; border: 1px solid var(--primary-color); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: 0.875rem; font-weight: 500;`;
+                    const originalContent = nameElement.innerHTML;
+                    nameElement.innerHTML = '';
+                    nameElement.appendChild(input);
+                    input.focus();
+                    input.select();
+                    const saveName = () => {
+                        const newName = input.value.trim();
+                        if (newName && newName !== savedGraph.name) {
+                            // Check for duplicate names
+                            const isDuplicate = this.savedGraphs.some((g, i) => i !== index && g.name === newName);
+                            if (isDuplicate) {
+                                this.updateStatus(`Name "${newName}" already exists!`);
+                                return;
+                            }
+                            savedGraph.name = newName;
+                            nameElement.innerHTML = newName;
+                            this.updateStatus(`Graph renamed to "${newName}"`);
+                            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                            this.updateSavedGraphsList();
+                        } else {
+                            nameElement.innerHTML = originalContent;
+                        }
+                    };
+                    const cancelEdit = () => {
+                        nameElement.innerHTML = originalContent;
+                    };
+                    input.addEventListener('blur', saveName);
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            saveName();
+                        } else if (e.key === 'Escape') {
+                            cancelEdit();
+                        }
+                    });
+                });
+            }
+            // Confirm delete functionality
+            const confirmDeleteBtn = item.querySelector('.confirm-delete-btn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.savedGraphs.splice(index, 1);
+                    localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                    this.updateSavedGraphsList();
+                    this.updateStatus('Graph deleted.');
+                });
+            }
+            // Delete/Undo button
+            const deleteBtn = item.querySelector('.delete-btn');
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (savedGraph.pendingDelete) {
-                    // Cancel deletion
-                    this.cancelDeleteSavedGraph(index);
+                    savedGraph.pendingDelete = false;
+                    this.updateSavedGraphsList();
+                    this.updateStatus('Graph deletion cancelled.');
                 } else {
-                    // Mark for deletion
-                    this.markSavedGraphForDeletion(index);
+                    savedGraph.pendingDelete = true;
+                    this.updateSavedGraphsList();
+                    this.updateStatus('Graph marked for deletion. Click check to confirm.');
                 }
-                this.updateSavedGraphsList();
             });
-            
             container.appendChild(item);
         });
     }
@@ -3259,13 +3299,10 @@ export class GraphCreator {
     populateLoadRecentGraphs() {
         const container = document.getElementById('loadRecentGraphs');
         if (!container) return;
-        
         container.innerHTML = '';
-        
         this.savedGraphs.forEach((savedGraph, index) => {
             const item = document.createElement('div');
             item.className = 'load-graph-item';
-            // Add pending delete class if the graph is marked for deletion
             if (savedGraph.pendingDelete) {
                 item.classList.add('pending-delete');
             }
@@ -3276,10 +3313,10 @@ export class GraphCreator {
                     <div class="load-graph-time">${new Date(savedGraph.timestamp).toLocaleString()}</div>
                 </div>
                 <div class="load-graph-actions">
-                    <button class="edit-name-btn btn btn-sm btn-outline-primary" title="Rename" ${savedGraph.pendingDelete ? 'disabled' : ''}>
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="delete-btn btn btn-sm btn-outline-danger" title="${savedGraph.pendingDelete ? 'Cancel Delete' : 'Delete'}">
+                    ${savedGraph.pendingDelete
+                        ? `<button class="confirm-delete-btn btn btn-sm btn-success" title="Confirm Delete"><i class="fas fa-check"></i></button>`
+                        : `<button class="edit-name-btn btn btn-sm btn-outline-primary" title="Rename"><i class="fas fa-edit"></i></button>`}
+                    <button class="delete-btn btn btn-sm btn-outline-danger" title="${savedGraph.pendingDelete ? 'Undo Delete' : 'Delete'}">
                         <i class="fas fa-${savedGraph.pendingDelete ? 'undo' : 'trash'}"></i>
                     </button>
                     <button class="btn btn-primary load-graph-btn" data-index="${index}" ${savedGraph.pendingDelete ? 'disabled' : ''}>
@@ -3287,7 +3324,6 @@ export class GraphCreator {
                     </button>
                 </div>
             `;
-            
             const loadBtn = item.querySelector('.load-graph-btn');
             loadBtn.addEventListener('click', () => {
                 if (!savedGraph.pendingDelete) {
@@ -3295,31 +3331,46 @@ export class GraphCreator {
                     document.body.removeChild(document.querySelector('.modal-overlay'));
                 }
             });
-
-            // Add rename functionality
+            // Rename functionality (only if not pending delete)
             const editNameBtn = item.querySelector('.edit-name-btn');
             const nameElement = item.querySelector('.load-graph-name');
-            editNameBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!savedGraph.pendingDelete) {
-                    this.editSavedGraphName(index, nameElement);
-                }
-            });
-
-            // Add delete functionality
+            if (editNameBtn) {
+                editNameBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!savedGraph.pendingDelete) {
+                        this.editSavedGraphName(index, nameElement);
+                    }
+                });
+            }
+            // Confirm delete functionality
+            const confirmDeleteBtn = item.querySelector('.confirm-delete-btn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Actually delete the graph now
+                    this.savedGraphs.splice(index, 1);
+                    this.populateLoadRecentGraphs();
+                    this.updateStatus('Graph deleted.');
+                    // Optionally, persist to localStorage here if you want immediate effect
+                    localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                });
+            }
+            // Delete/Undo button
             const deleteBtn = item.querySelector('.delete-btn');
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (savedGraph.pendingDelete) {
-                    // Cancel deletion
-                    this.cancelDeleteSavedGraph(index);
+                    // Undo deletion
+                    savedGraph.pendingDelete = false;
+                    this.populateLoadRecentGraphs();
+                    this.updateStatus('Graph deletion cancelled.');
                 } else {
                     // Mark for deletion
-                    this.markSavedGraphForDeletion(index);
+                    savedGraph.pendingDelete = true;
+                    this.populateLoadRecentGraphs();
+                    this.updateStatus('Graph marked for deletion. Click check to confirm.');
                 }
-                this.populateLoadRecentGraphs();
             });
-
             container.appendChild(item);
         });
     }
