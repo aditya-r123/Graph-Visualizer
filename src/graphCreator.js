@@ -125,6 +125,7 @@ export class GraphCreator {
         
         // Initial draw
         this.draw();
+        this.lastVertexClick = null; // { vertexId, time }
     }
     
 
@@ -1732,21 +1733,26 @@ export class GraphCreator {
         if (this.editModeElement || this.isDragging || this.hasDragged) {
             return;
         }
-        // If the same vertex is clicked twice, create a self-loop
-        if (this.selectedVertices.length === 1 && this.selectedVertices[0].id === vertex.id) {
-            this.selectedVertices.push(vertex);
-            this.draw();
+        const now = Date.now();
+        // Robust self-loop: if same vertex clicked twice within 1s, create self-loop
+        if (
+            this.lastVertexClick &&
+            this.lastVertexClick.vertexId === vertex.id &&
+            now - this.lastVertexClick.time < 1000
+        ) {
             const weightInput = document.getElementById('edgeWeight');
             const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
             this.addSelfLoop(vertex, weight);
             this.selectedVertices = [];
             this.flashVertices(vertex, vertex);
+            this.lastVertexClick = null;
             return;
         }
-        // Handle edge creation logic - left-click two vertices to create edge
+        this.lastVertexClick = { vertexId: vertex.id, time: now };
+        // Normal edge creation logic
         if (this.selectedVertices.length === 0) {
             this.selectedVertices.push(vertex);
-            this.updateStatus(`Selected vertex "${vertex.label}" for edge creation - left-click another vertex to create edge`);
+            this.updateStatus(`Selected vertex "${vertex.label}" for edge creation - left-click another vertex to create edge (or double-click for self-loop)`);
             this.draw();
         } else if (this.selectedVertices.length === 1) {
             const vertex1 = this.selectedVertices[0];
@@ -1770,6 +1776,7 @@ export class GraphCreator {
             this.addEdge(vertex1, vertex2, weight);
             this.selectedVertices = [];
             this.flashVertices(vertex1, vertex2);
+            this.lastVertexClick = null;
         }
     }
 
