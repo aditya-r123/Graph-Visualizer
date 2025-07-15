@@ -374,7 +374,7 @@ export class GraphCreator {
         // Clear target button - this is handled in setupResetTargetBtn()
         
         // Contact button
-        document.querySelector('.contact-status-item').addEventListener('click', () => {
+        document.getElementById('contactBtn').addEventListener('click', () => {
             this.showContactModal();
         });
         
@@ -3865,6 +3865,7 @@ export class GraphCreator {
         
         // Draw arrow for directed edges
         if (edge.direction !== 'undirected') {
+            console.log('Drawing arrow for edge:', edge.direction, 'type:', edge.type);
             this.drawArrow(edge);
         }
         
@@ -4162,6 +4163,7 @@ export class GraphCreator {
             const dx = edge.to.x - edge.from.x;
             const dy = edge.to.y - edge.from.y;
             angle = Math.atan2(dy, dx);
+            // For straight edges, endX/endY will be set based on direction below
             endX = edge.to.x;
             endY = edge.to.y;
         }
@@ -4202,6 +4204,7 @@ export class GraphCreator {
                 endX = Math.pow(1 - clampedT, 2) * edge.from.x + 2 * (1 - clampedT) * clampedT * controlPoint.x + Math.pow(clampedT, 2) * edge.to.x;
                 endY = Math.pow(1 - clampedT, 2) * edge.from.y + 2 * (1 - clampedT) * clampedT * controlPoint.y + Math.pow(clampedT, 2) * edge.to.y;
             } else if (edge.type !== 'self-loop') {
+                // For straight edges with backward direction, arrow goes at the 'from' vertex
                 endX = edge.from.x;
                 endY = edge.from.y;
             }

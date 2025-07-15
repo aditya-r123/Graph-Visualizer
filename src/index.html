@@ -348,7 +348,7 @@
                         </button>
                     </div>
                     <hr class="my-2" style="border-color: var(--border-color); opacity: 0.5;" />
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 mb-2">
                         <button id="takeScreenshot" class="btn btn-info flex-fill">
                             <i class="fas fa-camera"></i>
                             Screenshot
@@ -356,6 +356,52 @@
                         <button id="shareGraph" class="btn btn-warning flex-fill">
                             <i class="fas fa-share-alt"></i>
                             Share
+                        </button>
+                    </div>
+                    <!-- Moved utility controls here -->
+                    <div class="d-flex gap-2 justify-content-center align-items-center mt-2" id="savePanelUtilities">
+                        <button id="helpBtn" class="btn btn-outline-secondary help-btn" title="Show Help" style="min-width:40px;">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+                        <button id="themeToggle" class="btn btn-outline-secondary theme-toggle" title="Toggle theme" style="min-width:40px;">
+                            <span class="theme-icon">
+                                <!-- Sun (visible in dark theme) -->
+                                <svg class="sun-icon" width="24" height="24" viewBox="0 0 20 20">
+                                    <circle cx="10" cy="10" r="6" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
+                                    <line x1="10" y1="2" x2="10" y2="0" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="10" y1="18" x2="10" y2="20" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="2" y1="10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="18" y1="10" x2="20" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="3" y1="3" x2="1.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="17" y1="17" x2="18.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="3" y1="17" x2="1.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="17" y1="3" x2="18.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                                    <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                    <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                    <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                                    <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                                    <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                                    <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                                    <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
+                                </svg>
+                                <!-- Moon (visible in light theme) -->
+                                <svg class="moon-icon" width="24" height="24" viewBox="0 0 20 20">
+                                    <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
+                                    <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                    <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                    <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                                    <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                                    <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                                    <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                                    <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
+                                    <circle cx="8" cy="5" r="0.8" fill="#9ca3af" opacity="0.6"/>
+                                    <circle cx="12" cy="6" r="0.5" fill="#9ca3af" opacity="0.6"/>
+                                    <circle cx="6" cy="10" r="0.6" fill="#9ca3af" opacity="0.6"/>
+                                </svg>
+                            </span>
+                        </button>
+                        <button id="contactBtn" class="btn btn-outline-secondary contact-link" title="Contact" style="min-width:40px;">
+                            <i class="fas fa-envelope"></i>
                         </button>
                     </div>
                 </div>
@@ -434,65 +480,6 @@
                 </div>
             </div>
             
-            <!-- Help Button -->
-            <div class="status-item footer-help">
-                <button id="helpBtn" class="help-btn" title="Show Help">
-                    <i class="fas fa-question-circle"></i>
-                </button>
-            </div>
-            
-            <!-- Theme Toggle -->
-            <div class="status-item footer-theme">
-                <button id="themeToggle" class="theme-toggle" title="Toggle theme">
-                    <div class="theme-icon">
-                        <!-- Sun (visible in dark theme) -->
-                        <svg class="sun-icon" width="32" height="32" viewBox="0 0 20 20">
-                            <circle cx="10" cy="10" r="6" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
-                            <!-- Sun rays -->
-                            <line x1="10" y1="2" x2="10" y2="0" stroke="#fbbf24" stroke-width="2"/>
-                            <line x1="10" y1="18" x2="10" y2="20" stroke="#fbbf24" stroke-width="2"/>
-                            <line x1="2" y1="10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2"/>
-                            <line x1="18" y1="10" x2="20" y2="10" stroke="#fbbf24" stroke-width="2"/>
-                            <line x1="3" y1="3" x2="1.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
-                            <line x1="17" y1="17" x2="18.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
-                            <line x1="3" y1="17" x2="1.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
-                            <line x1="17" y1="3" x2="18.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
-                            <!-- Eye sockets -->
-                            <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                            <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                            <!-- Eyes (white) -->
-                            <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
-                            <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
-                            <!-- Pupils -->
-                            <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
-                            <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
-                            <!-- Smile - more curved and thinner -->
-                            <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
-                        </svg>
-                        <!-- Moon (visible in light theme) -->
-                        <svg class="moon-icon" width="32" height="32" viewBox="0 0 20 20">
-                            <!-- Moon shape - light gray/whitish -->
-                            <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
-                            <!-- Eye sockets -->
-                            <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                            <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                            <!-- Eyes (white) -->
-                            <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
-                            <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
-                            <!-- Pupils -->
-                            <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
-                            <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
-                            <!-- Smile - more curved and friendly -->
-                            <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
-                            <!-- Moon craters for realism -->
-                            <circle cx="8" cy="5" r="0.8" fill="#9ca3af" opacity="0.6"/>
-                            <circle cx="12" cy="6" r="0.5" fill="#9ca3af" opacity="0.6"/>
-                            <circle cx="6" cy="10" r="0.6" fill="#9ca3af" opacity="0.6"/>
-                        </svg>
-                    </div>
-                </button>
-            </div>
-            
             <!-- Status Message -->
             <div class="status-item">
                 <i class="fas fa-info-circle"></i>
@@ -526,11 +513,7 @@
                 </span>
             </div>
             
-            <!-- Contact -->
-            <div class="status-item contact-status-item">
-                <i class="fas fa-envelope"></i>
-                <span id="contactBtn" class="contact-link">Contact</span>
-            </div>
+
         </div>
         
 
