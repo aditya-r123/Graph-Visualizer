@@ -3492,31 +3492,37 @@ export class GraphCreator {
         const minutes = now.getMinutes();
         const seconds = now.getSeconds();
         
-        // Calculate angles for hands
-        const hourAngle = (hours * 30) + (minutes * 0.5); // 30 degrees per hour + 0.5 degrees per minute
-        const minuteAngle = minutes * 6; // 6 degrees per minute
-        const secondAngle = seconds * 6; // 6 degrees per second
+        // Calculate angles for hands (convert to radians)
+        const hourAngle = ((hours * 30) + (minutes * 0.5)) * Math.PI / 180; // 30 degrees per hour + 0.5 degrees per minute
+        const minuteAngle = (minutes * 6) * Math.PI / 180; // 6 degrees per minute
+        const secondAngle = (seconds * 6) * Math.PI / 180; // 6 degrees per second
         
         // Update hour hand (shorter for modern look)
         const hourHand = document.getElementById('hourHand');
-        const hourX = 50 + 20 * Math.sin(hourAngle * Math.PI / 180);
-        const hourY = 50 - 20 * Math.cos(hourAngle * Math.PI / 180);
-        hourHand.setAttribute('x2', hourX);
-        hourHand.setAttribute('y2', hourY);
+        if (hourHand) {
+            const hourX = 50 + 20 * Math.sin(hourAngle);
+            const hourY = 50 - 20 * Math.cos(hourAngle);
+            hourHand.setAttribute('x2', hourX);
+            hourHand.setAttribute('y2', hourY);
+        }
         
         // Update minute hand (medium length)
         const minuteHand = document.getElementById('minuteHand');
-        const minuteX = 50 + 27 * Math.sin(minuteAngle * Math.PI / 180);
-        const minuteY = 50 - 27 * Math.cos(minuteAngle * Math.PI / 180);
-        minuteHand.setAttribute('x2', minuteX);
-        minuteHand.setAttribute('y2', minuteY);
+        if (minuteHand) {
+            const minuteX = 50 + 27 * Math.sin(minuteAngle);
+            const minuteY = 50 - 27 * Math.cos(minuteAngle);
+            minuteHand.setAttribute('x2', minuteX);
+            minuteHand.setAttribute('y2', minuteY);
+        }
         
         // Update second hand (longest)
         const secondHand = document.getElementById('secondHand');
-        const secondX = 50 + 33 * Math.sin(secondAngle * Math.PI / 180);
-        const secondY = 50 - 33 * Math.cos(secondAngle * Math.PI / 180);
-        secondHand.setAttribute('x2', secondX);
-        secondHand.setAttribute('y2', secondY);
+        if (secondHand) {
+            const secondX = 50 + 33 * Math.sin(secondAngle);
+            const secondY = 50 - 33 * Math.cos(secondAngle);
+            secondHand.setAttribute('x2', secondX);
+            secondHand.setAttribute('y2', secondY);
+        }
     }
     
     draw() {
@@ -4240,19 +4246,20 @@ export class GraphCreator {
                     arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
                 }
             } else {
-                // For straight edges, calculate intersection of line with circle
+                // For straight edges, offset the arrow away from the vertex boundary to make it visible
                 const dx = endX - targetVertex.x;
                 const dy = endY - targetVertex.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance > 0) {
-                    // Normalize and scale to vertex radius
-                    arrowX = targetVertex.x + (dx / distance) * vertexRadius;
-                    arrowY = targetVertex.y + (dy / distance) * vertexRadius;
+                    // Normalize and scale to vertex radius, then offset by arrow length
+                    const offsetDistance = vertexRadius + arrowLength;
+                    arrowX = targetVertex.x + (dx / distance) * offsetDistance;
+                    arrowY = targetVertex.y + (dy / distance) * offsetDistance;
                 } else {
                     // Fallback if distance is 0
-                    arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
-                    arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+                    arrowX = targetVertex.x + (vertexRadius + arrowLength) * Math.cos(angle);
+                    arrowY = targetVertex.y + (vertexRadius + arrowLength) * Math.sin(angle);
                 }
             }
         }
@@ -5290,13 +5297,21 @@ export class GraphCreator {
         const digital = document.getElementById('digitalTime');
         const analog = document.getElementById('analogClock');
         if (!digital || !analog) return;
-        if (digital.style.display !== 'none') {
+        
+        if (this.timeDisplayMode === 'digital') {
+            // Switch to analog
+            this.timeDisplayMode = 'analog';
             digital.style.display = 'none';
-            analog.style.display = '';
+            analog.style.display = 'block';
         } else {
-            digital.style.display = '';
+            // Switch to digital
+            this.timeDisplayMode = 'digital';
+            digital.style.display = 'block';
             analog.style.display = 'none';
         }
+        
+        // Update the time display immediately
+        this.updateTime();
     }
 
     // Returns true if there are unsaved renames or deletions in the savedGraphs list
