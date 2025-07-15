@@ -2099,7 +2099,6 @@ export class GraphCreator {
                 this.draggedVertex = null;
                 this.canvas.style.cursor = 'crosshair';
                 this.hasDragged = false;
-                this.selectedVertices = [];
                 this.justFinishedDragging = true;
                 setTimeout(() => {
                     this.justFinishedDragging = false;
