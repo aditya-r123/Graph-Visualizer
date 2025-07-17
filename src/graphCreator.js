@@ -1351,6 +1351,12 @@ export class GraphCreator {
         ctx.lineWidth = edgeWidth;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+        // Set line dash pattern for dashed edges
+        if (edge.lineStyle === 'dashed') {
+            ctx.setLineDash([8, 4]); // 8px dash, 4px gap
+        } else {
+            ctx.setLineDash([]); // Solid line
+        }
         ctx.beginPath();
         
         if (edge.type === 'curved') {
@@ -1368,6 +1374,7 @@ export class GraphCreator {
         }
         
         ctx.stroke();
+        ctx.setLineDash([]); // Reset after drawing
         
         // Draw arrow for directed edges
         if (edge.direction !== 'undirected') {
@@ -1549,7 +1556,8 @@ export class GraphCreator {
                 width: e.width,
                 fontSize: e.fontSize,
                 fontFamily: e.fontFamily,
-                fontColor: e.fontColor
+                fontColor: e.fontColor,
+                lineStyle: e.lineStyle || 'solid' // Include lineStyle property
             })),
             nextVertexId: this.nextVertexId,
             vertexSize: this.vertexSize,
@@ -1605,7 +1613,8 @@ export class GraphCreator {
                 width: e.width,
                 fontSize: e.fontSize,
                 fontFamily: e.fontFamily,
-                fontColor: e.fontColor
+                fontColor: e.fontColor,
+                lineStyle: e.lineStyle || 'solid' // Preserve actual line style or default to solid
             };
         });
         this.nextVertexId = graphData.nextVertexId || this.vertices.length + 1;
@@ -1637,7 +1646,7 @@ export class GraphCreator {
         }
         this.lastSavedState = JSON.stringify({
             vertices: this.vertices.map(v => ({ id: v.id, x: v.x, y: v.y, label: v.label })),
-            edges: this.edges.map(e => ({ from: e.from.id, to: e.to.id, weight: e.weight, type: e.type, direction: e.direction, controlPoint: e.controlPoint })),
+            edges: this.edges.map(e => ({ from: e.from.id, to: e.to.id, weight: e.weight, type: e.type, direction: e.direction, controlPoint: e.controlPoint, lineStyle: e.lineStyle || 'solid' })),
             vertexSize: this.vertexSize,
             edgeType: this.edgeType,
             edgeDirection: this.edgeDirection,
@@ -1699,6 +1708,13 @@ export class GraphCreator {
             return;
         }
 
+        // Check for edge clicks first
+        const clickedEdge = this.getEdgeAt(pos.x, pos.y);
+        if (clickedEdge) {
+            this.toggleEdgeLineStyle(clickedEdge);
+            return;
+        }
+
         // Only add a vertex if you click empty space (not on a vertex)
         const clickedVertex = this.getVertexAt(pos.x, pos.y);
         if (!clickedVertex) {
@@ -1752,6 +1768,8 @@ export class GraphCreator {
         // Normal edge creation logic
         if (this.selectedVertices.length === 0) {
             this.selectedVertices.push(vertex);
+            // Keep first vertex purple without fade animation
+            this.flashingVertices.add(vertex);
             this.updateStatus(`Selected vertex "${vertex.label}" for edge creation - left-click another vertex to create edge (or double-click for self-loop)`);
             this.draw();
         } else if (this.selectedVertices.length === 1) {
@@ -1775,6 +1793,7 @@ export class GraphCreator {
             const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
             this.addEdge(vertex1, vertex2, weight);
             this.selectedVertices = [];
+            // Flash both vertices when edge is created
             this.flashVertices(vertex1, vertex2);
             this.lastVertexClick = null;
         }
@@ -1806,6 +1825,8 @@ export class GraphCreator {
         // Handle edge creation logic - right-click two vertices to create edge
         if (this.selectedVertices.length === 0) {
             this.selectedVertices.push(vertex);
+            // Keep first vertex purple without fade animation
+            this.flashingVertices.add(vertex);
             this.updateStatus(`Selected vertex "${vertex.label}" for edge creation - right-click another vertex to create edge`);
             this.draw(); // Redraw to show purple highlighting
         } else if (this.selectedVertices.length === 1) {
@@ -2519,11 +2540,65 @@ export class GraphCreator {
                 const tolerance = 8; // Click tolerance for self-loops
                 return Math.abs(distanceFromCenter - radius) <= tolerance;
             } else if (edge.type === 'curved' && edge.controlPoint) {
+                // For curved edges, check if click is near the control point
                 const distance = Math.sqrt((edge.controlPoint.x - x) ** 2 + (edge.controlPoint.y - y) ** 2);
                 return distance <= this.edgeControlPointSize;
+            } else {
+                // For straight edges, check if click is near the line
+                const tolerance = 8; // Click tolerance for straight edges
+                return this.isPointNearLine(x, y, edge.from.x, edge.from.y, edge.to.x, edge.to.y, tolerance);
             }
-            return false;
         });
+    }
+    
+    isPointNearLine(px, py, x1, y1, x2, y2, tolerance) {
+        // Calculate the distance from point (px, py) to line segment (x1, y1) to (x2, y2)
+        const A = px - x1;
+        const B = py - y1;
+        const C = x2 - x1;
+        const D = y2 - y1;
+        
+        const dot = A * C + B * D;
+        const lenSq = C * C + D * D;
+        
+        if (lenSq === 0) return false; // Line segment has zero length
+        
+        let param = dot / lenSq;
+        
+        let xx, yy;
+        if (param < 0) {
+            xx = x1;
+            yy = y1;
+        } else if (param > 1) {
+            xx = x2;
+            yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
+        
+        const dx = px - xx;
+        const dy = py - yy;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        return distance <= tolerance;
+    }
+    
+    toggleEdgeLineStyle(edge) {
+        // Toggle between solid and dashed line style for the edge
+        // All edges start as solid, so we can simplify the logic
+        if (edge.lineStyle === 'dashed') {
+            edge.lineStyle = 'solid';
+        } else {
+            edge.lineStyle = 'dashed';
+        }
+        
+        // Update status
+        const styleText = edge.lineStyle === 'dashed' ? 'dashed' : 'solid';
+        this.updateStatus(`Edge line style changed to ${styleText}`);
+        
+        // Redraw to show the change
+        this.draw();
     }
     
     addVertex(x, y) {
@@ -2564,8 +2639,10 @@ export class GraphCreator {
         
         this.vertices.push(vertex);
         this.updateInfo();
-        this.forceRedraw();
         this.updateStatus(`Vertex "${label}" added!`);
+        
+        // Start fade-in animation for the new vertex
+        this.startVertexFadeInAnimation(vertex);
         
         // Set the newly created vertex as the target
         this.selectTargetVertex(vertex);
@@ -2610,7 +2687,8 @@ export class GraphCreator {
                 weight: weight,
                 type: this.edgeType,
                 direction: this.edgeDirection,
-                edgeIndex: edgeIndex // Track which edge this is between these vertices
+                edgeIndex: edgeIndex, // Track which edge this is between these vertices
+                lineStyle: 'solid' // Default to solid
             };
             
             this.edges.push(edge);
@@ -2632,7 +2710,8 @@ export class GraphCreator {
                     to: vertex2,
                     weight: weight,
                     type: this.edgeType,
-                    direction: this.edgeDirection
+                    direction: this.edgeDirection,
+                    lineStyle: 'solid' // Default to solid
                 };
                 
                 this.edges.push(edge);
@@ -2667,7 +2746,8 @@ export class GraphCreator {
                 to: vertex,
                 weight: weight,
                 type: 'self-loop', // Special type for self-loops
-                direction: this.edgeDirection
+                direction: this.edgeDirection,
+                lineStyle: 'solid' // Default to solid
             };
             this.edges.push(edge);
             
@@ -3182,7 +3262,7 @@ export class GraphCreator {
         
         const currentState = JSON.stringify({
             vertices: this.vertices.map(v => ({ id: v.id, x: v.x, y: v.y, label: v.label })),
-            edges: this.edges.map(e => ({ from: e.from.id, to: e.to.id, weight: e.weight, type: e.type, direction: e.direction, controlPoint: e.controlPoint })),
+            edges: this.edges.map(e => ({ from: e.from.id, to: e.to.id, weight: e.weight, type: e.type, direction: e.direction, controlPoint: e.controlPoint, lineStyle: e.lineStyle || 'solid' })),
             vertexSize: this.vertexSize,
             edgeType: this.edgeType,
             edgeDirection: this.edgeDirection,
@@ -3584,9 +3664,12 @@ export class GraphCreator {
         const seconds = now.getSeconds();
         
         // Calculate angles for hands (convert to radians)
-        const hourAngle = ((hours * 30) + (minutes * 0.5)) * Math.PI / 180; // 30 degrees per hour + 0.5 degrees per minute
-        const minuteAngle = (minutes * 6) * Math.PI / 180; // 6 degrees per minute
-        const secondAngle = (seconds * 6) * Math.PI / 180; // 6 degrees per second
+        // Hour hand: 30 degrees per hour + 0.5 degrees per minute for smooth movement
+        const hourAngle = ((hours * 30) + (minutes * 0.5)) * Math.PI / 180;
+        // Minute hand: 6 degrees per minute
+        const minuteAngle = (minutes * 6) * Math.PI / 180;
+        // Second hand: 6 degrees per second
+        const secondAngle = (seconds * 6) * Math.PI / 180;
         
         // Update hour hand (shorter for modern look)
         const hourHand = document.getElementById('hourHand');
@@ -3628,6 +3711,9 @@ export class GraphCreator {
         this.ctx.shadowBlur = 0;
         this.ctx.shadowOffsetX = 0;
         this.ctx.shadowOffsetY = 0;
+        
+        // Ensure line dash is reset to prevent vertices from being dotted
+        this.ctx.setLineDash([]);
         
         // Draw coordinate grid first (behind everything)
         this.drawCoordinateGrid();
@@ -3889,6 +3975,14 @@ export class GraphCreator {
         this.ctx.strokeStyle = edgeColor;
         this.ctx.lineWidth = edgeWidth;
         this.ctx.lineCap = 'round';
+        
+        // Set line dash pattern for dashed edges
+        if (edge.lineStyle === 'dashed') {
+            this.ctx.setLineDash([8, 4]); // 8px dash, 4px gap
+        } else {
+            this.ctx.setLineDash([]); // Solid line
+        }
+        
         this.ctx.beginPath();
         
         if (edge.type === 'self-loop') {
@@ -4032,10 +4126,17 @@ export class GraphCreator {
         this.ctx.shadowBlur = 0;
         this.ctx.shadowOffsetX = 0;
         this.ctx.shadowOffsetY = 0;
+        
+        // Reset line dash pattern to ensure vertices are never dotted
+        this.ctx.setLineDash([]);
     }
     
     drawVertex(vertex) {
         const ctx = this.ctx;
+        
+        // Ensure vertices are never dotted by explicitly resetting line dash
+        ctx.setLineDash([]);
+        
         let size = (vertex.size || this.vertexSize);
         let label = vertex.label;
         let isPendingDeleteEdit = false;
@@ -4078,12 +4179,21 @@ export class GraphCreator {
         
         if (isSelectedForEdge || isFlashing) {
             // Purple for vertices selected for edge creation or flashing after edge creation
-            fillColor = '#8b5cf6'; // Purple
-            borderColor = '#a855f7'; // Lighter purple
+            // Fade from purple to vertex color directly
+            let t = 0; // Default to purple
+            if (vertex.flashOpacity !== undefined) {
+                t = vertex.flashOpacity; // 0 = purple, 1 = vertex color
+            }
+            fillColor = this.interpolateColor('#8b5cf6', vertex.color || this.vertexColor, t);
+            borderColor = this.interpolateColor('#a855f7', vertex.borderColor || this.vertexBorderColor, t);
         } else if (isDistanceFlashing) {
             // Blue flash for distance calculation vertices
-            fillColor = '#3b82f6'; // Blue
-            borderColor = '#60a5fa'; // Lighter blue
+            let t = 1;
+            if (vertex.distanceFlashOpacity !== undefined) {
+                t = 1 - vertex.distanceFlashOpacity;
+            }
+            fillColor = this.interpolateColor('#3b82f6', vertex.color || this.vertexColor, t);
+            borderColor = this.interpolateColor('#60a5fa', vertex.borderColor || this.vertexBorderColor, t);
         } else if (this.visitedVertices.has(vertex)) {
             // Enhanced green gradient for visited vertices during search
             ctx.save();
@@ -4158,6 +4268,12 @@ export class GraphCreator {
             borderColor = '#f472b6';
         }
         
+        // Apply fade-in effect for new vertices
+        if (vertex.fadeInOpacity !== undefined) {
+            ctx.save();
+            ctx.globalAlpha = vertex.fadeInOpacity;
+        }
+        
         ctx.beginPath();
         ctx.arc(drawX, drawY, size, 0, 2 * Math.PI);
         ctx.fillStyle = fillColor;
@@ -4166,8 +4282,10 @@ export class GraphCreator {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Restore context for gradient effects
-        if (this.visitedVertices.has(vertex) || this.pathVertices.has(vertex)) {
+        // Restore context for gradient effects and fade effects
+        if (this.visitedVertices.has(vertex) || this.pathVertices.has(vertex) || 
+            vertex.flashOpacity !== undefined || vertex.distanceFlashOpacity !== undefined ||
+            vertex.fadeInOpacity !== undefined) {
             ctx.restore();
         }
         // Draw vertex label (only if not hidden)
@@ -4869,29 +4987,112 @@ export class GraphCreator {
         this.flashingVertices.add(vertex1);
         this.flashingVertices.add(vertex2);
         
-        // Redraw to show flash
-        this.draw();
-        
-        // Clear flash after 1 second
-        this.flashTimer = setTimeout(() => {
-            this.flashingVertices.clear();
-            this.draw();
-        }, 1000);
+        // Start fade out animation
+        this.startFadeOutAnimation(vertex1, vertex2);
     }
     
-    // Flash effect for vertices during distance calculation
+    startFadeOutAnimation(vertex1, vertex2) {
+        const fadeDuration = 500; // 0.5 seconds
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / fadeDuration);
+            
+            // Calculate fade progress (0 = purple, 1 = vertex color)
+            const fadeProgress = progress;
+            
+            // Update vertex fade progress for rendering
+            vertex1.flashOpacity = fadeProgress;
+            vertex2.flashOpacity = fadeProgress;
+            
+            // Redraw to show the fade effect
+            this.draw();
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Animation complete, remove from flashing set
+                this.flashingVertices.delete(vertex1);
+                this.flashingVertices.delete(vertex2);
+                delete vertex1.flashOpacity;
+                delete vertex2.flashOpacity;
+                this.draw();
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+    
     flashDistanceVertices(vertex1, vertex2) {
         // Add vertices to distance flashing set
-        this.distanceFlashingVertices = new Set([vertex1, vertex2]);
+        this.distanceFlashingVertices.add(vertex1);
+        this.distanceFlashingVertices.add(vertex2);
         
-        // Redraw to show flash
-        this.draw();
+        // Start fade out animation for distance vertices
+        this.startDistanceFadeOutAnimation(vertex1, vertex2);
+    }
+    
+    startDistanceFadeOutAnimation(vertex1, vertex2) {
+        const fadeDuration = 500; // 0.5 seconds
+        const startTime = Date.now();
         
-        // Clear flash after 1 second
-        setTimeout(() => {
-            this.distanceFlashingVertices = null;
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / fadeDuration);
+            
+            // Calculate opacity based on progress (1 to 0)
+            const opacity = 1 - progress;
+            
+            // Update vertex opacity for rendering
+            vertex1.distanceFlashOpacity = opacity;
+            vertex2.distanceFlashOpacity = opacity;
+            
+            // Redraw to show the fade effect
             this.draw();
-        }, 1000);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Animation complete, remove from flashing set
+                this.distanceFlashingVertices.delete(vertex1);
+                this.distanceFlashingVertices.delete(vertex2);
+                delete vertex1.distanceFlashOpacity;
+                delete vertex2.distanceFlashOpacity;
+                this.draw();
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+    
+    startVertexFadeInAnimation(vertex) {
+        const fadeDuration = 800; // 0.8 seconds for fade-in
+        const startTime = Date.now();
+        
+        // Set initial opacity to 0 (invisible)
+        vertex.fadeInOpacity = 0;
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / fadeDuration);
+            
+            // Calculate fade-in progress (0 = invisible, 1 = fully visible)
+            vertex.fadeInOpacity = progress;
+            
+            // Redraw to show the fade-in effect
+            this.draw();
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Animation complete, clear opacity property
+                delete vertex.fadeInOpacity;
+                this.draw();
+            }
+        };
+        
+        requestAnimationFrame(animate);
     }
 
     // Edit the name of a saved graph
@@ -5420,5 +5621,28 @@ export class GraphCreator {
         this._pendingRenameOrDelete = false;
         localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
         this.updateSavedGraphsList();
+    }
+
+    // Helper to interpolate between two hex colors
+    interpolateColor(hex1, hex2, t) {
+        // t: 0 = hex1, 1 = hex2
+        const c1 = this.hexToRgb(hex1);
+        const c2 = this.hexToRgb(hex2);
+        const r = Math.round(c1.r + (c2.r - c1.r) * t);
+        const g = Math.round(c1.g + (c2.g - c1.g) * t);
+        const b = Math.round(c1.b + (c2.b - c1.b) * t);
+        return `rgb(${r},${g},${b})`;
+    }
+    hexToRgb(hex) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(x => x + x).join('');
+        }
+        const num = parseInt(hex, 16);
+        return {
+            r: (num >> 16) & 255,
+            g: (num >> 8) & 255,
+            b: num & 255
+        };
     }
 } // End of GraphCreator class 

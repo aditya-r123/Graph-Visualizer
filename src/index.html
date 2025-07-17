@@ -390,16 +390,27 @@
                 <h3><i class="fas fa-save"></i> Save & Load</h3>
             </div>
             <div class="right-sidebar-content">
-                <div class="control-group">
-                    <label class="switch-label" for="autosaveToggle">
-                        <i class="fas fa-magic"></i>
-                        Auto-Save
-                        <div class="switch-container">
-                            <input type="checkbox" id="autosaveToggle" checked>
-                            <span class="switch-slider"></span>
-                        </div>
-                    </label>
-                    
+                <div class="d-flex gap-2 mb-2">
+                    <div class="control-group flex-fill">
+                        <label class="switch-label" for="autosaveToggle">
+                            <i class="fas fa-magic"></i>
+                            Auto-Save
+                            <div class="switch-container">
+                                <input type="checkbox" id="autosaveToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="control-group flex-fill">
+                        <label for="screenshotFormat">
+                            <i class="fas fa-image"></i>
+                            Image Format
+                        </label>
+                        <select id="screenshotFormat">
+                            <option value="jpg">JPG (Smaller file)</option>
+                            <option value="png">PNG (Better quality)</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="button-group">
                     <button id="newGraph" class="btn btn-primary">
@@ -427,16 +438,6 @@
                             Share
                         </button>
                     </div>
-                </div>
-                <div class="control-group">
-                    <label for="screenshotFormat">
-                        <i class="fas fa-image"></i>
-                        Image Format
-                    </label>
-                    <select id="screenshotFormat">
-                        <option value="jpg">JPG (Smaller file)</option>
-                        <option value="png">PNG (Better quality)</option>
-                    </select>
                 </div>
                 <div class="saved-graphs">
                     <h4><i class="fas fa-history"></i> Recent Canvases</h4>
