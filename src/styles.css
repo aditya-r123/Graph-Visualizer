@@ -1928,11 +1928,22 @@ body {
     color: var(--primary-color);
 }
 
+/* Clock status item specific styling */
+.clock-status-item {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
 /* Current time display specific styles */
 #currentTime {
     cursor: pointer;
     transition: var(--transition);
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
     border-radius: var(--radius-md);
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
@@ -1945,6 +1956,9 @@ body {
     justify-content: center;
     position: relative;
     overflow: hidden;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 #currentTime::before {
     content: '';
@@ -2826,9 +2840,13 @@ body {
 }
 
 #contactModal .form-control {
+    width: 100%;
+    padding: 0.75rem;
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
     color: var(--text-primary);
+    font-size: 0.875rem;
     transition: var(--transition);
 }
 

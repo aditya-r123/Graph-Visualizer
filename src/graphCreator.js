@@ -1708,18 +1708,22 @@ export class GraphCreator {
             return;
         }
 
-        // Check for edge clicks first
+        // Check for vertex clicks first - vertices take priority over edges
+        const clickedVertex = this.getVertexAt(pos.x, pos.y);
+        if (clickedVertex) {
+            // Handle vertex click (this will be handled by mouse events for edge creation, target setting, etc.)
+            return;
+        }
+
+        // Only check for edge clicks if no vertex was clicked
         const clickedEdge = this.getEdgeAt(pos.x, pos.y);
         if (clickedEdge) {
             this.toggleEdgeLineStyle(clickedEdge);
             return;
         }
 
-        // Only add a vertex if you click empty space (not on a vertex)
-        const clickedVertex = this.getVertexAt(pos.x, pos.y);
-        if (!clickedVertex) {
-            this.addVertex(pos.x, pos.y);
-        }
+        // Only add a vertex if you click empty space (not on a vertex or edge)
+        this.addVertex(pos.x, pos.y);
     }
     
     handleRightClick(e) {
