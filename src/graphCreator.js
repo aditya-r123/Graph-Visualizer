@@ -3740,9 +3740,8 @@ export class GraphCreator {
     }
     
     draw() {
-        // Fill canvas with theme-based color
-        this.ctx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe'; // Dark gray for dark mode, light blue for light mode
-        this.ctx.fillRect(0, 0, this.whiteBoxWidth, this.whiteBoxHeight);
+        // Clear canvas - let CSS handle the background color
+        this.ctx.clearRect(0, 0, this.whiteBoxWidth, this.whiteBoxHeight);
         
         // Reset any canvas state that might cause artifacts
         this.ctx.globalAlpha = 1.0;
