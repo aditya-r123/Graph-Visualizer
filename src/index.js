@@ -122,24 +122,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let draggedPanel = null;
     let dragOffset = { x: 0, y: 0 };
     let originalPositions = new Map();
-    let panelOrder = [];
     
     // Initialize draggable panels
     function initializeDraggablePanels() {
-        const panels = [
-            { id: 'basicControlsSection', title: 'Controls' },
-            { id: 'editControlsSection', title: 'Edit Vertex' },
-            { id: 'deleteModePanel', title: 'Delete Mode' },
-            { id: 'searchSection', title: 'Search Algorithms' }
+        const leftSidebarPanels = [
+            { id: 'basicControlsSection', title: 'Controls', sidebar: 'left' },
+            { id: 'editControlsSection', title: 'Edit Vertex', sidebar: 'left' },
+            { id: 'deleteModePanel', title: 'Delete Mode', sidebar: 'left' },
+            { id: 'searchSection', title: 'Search Algorithms', sidebar: 'left' }
         ];
         
+        const rightSidebarPanels = [
+            { id: 'saveExportSection', title: 'Save & Export', sidebar: 'right' },
+            { id: 'canvasManagementSection', title: 'Canvas Management', sidebar: 'right' },
+            { id: 'utilitiesSection', title: 'Utilities', sidebar: 'right' }
+        ];
+        
+        const allPanels = [...leftSidebarPanels, ...rightSidebarPanels];
+        
         // Make panels draggable
-        panels.forEach(panel => {
+        allPanels.forEach(panel => {
             const element = document.getElementById(panel.id);
             if (element) {
                 element.classList.add('draggable-panel');
                 element.setAttribute('data-panel-id', panel.id);
                 element.setAttribute('data-panel-title', panel.title);
+                element.setAttribute('data-sidebar', panel.sidebar);
                 
                 // Make the entire panel draggable (except buttons and interactive elements)
                 element.classList.add('panel-drag-handle');
@@ -151,8 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     element: element,
                     rect: element.getBoundingClientRect()
                 });
-                
-                panelOrder.push(panel.id);
             }
         });
         
@@ -165,6 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('mousemove', handleDragMove);
         document.addEventListener('mouseup', handleDragEnd);
     }
+    
+    // Variables for click vs drag detection
+    let dragStartTime = 0;
+    let dragStartPos = { x: 0, y: 0 };
+    let isDragging = false;
+    let dragHoldTimer = null;
+    const HOLD_THRESHOLD = 300; // milliseconds - time to hold before entering drag mode
+    const DRAG_THRESHOLD = 5; // pixels
     
     function handleDragStart(e) {
         const dragHandle = e.target.closest('.panel-drag-handle');
@@ -180,6 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const panel = dragHandle.closest('.draggable-panel');
         if (!panel) return;
         
+        // Initialize drag detection
+        dragStartTime = Date.now();
+        dragStartPos = { x: e.clientX, y: e.clientY };
+        isDragging = false;
+        
         draggedPanel = panel;
         const rect = panel.getBoundingClientRect();
         dragOffset = {
@@ -187,21 +206,33 @@ document.addEventListener('DOMContentLoaded', () => {
             y: e.clientY - rect.top
         };
         
-
+        // Store the sidebar type for this panel
+        draggedPanel.setAttribute('data-dragging-sidebar', draggedPanel.getAttribute('data-sidebar'));
         
-        // Add dragging class
-        panel.classList.add('dragging');
-        panel.style.zIndex = '1001';
-        panel.style.position = 'fixed';
-        panel.style.left = rect.left + 'px';
-        panel.style.top = rect.top + 'px';
-        panel.style.width = rect.width + 'px';
-        panel.style.opacity = '0.8';
-        panel.style.transform = 'rotate(2deg)';
+        // Add holding class for visual feedback
+        panel.classList.add('holding');
+        
+        // Start hold timer - only enter drag mode after holding for 0.3 seconds
+        dragHoldTimer = setTimeout(() => {
+            if (draggedPanel && !isDragging) {
+                isDragging = true;
+                
+                // Remove holding class and add dragging class
+                draggedPanel.classList.remove('holding');
+                draggedPanel.classList.add('dragging');
+                draggedPanel.style.zIndex = '1001';
+                draggedPanel.style.position = 'fixed';
+                draggedPanel.style.left = rect.left + 'px';
+                draggedPanel.style.top = rect.top + 'px';
+                draggedPanel.style.width = rect.width + 'px';
+                draggedPanel.style.opacity = '0.8';
+                draggedPanel.style.transform = 'rotate(2deg)';
+            }
+        }, HOLD_THRESHOLD);
     }
     
     function handleDragMove(e) {
-        if (!draggedPanel) return;
+        if (!draggedPanel || !isDragging) return;
         
         const newX = e.clientX - dragOffset.x;
         const newY = e.clientY - dragOffset.y;
@@ -210,19 +241,64 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedPanel.style.left = newX + 'px';
         draggedPanel.style.top = newY + 'px';
         
-        // Calculate where the panel would be dropped
-        const sidebar = document.querySelector('.sidebar');
-        const sidebarRect = sidebar.getBoundingClientRect();
-        const sidebarContent = document.querySelector('.sidebar-content');
-        const dropY = e.clientY - sidebarRect.top + sidebarContent.scrollTop;
-        const dropIndex = calculateDropIndex(dropY);
+        // Get the sidebar type for the dragged panel
+        const draggedSidebar = draggedPanel.getAttribute('data-dragging-sidebar');
+        
+        // Calculate where the panel would be dropped based on sidebar type
+        if (draggedSidebar === 'left') {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarRect = sidebar.getBoundingClientRect();
+            const sidebarContent = document.querySelector('.sidebar-content');
+            const dropY = e.clientY - sidebarRect.top + sidebarContent.scrollTop;
+            const dropIndex = calculateDropIndex(dropY, 'left');
+        } else if (draggedSidebar === 'right') {
+            const rightSidebar = document.querySelector('.right-sidebar');
+            const rightSidebarRect = rightSidebar.getBoundingClientRect();
+            const rightSidebarContent = document.querySelector('.right-sidebar-content');
+            const dropY = e.clientY - rightSidebarRect.top + rightSidebarContent.scrollTop;
+            const dropIndex = calculateDropIndex(dropY, 'right');
+        }
     }
     
     function handleDragEnd(e) {
         if (!draggedPanel) return;
         
+        // Clear the hold timer
+        if (dragHoldTimer) {
+            clearTimeout(dragHoldTimer);
+            dragHoldTimer = null;
+        }
+        
+        if (isDragging) {
+            // Handle drag - reorder panels
+            // Get the sidebar type for the dragged panel
+            const draggedSidebar = draggedPanel.getAttribute('data-dragging-sidebar');
+            
+            // Calculate final drop position based on sidebar type
+            let dropIndex;
+            if (draggedSidebar === 'left') {
+                const sidebar = document.querySelector('.sidebar');
+                const sidebarRect = sidebar.getBoundingClientRect();
+                const sidebarContent = document.querySelector('.sidebar-content');
+                const dropY = e.clientY - sidebarRect.top + sidebarContent.scrollTop;
+                dropIndex = calculateDropIndex(dropY, 'left');
+            } else if (draggedSidebar === 'right') {
+                const rightSidebar = document.querySelector('.right-sidebar');
+                const rightSidebarRect = rightSidebar.getBoundingClientRect();
+                const rightSidebarContent = document.querySelector('.right-sidebar-content');
+                const dropY = e.clientY - rightSidebarRect.top + rightSidebarContent.scrollTop;
+                dropIndex = calculateDropIndex(dropY, 'right');
+            }
+            
+            // Reorder panels
+            reorderPanels(draggedPanel.getAttribute('data-panel-id'), dropIndex, draggedSidebar);
+        } else {
+            // Handle click - toggle panel expansion
+            handlePanelClick(draggedPanel);
+        }
+        
         // Remove dragging styles
-        draggedPanel.classList.remove('dragging');
+        draggedPanel.classList.remove('dragging', 'holding');
         draggedPanel.style.zIndex = '';
         draggedPanel.style.position = '';
         draggedPanel.style.left = '';
@@ -231,25 +307,27 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedPanel.style.opacity = '';
         draggedPanel.style.transform = '';
         
-        // Calculate final drop position
-        const sidebar = document.querySelector('.sidebar');
-        const sidebarRect = sidebar.getBoundingClientRect();
-        const sidebarContent = document.querySelector('.sidebar-content');
-        const dropY = e.clientY - sidebarRect.top + sidebarContent.scrollTop;
-        const dropIndex = calculateDropIndex(dropY);
-        
-        // Reorder panels
-        reorderPanels(draggedPanel.getAttribute('data-panel-id'), dropIndex);
-        
+        // Clean up
+        draggedPanel.removeAttribute('data-dragging-sidebar');
         draggedPanel = null;
+        isDragging = false;
     }
     
-    function calculateDropIndex(dropY) {
-        const panels = Array.from(document.querySelectorAll('.draggable-panel'));
-        const sidebarContent = document.querySelector('.sidebar-content');
-        const scrollIndicator = document.getElementById('scrollIndicator');
+    function calculateDropIndex(dropY, sidebarType) {
+        const panels = Array.from(document.querySelectorAll('.draggable-panel')).filter(panel => 
+            panel.getAttribute('data-sidebar') === sidebarType
+        );
         
-        // Get all panel positions
+        let sidebarContent, scrollIndicator;
+        if (sidebarType === 'left') {
+            sidebarContent = document.querySelector('.sidebar-content');
+            scrollIndicator = document.getElementById('scrollIndicator');
+        } else if (sidebarType === 'right') {
+            sidebarContent = document.querySelector('.right-sidebar-content');
+            scrollIndicator = null; // Right sidebar doesn't have a scroll indicator
+        }
+        
+        // Get all panel positions for this sidebar
         const panelPositions = panels.map(panel => {
             const rect = panel.getBoundingClientRect();
             const sidebarRect = sidebarContent.getBoundingClientRect();
@@ -272,30 +350,42 @@ document.addEventListener('DOMContentLoaded', () => {
     
 
     
-    function reorderPanels(draggedPanelId, dropIndex) {
-        const panels = Array.from(document.querySelectorAll('.draggable-panel'));
-        const sidebarContent = document.querySelector('.sidebar-content');
-        const scrollIndicator = document.getElementById('scrollIndicator');
+    function reorderPanels(draggedPanelId, dropIndex, sidebarType) {
+        const panels = Array.from(document.querySelectorAll('.draggable-panel')).filter(panel => 
+            panel.getAttribute('data-sidebar') === sidebarType
+        );
+        
+        let sidebarContent, scrollIndicator;
+        if (sidebarType === 'left') {
+            sidebarContent = document.querySelector('.sidebar-content');
+            scrollIndicator = document.getElementById('scrollIndicator');
+        } else if (sidebarType === 'right') {
+            sidebarContent = document.querySelector('.right-sidebar-content');
+            scrollIndicator = null;
+        }
+        
+        // Get panel order for this specific sidebar
+        const sidebarPanelOrder = panels.map(panel => panel.getAttribute('data-panel-id'));
         
         // Remove dragged panel from current position
         const draggedPanel = document.getElementById(draggedPanelId);
-        const currentIndex = panelOrder.indexOf(draggedPanelId);
+        const currentIndex = sidebarPanelOrder.indexOf(draggedPanelId);
         
         if (currentIndex > -1) {
-            panelOrder.splice(currentIndex, 1);
+            sidebarPanelOrder.splice(currentIndex, 1);
         }
         
         // Insert at new position
-        if (dropIndex >= panelOrder.length) {
-            panelOrder.push(draggedPanelId);
+        if (dropIndex >= sidebarPanelOrder.length) {
+            sidebarPanelOrder.push(draggedPanelId);
         } else {
-            panelOrder.splice(dropIndex, 0, draggedPanelId);
+            sidebarPanelOrder.splice(dropIndex, 0, draggedPanelId);
         }
         
         // Reorder DOM elements
-        const panelsToReorder = panelOrder.map(id => document.getElementById(id)).filter(Boolean);
+        const panelsToReorder = sidebarPanelOrder.map(id => document.getElementById(id)).filter(Boolean);
         
-        // Clear sidebar content (except scroll indicator)
+        // Clear sidebar content (except scroll indicator for left sidebar)
         const existingPanels = sidebarContent.querySelectorAll('.draggable-panel');
         existingPanels.forEach(panel => panel.remove());
         
@@ -304,28 +394,99 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebarContent.appendChild(panel);
         });
         
-        // Save panel order to localStorage
-        localStorage.setItem('panelOrder', JSON.stringify(panelOrder));
+        // Save panel order to localStorage (separate for each sidebar)
+        const leftSidebarPanels = Array.from(document.querySelectorAll('.draggable-panel[data-sidebar="left"]')).map(panel => panel.getAttribute('data-panel-id'));
+        const rightSidebarPanels = Array.from(document.querySelectorAll('.draggable-panel[data-sidebar="right"]')).map(panel => panel.getAttribute('data-panel-id'));
+        
+        localStorage.setItem('leftSidebarPanelOrder', JSON.stringify(leftSidebarPanels));
+        localStorage.setItem('rightSidebarPanelOrder', JSON.stringify(rightSidebarPanels));
+    }
+    
+    // Handle panel click to toggle expansion
+    function handlePanelClick(panel) {
+        // Find the expandable header within this panel
+        const expandableHeader = panel.querySelector('.expandable-header');
+        if (!expandableHeader) return;
+        
+        // Find the target content
+        const targetId = expandableHeader.getAttribute('data-target');
+        if (!targetId) return;
+        
+        const targetContent = document.getElementById(targetId);
+        if (!targetContent) return;
+        
+        // Toggle the expansion
+        const isExpanded = targetContent.classList.contains('show');
+        
+        if (isExpanded) {
+            // Collapse
+            targetContent.classList.remove('show');
+            expandableHeader.classList.remove('expanded');
+            const expandIcon = expandableHeader.querySelector('.expand-icon');
+            if (expandIcon) {
+                expandIcon.style.transform = 'rotate(0deg)';
+            }
+        } else {
+            // Expand
+            targetContent.classList.add('show');
+            expandableHeader.classList.add('expanded');
+            const expandIcon = expandableHeader.querySelector('.expand-icon');
+            if (expandIcon) {
+                expandIcon.style.transform = 'rotate(180deg)';
+            }
+        }
     }
     
     // Load saved panel order
     function loadPanelOrder() {
-        const savedOrder = localStorage.getItem('panelOrder');
-        if (savedOrder) {
+        // Migrate from old format if needed
+        const oldOrder = localStorage.getItem('panelOrder');
+        if (oldOrder) {
             try {
-                panelOrder = JSON.parse(savedOrder);
-                // Apply saved order
+                const oldPanelOrder = JSON.parse(oldOrder);
+                // Convert old format to new format (all old panels were left sidebar)
+                localStorage.setItem('leftSidebarPanelOrder', oldOrder);
+                localStorage.removeItem('panelOrder');
+            } catch (e) {
+                console.error('Failed to migrate old panel order:', e);
+            }
+        }
+        
+        // Load left sidebar order
+        const savedLeftOrder = localStorage.getItem('leftSidebarPanelOrder');
+        if (savedLeftOrder) {
+            try {
+                const leftPanelOrder = JSON.parse(savedLeftOrder);
                 const sidebarContent = document.querySelector('.sidebar-content');
-                const panels = panelOrder.map(id => document.getElementById(id)).filter(Boolean);
+                const leftPanels = leftPanelOrder.map(id => document.getElementById(id)).filter(Boolean);
                 
-                const existingPanels = sidebarContent.querySelectorAll('.draggable-panel');
-                existingPanels.forEach(panel => panel.remove());
+                const existingLeftPanels = sidebarContent.querySelectorAll('.draggable-panel[data-sidebar="left"]');
+                existingLeftPanels.forEach(panel => panel.remove());
                 
-                panels.forEach(panel => {
+                leftPanels.forEach(panel => {
                     sidebarContent.appendChild(panel);
                 });
             } catch (e) {
-                console.error('Failed to load panel order:', e);
+                console.error('Failed to load left sidebar panel order:', e);
+            }
+        }
+        
+        // Load right sidebar order
+        const savedRightOrder = localStorage.getItem('rightSidebarPanelOrder');
+        if (savedRightOrder) {
+            try {
+                const rightPanelOrder = JSON.parse(savedRightOrder);
+                const rightSidebarContent = document.querySelector('.right-sidebar-content');
+                const rightPanels = rightPanelOrder.map(id => document.getElementById(id)).filter(Boolean);
+                
+                const existingRightPanels = rightSidebarContent.querySelectorAll('.draggable-panel[data-sidebar="right"]');
+                existingRightPanels.forEach(panel => panel.remove());
+                
+                rightPanels.forEach(panel => {
+                    rightSidebarContent.appendChild(panel);
+                });
+            } catch (e) {
+                console.error('Failed to load right sidebar panel order:', e);
             }
         }
     }

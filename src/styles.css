@@ -2927,7 +2927,7 @@ body {
 }
 
 .panel-drag-handle {
-    cursor: grab !important;
+    cursor: pointer !important;
     user-select: none;
     transition: background-color 0.2s ease;
     background-color: transparent;
@@ -2936,12 +2936,58 @@ body {
 }
 
 .panel-drag-handle:hover {
-    background-color: rgba(99, 102, 241, 0.02);
+    background-color: rgba(99, 102, 241, 0.05);
 }
 
 .panel-drag-handle:active {
     cursor: grabbing !important;
-    background-color: rgba(99, 102, 241, 0.05);
+    background-color: rgba(99, 102, 241, 0.08);
+}
+
+/* Visual feedback for clickable panels */
+.panel-drag-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    z-index: 1;
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.02) 100%);
+    opacity: 0;
+}
+
+.panel-drag-handle:hover::after {
+    opacity: 1;
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.05) 100%);
+}
+
+/* Click feedback animation */
+.panel-drag-handle:active::after {
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.1) 100%);
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Hold feedback - shows when user is holding down but not yet dragging */
+.panel-drag-handle.holding::after {
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.08) 100%);
+    opacity: 1;
+    animation: holdPulse 0.3s ease-in-out;
+}
+
+.panel-drag-handle.holding {
+    transform: scale(0.99);
+    transition: transform 0.1s ease;
+}
+
+@keyframes holdPulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+    100% { opacity: 0.3; }
 }
 
 
@@ -2963,23 +3009,6 @@ body {
 /* Panel drag styling */
 .panel-drag-handle {
     position: relative;
-}
-
-.panel-drag-handle::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    border-radius: var(--radius-sm);
-    transition: background-color 0.2s ease;
-    z-index: 1;
-}
-
-.panel-drag-handle:hover::after {
-    background-color: rgba(99, 102, 241, 0.02);
 }
 
 /* Ensure interactive elements stay above the drag overlay */
@@ -3027,4 +3056,27 @@ body {
 
 .draggable-panel.dragging .expandable-content {
     transition: none !important;
+}
+
+/* Visual drag indicator for right sidebar panels */
+.right-sidebar .panel-drag-handle::before {
+    content: '⋮⋮';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.right-sidebar .panel-drag-handle:hover::before {
+    opacity: 0.6;
+}
+
+/* Ensure right sidebar panels have proper spacing */
+.right-sidebar .draggable-panel + .draggable-panel {
+    margin-top: 1rem;
 }
