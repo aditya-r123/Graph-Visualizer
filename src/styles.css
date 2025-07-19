@@ -898,32 +898,33 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    padding: 0.75rem;
+    padding: 0.5rem;
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
-}
-
-.saved-graph-name {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-primary);
     margin-bottom: 0.25rem;
 }
 
+.saved-graph-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.12rem;
+}
+
 .saved-graph-details {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
 }
 
 .saved-graph-time {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     font-style: italic;
-    margin-top: 0.25rem;
+    margin-top: 0.12rem;
 }
 
 .saved-graph-actions button {
@@ -931,9 +932,10 @@ body {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 0.25rem;
+    padding: 0.18rem 0.3rem;
     border-radius: var(--radius-sm);
     transition: var(--transition);
+    font-size: 0.8rem;
 }
 
 .saved-graph-item:hover {
@@ -983,7 +985,7 @@ body {
 
 .saved-graph-actions {
     display: flex;
-    gap: 0.25rem;
+    gap: 0.2rem;
 }
 
 .saved-graph-actions button {
@@ -2792,6 +2794,8 @@ body {
     background: linear-gradient(135deg, #8b0000, #a52a2a) !important;
     color: white !important;
     border: none !important;
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.6rem !important;
 }
 
 /* Ensure shared confirmation buttons are hidden by default */
@@ -2803,6 +2807,11 @@ body {
     background: linear-gradient(135deg, #a52a2a, #b22222) !important;
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
+}
+
+#clearGraph {
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.6rem !important;
 }
 
 /* Consistent hover effects for all sidebar buttons */

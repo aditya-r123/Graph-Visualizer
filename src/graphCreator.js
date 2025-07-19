@@ -5225,8 +5225,28 @@ export class GraphCreator {
     
     // Setup expandable sections
     setupExpandableSections() {
-        // Search section is always expanded and visible - no expand/collapse functionality
-        // Other sections can have expand/collapse if needed in the future
+        // Setup expandable/collapsible sections
+        document.querySelectorAll('.expandable-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                const targetId = header.getAttribute('data-target');
+                const content = document.getElementById(targetId);
+                const icon = header.querySelector('.expand-icon');
+                
+                if (content && icon) {
+                    if (content.classList.contains('show')) {
+                        // Collapse
+                        content.classList.remove('show');
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-right');
+                    } else {
+                        // Expand
+                        content.classList.add('show');
+                        icon.classList.remove('fa-chevron-right');
+                        icon.classList.add('fa-chevron-down');
+                    }
+                }
+            });
+        });
     }
     
     // Setup mouse coordinate tracking
