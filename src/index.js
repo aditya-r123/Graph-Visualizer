@@ -226,11 +226,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 draggedPanel.style.top = rect.top + 'px';
                 draggedPanel.style.width = rect.width + 'px';
                 draggedPanel.style.opacity = '0.8';
-                draggedPanel.style.transform = 'rotate(2deg)';
                 
-                // Create placeholder box with current panel dimensions
-                const currentRect = draggedPanel.getBoundingClientRect();
-                createDragPlaceholder(draggedPanel, currentRect);
+                // Panel is now in drag mode
+                
+                // Mouse coordinates will be hidden automatically by graphCreator.js
             }
         }, HOLD_THRESHOLD);
     }
@@ -249,18 +248,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const draggedSidebar = draggedPanel.getAttribute('data-dragging-sidebar');
         
         // Calculate where the panel would be dropped based on sidebar type
+        let dropIndex;
         if (draggedSidebar === 'left') {
             const sidebar = document.querySelector('.sidebar');
             const sidebarRect = sidebar.getBoundingClientRect();
             const sidebarContent = document.querySelector('.sidebar-content');
             const dropY = e.clientY - sidebarRect.top + sidebarContent.scrollTop;
-            const dropIndex = calculateDropIndex(dropY, 'left');
+            dropIndex = calculateDropIndex(dropY, 'left');
+            updateDropPreview('left', dropIndex, draggedPanel);
         } else if (draggedSidebar === 'right') {
             const rightSidebar = document.querySelector('.right-sidebar');
             const rightSidebarRect = rightSidebar.getBoundingClientRect();
             const rightSidebarContent = document.querySelector('.right-sidebar-content');
             const dropY = e.clientY - rightSidebarRect.top + rightSidebarContent.scrollTop;
-            const dropIndex = calculateDropIndex(dropY, 'right');
+            dropIndex = calculateDropIndex(dropY, 'right');
+            updateDropPreview('right', dropIndex, draggedPanel);
         }
     }
     
@@ -311,19 +313,24 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedPanel.style.opacity = '';
         draggedPanel.style.transform = '';
         
-        // Remove placeholder
-        removeDragPlaceholder();
+        // Remove preview
+        removeDropPreview();
+        
+        // Mouse coordinates will be shown automatically by graphCreator.js
         
         // Clean up
         draggedPanel.removeAttribute('data-dragging-sidebar');
-        draggedPanel.removeAttribute('data-placeholder');
         draggedPanel = null;
         isDragging = false;
     }
     
     function calculateDropIndex(dropY, sidebarType) {
+        // Get the currently dragged panel
+        const draggedPanel = document.querySelector('.draggable-panel.dragging');
+        
         const panels = Array.from(document.querySelectorAll('.draggable-panel')).filter(panel => 
-            panel.getAttribute('data-sidebar') === sidebarType
+            panel.getAttribute('data-sidebar') === sidebarType && 
+            panel !== draggedPanel
         );
         
         let sidebarContent, scrollIndicator;
@@ -348,7 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Find where to insert
         for (let i = 0; i < panelPositions.length; i++) {
-            if (dropY < panelPositions[i].top + (panelPositions[i].bottom - panelPositions[i].top) / 2) {
+            const panelCenter = panelPositions[i].top + (panelPositions[i].bottom - panelPositions[i].top) / 2;
+            if (dropY < panelCenter) {
                 return i;
             }
         }
@@ -410,35 +418,77 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('rightSidebarPanelOrder', JSON.stringify(rightSidebarPanels));
     }
     
-    // Create drag placeholder
-    function createDragPlaceholder(panel, originalRect) {
-        // Remove any existing placeholder
-        const existingPlaceholder = document.querySelector('.drag-placeholder');
-        if (existingPlaceholder) {
-            existingPlaceholder.remove();
+
+    
+    // Update drop preview
+    function updateDropPreview(sidebarType, dropIndex, draggedPanel) {
+        // Remove existing preview elements
+        removeDropPreview();
+        
+        // Get panels for this sidebar, excluding the currently dragged panel
+        const panels = Array.from(document.querySelectorAll('.draggable-panel')).filter(panel => 
+            panel.getAttribute('data-sidebar') === sidebarType && 
+            panel !== draggedPanel
+        );
+        
+        if (panels.length === 0) return;
+        
+        // Get the dragged panel's height for preview
+        const draggedPanelHeight = draggedPanel.offsetHeight;
+        const draggedPanelMargin = 16; // 1rem margin between panels
+        const totalHeight = draggedPanelHeight + draggedPanelMargin;
+        
+        // Create preview gap
+        if (dropIndex === 0) {
+            // Insert at the beginning
+            createDropPreview(panels[0], 'before', totalHeight);
+        } else if (dropIndex >= panels.length) {
+            // Insert at the end
+            createDropPreview(panels[panels.length - 1], 'after', totalHeight);
+        } else {
+            // Insert between panels
+            createDropPreview(panels[dropIndex - 1], 'after', totalHeight);
         }
-        
-        // Create new placeholder
-        const placeholder = document.createElement('div');
-        placeholder.className = 'drag-placeholder';
-        placeholder.style.left = originalRect.left + 'px';
-        placeholder.style.top = originalRect.top + 'px';
-        placeholder.style.width = originalRect.width + 'px';
-        placeholder.style.height = originalRect.height + 'px';
-        
-        // Add to body
-        document.body.appendChild(placeholder);
-        
-        // Store reference to placeholder
-        panel.setAttribute('data-placeholder', 'true');
     }
     
-    // Remove drag placeholder
-    function removeDragPlaceholder() {
-        const placeholder = document.querySelector('.drag-placeholder');
-        if (placeholder) {
-            placeholder.remove();
+    // Create drop preview element
+    function createDropPreview(referencePanel, position, height) {
+        const preview = document.createElement('div');
+        preview.className = 'drop-preview';
+        preview.style.height = height + 'px';
+        preview.style.margin = '8px 0';
+        preview.style.border = '2px dashed var(--primary-color)';
+        preview.style.borderRadius = '8px';
+        preview.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+        preview.style.transition = 'all 0.2s ease';
+        preview.style.position = 'relative';
+        preview.style.zIndex = '999';
+        
+        // Add visual indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'drop-indicator';
+        indicator.style.position = 'absolute';
+        indicator.style.left = '50%';
+        indicator.style.top = '50%';
+        indicator.style.transform = 'translate(-50%, -50%)';
+        indicator.style.color = 'var(--primary-color)';
+        indicator.style.fontSize = '0.875rem';
+        indicator.style.fontWeight = '500';
+        indicator.innerHTML = '<i class="fas fa-plus"></i> Drop here';
+        preview.appendChild(indicator);
+        
+        // Insert the preview
+        if (position === 'before') {
+            referencePanel.parentNode.insertBefore(preview, referencePanel);
+        } else {
+            referencePanel.parentNode.insertBefore(preview, referencePanel.nextSibling);
         }
+    }
+    
+    // Remove drop preview
+    function removeDropPreview() {
+        const previews = document.querySelectorAll('.drop-preview');
+        previews.forEach(preview => preview.remove());
     }
     
     // Handle panel click to toggle expansion

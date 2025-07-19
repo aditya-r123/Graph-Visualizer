@@ -5275,9 +5275,12 @@ export class GraphCreator {
         const topPanel = document.getElementById('mousePositionPanel');
         const topDisplay = document.getElementById('mousePositionTop');
         
+        // Check if a panel is currently being dragged
+        const isDragging = document.querySelector('.draggable-panel.dragging') !== null;
+        
         // Update bottom status bar display
         if (coordDisplay) {
-            if (!this.showMouseCoordinates) {
+            if (!this.showMouseCoordinates || isDragging) {
                 coordDisplay.textContent = '';
             } else if (!this.mouseOverCanvas) {
                 coordDisplay.textContent = '';
@@ -5291,7 +5294,7 @@ export class GraphCreator {
         
         // Update top panel display
         if (topPanel && topDisplay) {
-            if (!this.showMouseCoordinates || !this.mouseOverCanvas) {
+            if (!this.showMouseCoordinates || !this.mouseOverCanvas || isDragging) {
                 topPanel.style.display = 'none';
             } else {
                 topPanel.style.display = 'block';

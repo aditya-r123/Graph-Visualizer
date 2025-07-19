@@ -2924,6 +2924,25 @@ body {
     transition: none !important;
     box-shadow: var(--shadow-xl);
     z-index: 1001;
+    animation: dragShake 0.1s ease-in-out infinite;
+}
+
+@keyframes dragShake {
+    0% { transform: rotate(2deg) translateX(0px) translateY(0px); }
+    25% { transform: rotate(2deg) translateX(-1px) translateY(-1px); }
+    50% { transform: rotate(2deg) translateX(1px) translateY(1px); }
+    75% { transform: rotate(2deg) translateX(-1px) translateY(1px); }
+    100% { transform: rotate(2deg) translateX(0px) translateY(0px); }
+}
+
+/* Alternative shake effect with more variation */
+@keyframes dragShakeVariant {
+    0% { transform: rotate(2deg) translateX(0px) translateY(0px); }
+    20% { transform: rotate(2deg) translateX(-1px) translateY(0px); }
+    40% { transform: rotate(2deg) translateX(1px) translateY(-1px); }
+    60% { transform: rotate(2deg) translateX(0px) translateY(1px); }
+    80% { transform: rotate(2deg) translateX(-1px) translateY(-1px); }
+    100% { transform: rotate(2deg) translateX(0px) translateY(0px); }
 }
 
 .panel-drag-handle {
@@ -2990,31 +3009,46 @@ body {
     100% { opacity: 0.3; }
 }
 
-/* Drag placeholder styles */
-.drag-placeholder {
-    position: absolute;
-    background-color: rgba(128, 128, 128, 0.2);
-    border: 2px dashed rgba(128, 128, 128, 0.5);
-    border-radius: 8px;
-    pointer-events: none;
-    z-index: 1000;
-    transition: all 0.2s ease;
-    animation: placeholderPulse 1.5s ease-in-out infinite;
+
+
+/* Drop preview styles */
+.drop-preview {
+    animation: dropPreviewPulse 1s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
 
-@keyframes placeholderPulse {
+.drop-preview:hover {
+    transform: scale(1.02);
+}
+
+.drop-indicator {
+    animation: dropIndicatorFade 1.5s ease-in-out infinite;
+}
+
+@keyframes dropPreviewPulse {
     0% { 
-        background-color: rgba(128, 128, 128, 0.2);
-        border-color: rgba(128, 128, 128, 0.5);
+        background-color: rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.6);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
     }
     50% { 
-        background-color: rgba(128, 128, 128, 0.3);
-        border-color: rgba(128, 128, 128, 0.7);
+        background-color: rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.8);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
     }
     100% { 
-        background-color: rgba(128, 128, 128, 0.2);
-        border-color: rgba(128, 128, 128, 0.5);
+        background-color: rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.6);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
     }
+}
+
+@keyframes dropIndicatorFade {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
 }
 
 
