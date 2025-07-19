@@ -2204,6 +2204,7 @@ body {
 }
 
 .expandable-content {
+    display: none;
     overflow: hidden;
     transition: all 0.3s ease-out;
 }

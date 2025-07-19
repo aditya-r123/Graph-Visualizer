@@ -414,10 +414,12 @@
         <aside class="right-sidebar">
             <div class="right-sidebar-content">
                 <div class="control-section">
-                    <h3 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <h3 class="expandable-header" data-target="saveExportContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
                         <i class="fas fa-save"></i>
                         Save & Export
+                        <i class="fas fa-chevron-down expand-icon"></i>
                     </h3>
+                    <div class="expandable-content show" id="saveExportContent">
                     <div class="d-flex gap-2 mb-2">
                         <div class="control-group flex-fill">
                             <div class="d-flex flex-column align-items-center">
@@ -480,12 +482,15 @@
                             </button>
                         </div>
                     </div>
+                    </div>
                 </div>
                 <div class="control-section" style="margin-top: 1rem;">
-                    <h3 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <h3 class="expandable-header" data-target="canvasManagementContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
                         <i class="fas fa-history"></i>
                         Canvas Management
+                        <i class="fas fa-chevron-down expand-icon"></i>
                     </h3>
+                    <div class="expandable-content show" id="canvasManagementContent">
                     <div class="saved-graphs">
                         <h4><i class="fas fa-history"></i> Recent Canvases</h4>
                         <div id="savedGraphsList" class="saved-graphs-list">
@@ -502,6 +507,7 @@
                         </button>
                     </div>
                 </div>
+                    </div>
                 </div>
                 <!-- Shared confirmation buttons -->
                 <div id="sharedConfirmation" class="d-flex gap-2 mt-2" style="display: none;">
@@ -516,10 +522,12 @@
                 </div>
                 <!-- Clock and Contact Panel -->
                 <div class="control-section" style="margin-top: 1rem;">
-                    <h3 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <h3 class="expandable-header" data-target="utilitiesContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
                         <i class="fas fa-info-circle"></i>
                         Utilities
+                        <i class="fas fa-chevron-down expand-icon"></i>
                     </h3>
+                    <div class="expandable-content show" id="utilitiesContent">
                     <div class="button-group mt-2">
                         <button id="clockBtn" class="btn btn-outline-secondary w-100" title="Click to toggle between digital and analog">
                             <i class="fas fa-clock"></i>
@@ -550,6 +558,7 @@
                             <i class="fas fa-envelope"></i>
                             Contact
                         </button>
+                    </div>
                     </div>
                 </div>
             </div>
