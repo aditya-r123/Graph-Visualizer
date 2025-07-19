@@ -16,16 +16,26 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fas fa-project-diagram"></i>
-                    <h1>Graph Creator Pro</h1>
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <div class="logo d-flex align-items-center">
+                        <i class="fas fa-project-diagram"></i>
+                        <h1>Graph Creator Pro</h1>
+                    </div>
+                    <button id="helpBtn" class="btn btn-outline-secondary help-btn" title="Show Help" style="min-width:40px; margin-left: 250px;">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
                 </div>
             </div>
-            <!-- Utility controls - only help and theme toggle -->
+            <!-- Utility controls - status, mouse position, and theme toggle -->
             <div class="d-flex gap-2 justify-content-center align-items-center mt-3 mb-3" id="savePanelUtilities">
-                <button id="helpBtn" class="btn btn-outline-secondary help-btn" title="Show Help" style="min-width:40px;">
-                    <i class="fas fa-question-circle"></i>
-                </button>
+                <div id="statusPanel" class="btn btn-outline-secondary" style="min-width:120px; font-size:0.75rem; padding:0.5rem; text-align:center;">
+                    <i class="fas fa-info-circle"></i>
+                    <div id="statusMessageTop" style="font-weight:bold;">Ready to create your graph!</div>
+                </div>
+                <div id="mousePositionPanel" class="btn btn-outline-secondary" style="min-width:80px; font-size:0.75rem; padding:0.5rem; text-align:center; display:none;">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <div id="mousePositionTop" style="font-weight:bold;">(0, 0)</div>
+                </div>
                 <button id="themeToggle" class="btn btn-outline-secondary theme-toggle" title="Toggle theme" style="min-width:40px;">
                     <span class="theme-icon">
                         <!-- Sun (visible in dark theme) -->
@@ -76,7 +86,18 @@
                 <div class="control-section" id="basicControlsSection">
                     <h3><i class="fas fa-sliders-h"></i> Controls</h3>
                     
-                    <div class="control-group">
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="mouseCoordinateToggle">
+                            <i class="fas fa-eye"></i>
+                            Mouse Position
+                            <div class="switch-container">
+                                <input type="checkbox" id="mouseCoordinateToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
                         <label class="switch-label" for="hideLabelsToggle">
                             <i class="fas fa-tag"></i>
                             Hide Vertex Labels
@@ -98,44 +119,69 @@
                         </div>
                     </div>
                     
-                    <div class="control-group">
-                        <label for="vertexLabel">
-                            <i class="fas fa-tag"></i>
-                            Vertex Label
-                        </label>
-                        <input type="text" id="vertexLabel" placeholder="Auto-label" maxlength="10">
-                        <small>Leave empty for auto-labeling</small>
+                    <div class="control-group d-flex gap-2">
+                        <div class="flex-fill">
+                            <label for="vertexLabel">
+                                <i class="fas fa-tag"></i>
+                                Vertex Label
+                            </label>
+                            <input type="text" id="vertexLabel" placeholder="Auto-label" maxlength="10">
+                        </div>
+                        
+                        <div class="flex-fill">
+                            <label for="edgeWeight">
+                                <i class="fas fa-weight-hanging"></i>
+                                Edge Weight
+                            </label>
+                            <input type="number" id="edgeWeight" placeholder="No weight" min="0" step="0.1">
+                        </div>
                     </div>
                     
-                    <div class="control-group">
-                        <label for="edgeWeight">
-                            <i class="fas fa-weight-hanging"></i>
-                            Edge Weight
-                        </label>
-                        <input type="number" id="edgeWeight" placeholder="No weight" min="0" step="0.1">
+                    <div class="control-group d-flex gap-2 align-items-start" style="margin-bottom: 0.5rem;">
+                        <div class="flex-fill">
+                            <label for="edgeType">
+                                <i class="fas fa-wave-square"></i>
+                                Edge Type
+                            </label>
+                            <select id="edgeType">
+                                <option value="straight">Straight</option>
+                                <option value="curved">Curved</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex-fill">
+                            <label for="edgeDirection">
+                                <i class="fas fa-arrow-right"></i>
+                                Edge Direction
+                            </label>
+                            <select id="edgeDirection">
+                                <option value="undirected">Undirected</option>
+                                <option value="directed-forward">Directed (→)</option>
+                                <option value="directed-backward">Directed (←)</option>
+                            </select>
+                        </div>
                     </div>
                     
-                    <div class="control-group">
-                        <label for="edgeType">
-                            <i class="fas fa-wave-square"></i>
-                            Edge Type
+                    <!-- Grid Controls -->
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="coordinateGridToggle">
+                            <i class="fas fa-th"></i>
+                            Grid Lines
+                            <div class="switch-container">
+                                <input type="checkbox" id="coordinateGridToggle">
+                                <span class="switch-slider"></span>
+                            </div>
                         </label>
-                        <select id="edgeType">
-                            <option value="straight">Straight Line</option>
-                            <option value="curved">Curved</option>
-                        </select>
                     </div>
                     
-                    <div class="control-group">
-                        <label for="edgeDirection">
-                            <i class="fas fa-arrow-right"></i>
-                            Edge Direction
+                    <div class="control-group" id="gridDensityContainer" style="display: none;">
+                        <label for="gridDensity">
+                            <i class="fas fa-sliders-h"></i>
+                            Grid Density
                         </label>
-                        <select id="edgeDirection">
-                            <option value="undirected">Undirected</option>
-                            <option value="directed-forward">Directed (→)</option>
-                            <option value="directed-backward">Directed (←)</option>
-                        </select>
+                        <div class="slider-container">
+                            <input type="range" id="gridDensity" min="10" max="100" value="50">
+                        </div>
                     </div>
                     
                     <!-- Delete Nodes Mode Controls -->
@@ -488,59 +534,8 @@
                 </div>
             </div>
         </aside>
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <!-- Coordinate Controls Panel -->
-            <div class="status-item footer-coords-panel">
-                <div class="footer-coords-controls" style="display: flex; flex-direction: row; gap: 2rem; width: 100%; justify-content: space-between; align-items: flex-start;">
-                    <!-- Section 1: Mouse Coordinates Toggle -->
-                    <div class="footer-coords-section section-toggle">
-                        <label class="switch-label" for="mouseCoordinateToggle" style="flex-direction: column; align-items: flex-start; gap: 0.2rem;">
-                            <span style="display: block;"><i class="fas fa-eye"></i> Mouse Position</span>
-                            <div class="switch-container">
-                                <input type="checkbox" id="mouseCoordinateToggle" checked>
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
-                    </div>
-                    <!-- Section 2: Mouse Coordinates Display -->
-                    <div class="footer-coords-section section-display" id="mousePositionDisplay" style="min-width: 120px; text-align: center;">
-                        <span class="coordinate-tooltip-label">
-                            <i class="fas fa-mouse-pointer"></i>
-                            Mouse Position
-                        </span>
-                        <span class="coordinate-tooltip-value" id="mouseCoordinates">
-                            (0, 0)
-                        </span>
-                    </div>
-                    <!-- Section 3: Coordinate Grid Toggle -->
-                    <div class="footer-coords-section section-grid-toggle">
-                        <label class="switch-label" for="coordinateGridToggle" style="flex-direction: column; align-items: flex-start; gap: 0.2rem;">
-                            <span style="display: block;"><i class="fas fa-th"></i> Grid Lines</span>
-                            <div class="switch-container">
-                                <input type="checkbox" id="coordinateGridToggle">
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
-                    </div>
-                    <!-- Section 4: Coordinate Grid Density Slider -->
-                    <div class="footer-coords-section section-grid-density" id="gridDensityContainer" style="display: none; min-width: 160px;">
-                        <label for="gridDensity" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-sliders-h"></i>
-                            Grid Density
-                        </label>
-                        <span class="slider-container">
-                            <input type="range" id="gridDensity" min="10" max="100" value="50">
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <!-- Status Message -->
-            <div class="status-item">
-                <i class="fas fa-info-circle"></i>
-                <span id="statusMessage">Ready to create your graph!</span>
-            </div>
-        </div>
+
+
         
         <!-- Contact Modal -->
         <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">

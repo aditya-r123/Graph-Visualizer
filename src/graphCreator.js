@@ -3677,7 +3677,10 @@ export class GraphCreator {
     }
     
     updateStatus(message) {
-        document.getElementById('statusMessage').textContent = message;
+        const statusMessageTop = document.getElementById('statusMessageTop');
+        if (statusMessageTop) {
+            statusMessageTop.textContent = message;
+        }
     }
     
     updateTime() {
@@ -4752,6 +4755,13 @@ export class GraphCreator {
         // Store original sizes for all vertices (for cancel/undo)
         this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
         this.startShakeAnimation();
+        
+        // Hide theme toggle and mouse position display when in edit mode
+        const themeToggle = document.getElementById('themeToggle');
+        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        if (themeToggle) themeToggle.style.display = 'none';
+        if (mousePositionPanel) mousePositionPanel.style.display = 'none';
+        
         const editSection = document.getElementById('editControlsSection');
         if (editSection) editSection.style.display = 'block';
         document.querySelectorAll('.control-section').forEach(section => {
@@ -4833,6 +4843,19 @@ export class GraphCreator {
         this._editOriginal = null;
         this._editPreview = null;
         this._originalAllVertexSizes = null;
+        
+        // Show theme toggle and mouse position display when exiting edit mode
+        const themeToggle = document.getElementById('themeToggle');
+        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        if (themeToggle) themeToggle.style.display = 'block';
+        // Only show mouse position panel if it was previously visible (controlled by toggle)
+        if (mousePositionPanel) {
+            const mouseToggle = document.getElementById('mouseCoordinateToggle');
+            if (mouseToggle && mouseToggle.checked) {
+                mousePositionPanel.style.display = 'block';
+            }
+        }
+        
         // Hide edit controls
         const editSection = document.getElementById('editControlsSection');
         if (editSection) editSection.style.display = 'none';
@@ -5229,16 +5252,33 @@ export class GraphCreator {
     // Update mouse coordinate display
     updateMouseCoordinateDisplay() {
         const coordDisplay = document.getElementById('mouseCoordinates');
+        const topPanel = document.getElementById('mousePositionPanel');
+        const topDisplay = document.getElementById('mousePositionTop');
+        
+        // Update bottom status bar display
         if (coordDisplay) {
             if (!this.showMouseCoordinates) {
                 coordDisplay.textContent = '';
             } else if (!this.mouseOverCanvas) {
-                coordDisplay.textContent = 'outside editor';
+                coordDisplay.textContent = '';
             } else {
                 // Display coordinates in bottom-left origin system
                 const displayX = Math.round(this.mouseCoordinates.x);
                 const displayY = Math.round(this.mouseCoordinates.y);
                 coordDisplay.textContent = `(${displayX}, ${displayY})`;
+            }
+        }
+        
+        // Update top panel display
+        if (topPanel && topDisplay) {
+            if (!this.showMouseCoordinates || !this.mouseOverCanvas) {
+                topPanel.style.display = 'none';
+            } else {
+                topPanel.style.display = 'block';
+                // Display coordinates in bottom-left origin system
+                const displayX = Math.round(this.mouseCoordinates.x);
+                const displayY = Math.round(this.mouseCoordinates.y);
+                topDisplay.textContent = `(${displayX}, ${displayY})`;
             }
         }
     }
@@ -5536,6 +5576,13 @@ export class GraphCreator {
         this.originalEdges = this.edges.map(e => ({ ...e }));
         document.body.classList.add('delete-mode-active');
         document.getElementById('deleteNodesControls').style.display = 'none';
+        
+        // Hide theme toggle and mouse position display when in delete mode
+        const themeToggle = document.getElementById('themeToggle');
+        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        if (themeToggle) themeToggle.style.display = 'none';
+        if (mousePositionPanel) mousePositionPanel.style.display = 'none';
+        
         // Show delete mode panel
         this.showDeleteModePanel();
         this.draw();
@@ -5550,6 +5597,19 @@ export class GraphCreator {
         this.verticesToDelete = new Set();
         document.body.classList.remove('delete-mode-active');
         document.getElementById('deleteNodesControls').style.display = 'flex';
+        
+        // Show theme toggle and mouse position display when exiting delete mode
+        const themeToggle = document.getElementById('themeToggle');
+        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        if (themeToggle) themeToggle.style.display = 'block';
+        // Only show mouse position panel if it was previously visible (controlled by toggle)
+        if (mousePositionPanel) {
+            const mouseToggle = document.getElementById('mouseCoordinateToggle');
+            if (mouseToggle && mouseToggle.checked) {
+                mousePositionPanel.style.display = 'block';
+            }
+        }
+        
         // Hide delete mode panel
         this.hideDeleteModePanel();
         // Ensure edit controls section is hidden after delete mode
@@ -5577,6 +5637,19 @@ export class GraphCreator {
         this.verticesToDelete = new Set();
         document.body.classList.remove('delete-mode-active');
         document.getElementById('deleteNodesControls').style.display = 'flex';
+        
+        // Show theme toggle and mouse position display when exiting delete mode
+        const themeToggle = document.getElementById('themeToggle');
+        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        if (themeToggle) themeToggle.style.display = 'block';
+        // Only show mouse position panel if it was previously visible (controlled by toggle)
+        if (mousePositionPanel) {
+            const mouseToggle = document.getElementById('mouseCoordinateToggle');
+            if (mouseToggle && mouseToggle.checked) {
+                mousePositionPanel.style.display = 'block';
+            }
+        }
+        
         // Hide delete mode panel
         this.hideDeleteModePanel();
         // Ensure edit controls section is hidden after delete mode
