@@ -190,12 +190,9 @@ body {
 
 .logo.logo-hover i {
     color: hsl(var(--glow-hue), 70%, 70%);
-    transform: scale(calc(1.1 + var(--glow-intensity) * 0.1)) rotate(calc(var(--glow-intensity) * 10deg));
-    filter: 
-        drop-shadow(0 0 calc(var(--glow-radius) * 0.4) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.8))) 
-        drop-shadow(0 0 calc(var(--glow-radius) * 0.8) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.6)))
-        drop-shadow(0 0 calc(var(--glow-radius) * 1.2) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.4)));
-    animation: logoIconPulse var(--pulse-frequency) ease-in-out infinite;
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 8px hsla(var(--glow-hue), 70%, 70%, 0.6));
+    animation: logoIconPulse 2s ease-in-out infinite;
 }
 
 .logo h1 {
@@ -210,59 +207,37 @@ body {
 
 .logo.logo-hover h1 {
     color: hsl(var(--glow-hue), 70%, 95%);
-    text-shadow: 
-        0 0 calc(var(--glow-radius) * 0.25) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.8)),
-        0 0 calc(var(--glow-radius) * 0.5) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.6)),
-        0 0 calc(var(--glow-radius) * 0.75) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.4)),
-        0 0 calc(var(--glow-radius) * 1) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.2));
-    transform: scale(calc(1.02 + var(--glow-intensity) * 0.03));
-    animation: logoTextGlow var(--pulse-frequency) ease-in-out infinite;
+    text-shadow: 0 0 6px hsla(var(--glow-hue), 70%, 70%, 0.5);
+    transform: scale(1.02);
+    animation: logoTextGlow 2s ease-in-out infinite;
 }
 
 .logo.logo-hover {
     background: linear-gradient(135deg, 
-        hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.1)) 0%, 
-        hsla(calc(var(--glow-hue) + 30), 70%, 70%, calc(var(--glow-opacity) * 0.1)) 50%, 
-        hsla(calc(var(--glow-hue) + 60), 70%, 70%, calc(var(--glow-opacity) * 0.1)) 100%);
-    box-shadow: 
-        0 0 calc(var(--glow-radius) * 1) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.3)),
-        0 0 calc(var(--glow-radius) * 2) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.2)),
-        0 0 calc(var(--glow-radius) * 3) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.1)),
-        inset 0 0 calc(var(--glow-radius) * 1) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.1));
-    transform: translateY(calc(-2px - var(--glow-intensity) * 3px));
+        hsla(var(--glow-hue), 70%, 70%, 0.1) 0%, 
+        hsla(calc(var(--glow-hue) + 30), 70%, 70%, 0.1) 50%, 
+        hsla(calc(var(--glow-hue) + 60), 70%, 70%, 0.1) 100%);
+    box-shadow: 0 0 12px hsla(var(--glow-hue), 70%, 70%, 0.3);
+    transform: translateY(-2px);
 }
 
 @keyframes logoIconPulse {
     0%, 100% {
-        transform: scale(calc(1.1 + var(--glow-intensity) * 0.1)) rotate(calc(var(--glow-intensity) * 10deg));
-        filter: 
-            drop-shadow(0 0 calc(var(--glow-radius) * 0.4) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.8))) 
-            drop-shadow(0 0 calc(var(--glow-radius) * 0.8) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.6)))
-            drop-shadow(0 0 calc(var(--glow-radius) * 1.2) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.4)));
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 8px hsla(var(--glow-hue), 70%, 70%, 0.6));
     }
     50% {
-        transform: scale(calc(1.15 + var(--glow-intensity) * 0.15)) rotate(0deg);
-        filter: 
-            drop-shadow(0 0 calc(var(--glow-radius) * 0.6) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 1))) 
-            drop-shadow(0 0 calc(var(--glow-radius) * 1.2) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.8)))
-            drop-shadow(0 0 calc(var(--glow-radius) * 1.8) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.6)));
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 12px hsla(var(--glow-hue), 70%, 70%, 0.8));
     }
 }
 
 @keyframes logoTextGlow {
     0%, 100% {
-        text-shadow: 
-            0 0 calc(var(--glow-radius) * 0.25) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.8)),
-            0 0 calc(var(--glow-radius) * 0.5) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.6)),
-            0 0 calc(var(--glow-radius) * 0.75) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.4)),
-            0 0 calc(var(--glow-radius) * 1) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.2));
+        text-shadow: 0 0 6px hsla(var(--glow-hue), 70%, 70%, 0.5);
     }
     50% {
-        text-shadow: 
-            0 0 calc(var(--glow-radius) * 0.4) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 1)),
-            0 0 calc(var(--glow-radius) * 0.8) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.8)),
-            0 0 calc(var(--glow-radius) * 1.2) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.6)),
-            0 0 calc(var(--glow-radius) * 1.6) hsla(var(--glow-hue), 70%, 70%, calc(var(--glow-opacity) * 0.4));
+        text-shadow: 0 0 10px hsla(var(--glow-hue), 70%, 70%, 0.7);
     }
 }
 
@@ -2387,13 +2362,12 @@ body {
     border-radius: 50%;
     background: var(--primary-color);
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: var(--transition);
 }
 
 .slider::-webkit-slider-thumb:hover {
+    background: var(--primary-dark);
     transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .slider::-moz-range-thumb {
@@ -3752,7 +3726,137 @@ body {
 }
 
 .format-option input[type="radio"]:checked + .format-button:hover {
-    background: var(--primary-color);
+    background: var(--primary-dark);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Panel Drag and Drop Styles */
+.draggable-panel {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.draggable-panel:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.draggable-panel.dragging {
+    transition: none !important;
+    box-shadow: var(--shadow-xl);
+    z-index: 1001;
+}
+
+.panel-drag-handle {
+    cursor: grab !important;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+    position: relative;
+}
+
+.panel-drag-handle:hover {
+    background-color: rgba(99, 102, 241, 0.02);
+}
+
+.panel-drag-handle:active {
+    cursor: grabbing !important;
+    background-color: rgba(99, 102, 241, 0.05);
+}
+
+.panel-preview-box {
+    position: absolute;
+    background: rgba(128, 128, 128, 0.3);
+    border: 2px dashed #666;
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+    transition: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Ensure proper spacing between panels */
+.draggable-panel + .draggable-panel {
+    margin-top: 1rem;
+}
+
+/* Animation for panel reordering */
+.sidebar-content {
+    transition: none;
+}
+
+.sidebar-content.reordering {
+    transition: all 0.3s ease;
+}
+
+/* Panel drag styling */
+.panel-drag-handle {
+    position: relative;
+}
+
+.panel-drag-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s ease;
+    z-index: 1;
+}
+
+.panel-drag-handle:hover::after {
+    background-color: rgba(99, 102, 241, 0.02);
+}
+
+/* Ensure interactive elements stay above the drag overlay */
+.panel-drag-handle button,
+.panel-drag-handle input,
+.panel-drag-handle select,
+.panel-drag-handle textarea,
+.panel-drag-handle a,
+.panel-drag-handle label,
+.panel-drag-handle .control-group,
+.panel-drag-handle .button-group,
+.panel-drag-handle .slider-container,
+.panel-drag-handle .checkbox-label,
+.panel-drag-handle .checkmark {
+    position: relative;
+    z-index: 2;
+}
+
+/* Prevent text selection during drag */
+.draggable-panel.dragging * {
+    user-select: none;
+}
+
+/* Visual feedback for draggable panels */
+.draggable-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.draggable-panel:hover::before {
+    opacity: 1;
+}
+
+/* Ensure panels maintain their expanded/collapsed state during drag */
+.draggable-panel .expandable-content {
+    transition: none;
+}
+
+.draggable-panel.dragging .expandable-content {
+    transition: none !important;
 }
