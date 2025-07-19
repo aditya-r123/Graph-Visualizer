@@ -88,6 +88,9 @@ export class GraphCreator {
         this.savedGraphs = [];
         this.lastSavedState = null;
         
+        // Shared confirmation system
+        this.pendingAction = null; // 'clearGraph' or 'deleteAllGraphs'
+        
         // Mouse coordinate tracking
         this.showMouseCoordinates = true;
         this.mouseX = 0;
@@ -126,6 +129,17 @@ export class GraphCreator {
         // Initial draw
         this.draw();
         this.lastVertexClick = null; // { vertexId, time }
+        
+        // Ensure confirmation buttons are hidden initially
+        setTimeout(() => {
+            this.hideSharedConfirmation();
+        }, 0);
+        
+        // Also directly hide confirmation buttons to ensure they're hidden
+        const confirmationDiv = document.getElementById('sharedConfirmation');
+        if (confirmationDiv) {
+            confirmationDiv.style.setProperty('display', 'none', 'important');
+        }
     }
     
 
@@ -261,9 +275,7 @@ export class GraphCreator {
             this.forceRedraw();
         });
         
-        document.getElementById('clearGraph').addEventListener('click', () => {
-            this.clearGraph();
-        });
+        // clearGraph event listener is now handled in the shared confirmation system
         
         // Auto-save toggle
         document.getElementById('autosaveToggle').addEventListener('change', (e) => {
@@ -459,10 +471,41 @@ export class GraphCreator {
         const deleteAllGraphsBtn = document.getElementById('deleteAllGraphs');
         if (deleteAllGraphsBtn) {
             deleteAllGraphsBtn.addEventListener('click', () => {
-                this.deleteAllSavedGraphs();
+                this.showSharedConfirmation('deleteAllGraphs');
             });
         } else {
             console.error('Delete All Graphs button not found!');
+        }
+        
+        // Clear current canvas button
+        const clearGraphBtn = document.getElementById('clearGraph');
+        if (clearGraphBtn) {
+            clearGraphBtn.addEventListener('click', () => {
+                this.showSharedConfirmation('clearGraph');
+            });
+        } else {
+            console.error('Clear Graph button not found!');
+        }
+        
+        // Shared confirmation buttons
+        const confirmActionBtn = document.getElementById('confirmAction');
+        const cancelActionBtn = document.getElementById('cancelAction');
+        
+        if (confirmActionBtn) {
+            confirmActionBtn.addEventListener('click', () => {
+                this.confirmPendingAction();
+            });
+        } else {
+            console.error('Confirm Action button not found!');
+        }
+        
+        if (cancelActionBtn) {
+            cancelActionBtn.addEventListener('click', () => {
+                this.hideSharedConfirmation();
+                this.updateStatus('Operation cancelled');
+            });
+        } else {
+            console.error('Cancel Action button not found!');
         }
         
         // Delete nodes mode controls
@@ -3554,48 +3597,9 @@ export class GraphCreator {
     }
     
     clearGraph() {
-        if (this.vertices.length === 0 && this.edges.length === 0) {
-            this.updateStatus('Graph is already empty');
-            return;
-        }
-        
-        // Get the current graph name if it exists
-        let graphName = 'Untitled Graph';
-        if (this.currentGraphId) {
-            const existing = this.savedGraphs.find(g => g.id === this.currentGraphId);
-            if (existing) {
-                graphName = existing.name;
-            }
-        }
-        
-        // Show confirmation dialog with graph name
-        const confirmed = confirm(`Are you sure you want to reset the graph "${graphName}"? This action cannot be undone.`);
-        if (!confirmed) {
-            return;
-        }
-        
-        // Clear the graph
-        this.vertices = [];
-        this.edges = [];
-        this.selectedVertices = [];
-        this.targetVertex = null;
-        this.distanceMode = false;
-        this.stopSearch();
-        
-        // Reset edit mode
-        this.exitEditMode();
-        
-        // Clear any flashing vertices
-        this.flashingVertices.clear();
-        this.distanceFlashingVertices = null;
-        
-        // Update UI
-        this.updateInfo();
-        this.updateRootDropdown();
-        this.updateTargetVertexDisplay();
-        this.draw();
-        
-        this.updateStatus('Graph reset');
+        // This method is now handled by the shared confirmation system
+        // The actual clearing logic is in confirmClearGraph()
+        this.showSharedConfirmation('clearGraph');
     }
     
     createNewGraph() {
@@ -5345,7 +5349,110 @@ export class GraphCreator {
         }
     }
     
-    // Delete all saved graphs
+    // Show shared confirmation buttons
+    showSharedConfirmation(action) {
+        this.pendingAction = action;
+        
+        if (action === 'deleteAllGraphs') {
+            if (this.savedGraphs.length === 0) {
+                this.updateStatus('No saved graphs to delete');
+                return;
+            }
+            this.updateStatus(`Click confirm to delete all ${this.savedGraphs.length} saved graphs`);
+        } else if (action === 'clearGraph') {
+            if (this.vertices.length === 0 && this.edges.length === 0) {
+                this.updateStatus('Graph is already empty');
+                return;
+            }
+            this.updateStatus('Click confirm to clear the current canvas');
+        }
+        
+        // Hide both action buttons and show confirmation
+        const deleteAllBtn = document.getElementById('deleteAllGraphs');
+        const clearGraphBtn = document.getElementById('clearGraph');
+        const confirmationDiv = document.getElementById('sharedConfirmation');
+        
+        if (deleteAllBtn && clearGraphBtn && confirmationDiv) {
+            deleteAllBtn.style.display = 'none';
+            clearGraphBtn.style.display = 'none';
+            confirmationDiv.style.setProperty('display', 'flex', 'important');
+        }
+    }
+    
+    // Hide shared confirmation buttons
+    hideSharedConfirmation() {
+        const deleteAllBtn = document.getElementById('deleteAllGraphs');
+        const clearGraphBtn = document.getElementById('clearGraph');
+        const confirmationDiv = document.getElementById('sharedConfirmation');
+        
+        if (deleteAllBtn && clearGraphBtn && confirmationDiv) {
+            // Show both action buttons
+            deleteAllBtn.style.display = 'block';
+            clearGraphBtn.style.display = 'block';
+            // Hide confirmation buttons with !important
+            confirmationDiv.style.setProperty('display', 'none', 'important');
+            // Reset pending action
+            this.pendingAction = null;
+        }
+    }
+    
+    // Confirm pending action
+    confirmPendingAction() {
+        if (this.pendingAction === 'deleteAllGraphs') {
+            this.confirmDeleteAllGraphs();
+        } else if (this.pendingAction === 'clearGraph') {
+            this.confirmClearGraph();
+        }
+    }
+    
+    // Confirm delete all graphs
+    confirmDeleteAllGraphs() {
+        const graphCount = this.savedGraphs.length;
+        
+        try {
+            // If any of the deleted graphs is currently loaded, clear the current graph ID
+            if (this.currentGraphId && this.savedGraphs.some(g => g.id === this.currentGraphId)) {
+                this.currentGraphId = null;
+            }
+            this.savedGraphs = [];
+            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            this.updateSavedGraphsList();
+            this.hideSharedConfirmation();
+            this.updateStatus(`All ${graphCount} saved graphs deleted`);
+        } catch (error) {
+            console.error('Failed to delete all saved graphs:', error);
+            this.updateStatus('Failed to delete saved graphs');
+        }
+    }
+    
+    // Confirm clear graph
+    confirmClearGraph() {
+        // Clear the graph
+        this.vertices = [];
+        this.edges = [];
+        this.selectedVertices = [];
+        this.targetVertex = null;
+        this.distanceMode = false;
+        this.stopSearch();
+        
+        // Reset edit mode
+        this.exitEditMode();
+        
+        // Clear any flashing vertices
+        this.flashingVertices.clear();
+        this.distanceFlashingVertices = null;
+        
+        // Update UI
+        this.updateInfo();
+        this.updateRootDropdown();
+        this.updateTargetVertexDisplay();
+        this.draw();
+        
+        this.hideSharedConfirmation();
+        this.updateStatus('Current canvas cleared');
+    }
+    
+    // Delete all saved graphs (legacy method - kept for compatibility)
     deleteAllSavedGraphs() {
         if (this.savedGraphs.length === 0) {
             this.updateStatus('No saved graphs to delete');
