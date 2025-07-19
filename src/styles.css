@@ -93,7 +93,7 @@ body {
 .app-container {
     display: grid;
     grid-template-columns: 320px 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: 1fr;
     height: 100vh;
     gap: 0;
     margin: 0;
@@ -102,10 +102,9 @@ body {
     min-width: 0;
 }
 
-/* Fade out sidebars and footer when instructions are active */
+/* Fade out sidebars when instructions are active */
 .app-container.instructions-active .sidebar,
-.app-container.instructions-active .right-sidebar,
-.app-container.instructions-active .status-bar {
+.app-container.instructions-active .right-sidebar {
     opacity: 0.3;
     pointer-events: none;
     transition: opacity 0.3s ease;
@@ -1265,7 +1264,7 @@ body {
     transition: var(--transition);
     margin-right: 280px; /* Make room for right sidebar */
     padding-right: 0;
-    padding-bottom: 280px !important; /* Account for fixed footer height */
+    padding-bottom: 0;
     min-width: 0;
     width: auto;
     min-height: 0; /* Allow content to shrink */
@@ -1341,14 +1340,14 @@ body {
 /* Scrollable wrapper for the canvas */
 .canvas-scroll-wrapper {
     width: 100%;
-    height: calc(100vh - 120px); /* Account for footer height (120px) */
+    height: 100vh; /* Full viewport height since no footer */
     overflow: auto;
     position: relative;
     margin: 0;
     background: var(--bg-primary);
-    margin-bottom: 0; /* Remove bottom margin */
+    margin-bottom: 0;
     display: block;
-    /* Ensure scrollbars appear between editor and footer */
+    /* Ensure scrollbars appear */
     z-index: 1;
 }
 
@@ -1563,439 +1562,9 @@ body {
     color: var(--text-primary);
 }
 
-/* Status Bar */
-.status-bar {
-    grid-column: 1 / -1;
-    grid-row: 2 / 3;
-    background: var(--bg-secondary) !important;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-    color: var(--text-primary) !important;
-    opacity: 1 !important;
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.75rem;
-    transition: var(--transition);
-    position: fixed;
-    bottom: 0;
-    left: 320px; /* Start after left sidebar */
-    right: 280px; /* End before right sidebar */
-    z-index: 1000;
-    overflow: hidden;
-    gap: 1.5rem;
-    height: 120px;
-    min-height: 0;
-    max-height: none;
-}
 
-/* Footer specific items */
-.footer-stats {
-    flex: 2;
-    max-width: 220px;
-}
 
-.footer-stats .stats-compact {
-    display: flex;
-    gap: 0.75rem;
-    margin: 0;
-}
 
-.footer-stats .stat-compact-item {
-    flex: 1;
-    padding: 1rem 1.25rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    text-align: center;
-    transition: var(--transition);
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.footer-stats .stat-compact-item:hover {
-    border-color: var(--primary-color);
-    background: var(--bg-secondary);
-    transform: translateY(-1px);
-}
-
-.footer-stats .stat-compact-value {
-    display: block;
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: var(--primary-color);
-    line-height: 1;
-    margin-bottom: 0.25rem;
-}
-
-.footer-help {
-    flex: 0 0 auto;
-    max-width: 90px;
-}
-
-.footer-help .help-btn {
-    width: 70px;
-    height: 100%;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.footer-help .help-btn:hover {
-    transform: translateY(-1px);
-    border-color: var(--primary-color);
-    background: var(--bg-secondary);
-}
-
-.footer-theme {
-    flex: 0 0 auto;
-    max-width: 90px;
-}
-
-.footer-theme .theme-toggle {
-    width: 70px;
-    height: 100%;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.footer-theme .theme-toggle:hover {
-    transform: translateY(-1px);
-    border-color: var(--primary-color);
-    background: var(--bg-secondary);
-}
-
-.footer-stats .stat-compact-label {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.8;
-}
-
-/* Combined Stats and Status Panel */
-.footer-stats-status {
-    flex: 3;
-    max-width: 350px;
-}
-
-.stats-status-container {
-    width: 100%;
-    height: 100%;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: var(--transition);
-    position: relative;
-    overflow: hidden;
-}
-
-.footer-stats-status:hover .stats-status-container {
-    border-color: var(--primary-color);
-    background: var(--bg-secondary);
-    transform: translateY(-1px);
-}
-
-/* Statistics Section */
-.stats-section {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-}
-
-.stats-section .stat-item {
-    flex: 1;
-    text-align: center;
-    padding: 0.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    transition: var(--transition);
-}
-
-.stats-section .stat-item:hover {
-    border-color: var(--primary-color);
-    background: var(--bg-primary);
-    transform: translateY(-1px);
-}
-
-.stats-section .stat-value {
-    display: block;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    line-height: 1;
-    margin-bottom: 0.25rem;
-}
-
-.stats-section .stat-label {
-    display: block;
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.8;
-}
-
-/* Status Section */
-.status-section {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    transition: var(--transition);
-}
-
-.status-section:hover {
-    border-color: var(--accent-color);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-}
-
-.status-section i {
-    color: var(--accent-color);
-    font-size: 0.8rem;
-    flex-shrink: 0;
-}
-
-.status-section span {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.footer-help .help-btn i {
-    font-size: 1.8rem;
-    position: relative;
-    z-index: 1;
-    transition: var(--transition);
-}
-
-.footer-help .help-btn:hover i {
-    color: var(--primary-color);
-}
-
-.footer-theme .theme-icon {
-    position: relative;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
-}
-
-.footer-theme .sun-icon,
-.footer-theme .moon-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition: var(--transition);
-    width: 36px;
-    height: 36px;
-}
-
-.footer-theme .sun-icon {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7) rotate(-15deg);
-}
-
-.footer-theme .moon-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.9);
-}
-
-/* Dark theme - show moon (default) */
-[data-theme="dark"] .footer-theme .sun-icon {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7) rotate(-15deg);
-}
-
-[data-theme="dark"] .footer-theme .moon-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.9);
-}
-
-/* Light theme - show sun */
-[data-theme="light"] .footer-theme .sun-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
-}
-
-[data-theme="light"] .footer-theme .moon-icon {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7) rotate(15deg);
-}
-
-.status-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--border-color);
-    opacity: 0.3;
-}
-
-.status-item {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    position: relative;
-    z-index: 1;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    transition: var(--transition);
-    flex: 1;
-    justify-content: center;
-    height: 100%;
-    max-width: calc(20% - 0.75rem);
-    font-size: 0.75rem;
-}
-
-.status-item:hover {
-    border-color: var(--primary-color);
-    background: var(--bg-secondary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-}
-
-.status-item i {
-    color: var(--accent-color);
-    transition: var(--transition);
-    font-size: 0.8rem;
-}
-
-.status-item strong {
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 600;
-    transition: var(--transition);
-}
-
-.status-item:hover strong {
-    background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Footer time display styling */
-.footer-time {
-    flex: 2;
-    max-width: 220px;
-}
-
-.footer-time .time-display {
-    width: 100%;
-    height: 100%;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--transition);
-    position: relative;
-    overflow: hidden;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.footer-time .time-display:hover {
-    border-color: var(--primary-color);
-    background: var(--bg-secondary);
-    transform: translateY(-1px);
-    color: var(--primary-color);
-}
-
-.footer-time .time-display #digitalTime {
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-align: center;
-}
-
-.footer-time .analog-clock {
-    color: var(--text-primary);
-    transition: var(--transition);
-    width: 100px;
-    height: 100px;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-}
-
-.footer-time .time-display:hover .analog-clock {
-    color: var(--primary-color);
-    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
-    transform: scale(1.02);
-}
-
-/* Modern clock animations */
-@keyframes clockGlow {
-    0%, 100% {
-        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-    }
-    50% {
-        filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.2));
-    }
-}
-
-.footer-time .analog-clock {
-    animation: clockGlow 3s ease-in-out infinite;
-}
-
-/* Smooth hand transitions */
-.footer-time .analog-clock line {
-    transition: all 0.1s ease-out;
-}
-
-/* Enhanced center dot */
-.footer-time .analog-clock circle:last-child {
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-}
 
 /* General time display styling (for other contexts) */
 .time-display {
@@ -2030,71 +1599,7 @@ body {
     color: var(--primary-color);
 }
 
-/* Clock status item specific styling */
-.clock-status-item {
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-}
 
-/* Current time display specific styles */
-#currentTime {
-    cursor: pointer;
-    transition: var(--transition);
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-md);
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-    min-width: 120px;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
-}
-#currentTime::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
-    pointer-events: none;
-}
-#currentTime:hover {
-    background: var(--border-color);
-    border-color: var(--border-color);
-    /* Remove color: var(--primary-color); so digital text does not change */
-    transform: scale(1.05);
-}
-#currentTime:hover::before {
-    left: 100%;
-}
-#currentTime .analog-clock {
-    transition: var(--transition);
-}
-#currentTime:hover .analog-clock {
-    color: var(--primary-color);
-}
-#currentTime #digitalTime {
-    color: var(--text-primary) !important;
-    transition: none;
-}
-#currentTime:hover #digitalTime {
-    color: var(--text-primary) !important;
-}
 
 /* LinkedIn link styling */
 .linkedin-link {
@@ -2146,11 +1651,7 @@ body {
     transform: scale(1.05);
 }
 
-/* Contact button in status bar */
-.contact-item {
-    flex-shrink: 0;
-    margin-left: auto;
-}
+
 
 /* Responsive Design */
 @media (max-width: 1024px) {
@@ -2191,12 +1692,7 @@ body {
         transform: translateX(0);
     }
     
-    .status-bar {
-        order: 3;
-        left: 0; /* Full width on mobile */
-        right: 0;
-        padding: 0.5rem 1rem;
-    }
+
     
     .stats-grid {
         grid-template-columns: 1fr 1fr;
@@ -2982,17 +2478,7 @@ body {
 
 /* Responsive Status Bar */
 @media (max-width: 768px) {
-    .status-bar {
-        padding: 0.75rem 1rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    
-    .status-item {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.75rem;
-        min-height: 36px;
-    }
+
     
     .app-container {
         grid-template-rows: auto 1fr auto;
@@ -3000,22 +2486,7 @@ body {
 }
 
 @media (max-width: 480px) {
-    .status-bar {
-        padding: 0.5rem 1rem;
-        flex-direction: row;
-        gap: 0.5rem;
-        align-items: center;
-        left: 0; /* Full width on very small screens */
-        right: 0;
-    }
-    
-    .status-item {
-        font-size: 0.65rem;
-        padding: 0.25rem 0.5rem;
-        min-height: 24px;
-        justify-content: center;
-        max-width: calc(25% - 0.5rem);
-    }
+
     
     .btn-outline-primary {
         padding: 0.4rem 0.8rem;
@@ -3366,306 +2837,13 @@ body {
     color: var(--accent-color);
 }
 
-.footer-coords-panel {
-    min-width: 520px;
-    max-width: 720px;
-    padding: 0.75rem 1rem;
-    font-size: 0.92rem;
-}
 
-.footer-coords-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 1.1rem;
-    width: 100%;
-}
 
-.coordinate-tooltip-label {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    gap: 0.75rem;
-}
 
-.coordinate-tooltip-value {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    margin-top: 0.25rem;
-}
 
-.coordinate-grid-density {
-    margin-top: 1.2rem;
-}
 
-.switch-label {
-    font-size: 1.05rem;
-    gap: 0.75rem;
-}
 
-.footer-coords-section {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 0 0.75rem;
-    min-width: 110px;
-    flex: 1 1 0;
-    box-sizing: border-box;
-}
 
-.footer-coords-section.section-display {
-    align-items: center;
-    justify-content: center;
-    min-width: 140px;
-}
-
-.footer-coords-section.section-grid-density {
-    min-width: 180px;
-}
-
-.footer-coords-section {
-    padding: 0 0.4rem;
-    min-width: 90px;
-}
-
-.footer-coords-section.section-display {
-    min-width: 100px;
-}
-
-.footer-coords-section.section-grid-density {
-    min-width: 120px;
-}
-
-.coordinate-tooltip-label {
-    font-size: 0.95rem;
-    gap: 0.4rem;
-}
-
-.coordinate-tooltip-value {
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-    margin-top: 0.1rem;
-}
-
-.switch-label {
-    font-size: 0.92rem;
-    gap: 0.4rem;
-}
-
-.slider-container {
-    gap: 0.3rem;
-}
-
-.slider {
-    height: 4px;
-}
-
-#savePanelUtilities {
-    display: flex;
-    gap: 0.7rem;
-    justify-content: center;
-    align-items: center;
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-}
-
-#savePanelUtilities > * {
-    margin-right: 0 !important;
-}
-
-#savePanelUtilities .status-item {
-    margin-left: 0.3rem;
-}
-
-.right-sidebar-content .control-group {
-    margin-bottom: 0.1rem;
-}
-
-.right-sidebar-content .button-group {
-    margin-top: 0;
-    gap: 0.2rem;
-}
-
-.right-sidebar-content .control-group + .saved-graphs {
-    margin-top: 0.2rem;
-}
-
-/* Hardcoded positioning for top-right buttons */
-#savePanelUtilities {
-    position: relative;
-    width: 100%;
-    height: 50px; /* Fixed container height */
-    display: block; /* Override flex */
-    gap: 0; /* Remove flex gap */
-    justify-content: initial;
-    align-items: initial;
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-}
-
-/* Help Button - Top Left */
-#helpBtn {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    width: 32px;
-    height: 32px;
-    min-width: unset;
-    margin: 0;
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    opacity: 0.7;
-    transition: all 0.3s ease;
-}
-
-#helpBtn:hover {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: scale(1.1);
-}
-
-/* Theme Toggle - Top Right */
-#themeToggle {
-    position: absolute;
-    top: 10px;
-    left: 75px;
-    width: 45px;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-    z-index: 10;
-}
-
-/* Contact Button - Bottom Left */
-/* Removed absolute positioning for contact button since it's now in the right sidebar */
-
-/* Clock Button - Bottom Right */
-.clock-status-item {
-    position: absolute;
-    bottom: 5px;
-    right: 10px;
-    width: 120px;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-    z-index: 10;
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    display: block !important;
-    align-items: initial !important;
-}
-
-#currentTime {
-    width: 100%;
-    height: 100%;
-    min-width: unset;
-    margin: 0;
-    padding: 0.5rem 0.75rem;
-    box-sizing: border-box;
-}
-
-/* Alternative Method 2: Grid-Based Layout */
-/*
-#savePanelUtilities {
-    display: grid;
-    grid-template-columns: 45px 1fr 45px;
-    grid-template-rows: 45px 45px;
-    grid-template-areas: 
-        "help . theme"
-        "contact clock clock";
-    gap: 5px;
-    width: 100%;
-    height: 95px;
-    padding: 5px;
-}
-
-#helpBtn {
-    grid-area: help;
-    width: 45px;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-}
-
-#themeToggle {
-    grid-area: theme;
-    width: 45px;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-}
-
-#contactBtn {
-    grid-area: contact;
-    width: 45px;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-}
-
-.clock-status-item {
-    grid-area: clock;
-    width: 100%;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-}
-*/
-
-/* Alternative Method 3: Flexbox with Fixed Dimensions */
-/*
-#savePanelUtilities {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    width: 100%;
-    height: 95px;
-    padding: 5px;
-    justify-content: space-between;
-    align-content: space-between;
-}
-
-#helpBtn, #themeToggle, #contactBtn {
-    width: 45px;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-    flex-shrink: 0;
-}
-
-.clock-status-item {
-    width: 120px;
-    height: 45px;
-    min-width: unset;
-    margin: 0;
-    flex-shrink: 0;
-}
-*/
-
-#contactBtn i {
-    font-size: 1.6rem;
-    /* Optionally, adjust vertical alignment if needed */
-    vertical-align: middle;
-}
-
-#instructionsBtn i {
-    font-size: 1.6rem;
-    /* Optionally, adjust vertical alignment if needed */
-    vertical-align: middle;
-}
-
-#helpBtn i {
-    font-size: 1rem;
-    /* Optionally, adjust vertical alignment if needed */
-    vertical-align: middle;
-    color: rgba(255, 255, 255, 0.8);
-}
 
 /* Image Format Buttons */
 .image-format-buttons {
