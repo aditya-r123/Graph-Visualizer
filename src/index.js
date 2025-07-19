@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let dragStartPos = { x: 0, y: 0 };
     let isDragging = false;
     let dragHoldTimer = null;
-    const HOLD_THRESHOLD = 300; // milliseconds - time to hold before entering drag mode
+    const HOLD_THRESHOLD = 450; // milliseconds - time to hold before entering drag mode
     const DRAG_THRESHOLD = 5; // pixels
     
     function handleDragStart(e) {
@@ -227,6 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 draggedPanel.style.width = rect.width + 'px';
                 draggedPanel.style.opacity = '0.8';
                 draggedPanel.style.transform = 'rotate(2deg)';
+                
+                // Create placeholder box with current panel dimensions
+                const currentRect = draggedPanel.getBoundingClientRect();
+                createDragPlaceholder(draggedPanel, currentRect);
             }
         }, HOLD_THRESHOLD);
     }
@@ -307,8 +311,12 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedPanel.style.opacity = '';
         draggedPanel.style.transform = '';
         
+        // Remove placeholder
+        removeDragPlaceholder();
+        
         // Clean up
         draggedPanel.removeAttribute('data-dragging-sidebar');
+        draggedPanel.removeAttribute('data-placeholder');
         draggedPanel = null;
         isDragging = false;
     }
@@ -400,6 +408,37 @@ document.addEventListener('DOMContentLoaded', () => {
         
         localStorage.setItem('leftSidebarPanelOrder', JSON.stringify(leftSidebarPanels));
         localStorage.setItem('rightSidebarPanelOrder', JSON.stringify(rightSidebarPanels));
+    }
+    
+    // Create drag placeholder
+    function createDragPlaceholder(panel, originalRect) {
+        // Remove any existing placeholder
+        const existingPlaceholder = document.querySelector('.drag-placeholder');
+        if (existingPlaceholder) {
+            existingPlaceholder.remove();
+        }
+        
+        // Create new placeholder
+        const placeholder = document.createElement('div');
+        placeholder.className = 'drag-placeholder';
+        placeholder.style.left = originalRect.left + 'px';
+        placeholder.style.top = originalRect.top + 'px';
+        placeholder.style.width = originalRect.width + 'px';
+        placeholder.style.height = originalRect.height + 'px';
+        
+        // Add to body
+        document.body.appendChild(placeholder);
+        
+        // Store reference to placeholder
+        panel.setAttribute('data-placeholder', 'true');
+    }
+    
+    // Remove drag placeholder
+    function removeDragPlaceholder() {
+        const placeholder = document.querySelector('.drag-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
     }
     
     // Handle panel click to toggle expansion
