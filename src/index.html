@@ -270,27 +270,29 @@
                         <i class="fas fa-search"></i> Search Algorithms (beta)
                     </h3>
                     <div class="expandable-content show" id="searchSectionContent">
-                        <div class="control-group">
-                            <label for="searchRoot">
-                                <i class="fas fa-arrow-up"></i>
-                                Root Node
-                            </label>
-                            <select id="searchRoot">
-                                <option value="">(Auto: Most Upward)</option>
-                            </select>
-                        </div>
-                        <div class="control-group">
-                            <label for="searchTarget">
-                                <i class="fas fa-bullseye"></i>
-                                Target Vertex
-                            </label>
-                            <div class="target-vertex-display" style="position: relative;">
-                                <div id="targetVertexDisplay" class="target-display">
-                                    <span class="target-placeholder">No target selected</span>
+                        <div class="d-flex gap-2">
+                            <div class="control-group flex-fill">
+                                <label for="searchRoot">
+                                    <i class="fas fa-arrow-up"></i>
+                                    Root Node
+                                </label>
+                                <select id="searchRoot">
+                                    <option value="">(Auto: Most Upward)</option>
+                                </select>
+                            </div>
+                            <div class="control-group flex-fill">
+                                <label for="searchTarget">
+                                    <i class="fas fa-bullseye"></i>
+                                    Target Vertex
+                                </label>
+                                <div class="target-vertex-display" style="position: relative;">
+                                    <div id="targetVertexDisplay" class="target-display">
+                                        <span class="target-placeholder">No target selected</span>
+                                    </div>
+                                    <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
+                                        <i class="fas fa-recycle"></i>
+                                    </button>
                                 </div>
-                                <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
-                                    <i class="fas fa-recycle"></i>
-                                </button>
                             </div>
                         </div>
                         
@@ -500,37 +502,43 @@
                         Cancel
                     </button>
                 </div>
-                <!-- Clock and Contact buttons -->
-                <div class="button-group mt-2">
-                    <button id="clockBtn" class="btn btn-outline-secondary w-100" title="Click to toggle between digital and analog">
-                        <i class="fas fa-clock"></i>
-                        <span id="digitalTime"></span>
-                        <span id="analogClock" style="display:none">
-                            <svg width="60" height="60" viewBox="0 0 100 100" class="analog-clock">
-                                <!-- Clock face -->
-                                <circle cx="50" cy="50" r="45" fill="var(--bg-secondary)" stroke="var(--border-color)" stroke-width="2"/>
-                                <!-- Clock center dot -->
-                                <circle cx="50" cy="50" r="3" fill="var(--text-primary)"/>
-                                <!-- Hour hand -->
-                                <line id="hourHand" x1="50" y1="50" x2="50" y2="30" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
-                                <!-- Minute hand -->
-                                <line id="minuteHand" x1="50" y1="50" x2="50" y2="23" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"/>
-                                <!-- Second hand -->
-                                <line id="secondHand" x1="50" y1="50" x2="50" y2="17" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
-                                <!-- Hour markers -->
-                                <line x1="50" y1="5" x2="50" y2="10" stroke="var(--text-primary)" stroke-width="2"/>
-                                <line x1="50" y1="90" x2="50" y2="95" stroke="var(--text-primary)" stroke-width="2"/>
-                                <line x1="5" y1="50" x2="10" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
-                                <line x1="90" y1="50" x2="95" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
-                            </svg>
-                        </span>
-                    </button>
-                </div>
-                <div class="button-group mt-2">
-                    <button id="contactBtn" class="btn btn-outline-secondary contact-link w-100" title="Contact">
-                        <i class="fas fa-envelope"></i>
-                        Contact
-                    </button>
+                <!-- Clock and Contact Panel -->
+                <div class="control-section" style="margin-top: 1rem;">
+                    <h3 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                        <i class="fas fa-info-circle"></i>
+                        Utilities
+                    </h3>
+                    <div class="button-group mt-2">
+                        <button id="clockBtn" class="btn btn-outline-secondary w-100" title="Click to toggle between digital and analog">
+                            <i class="fas fa-clock"></i>
+                            <span id="digitalTime"></span>
+                            <span id="analogClock" style="display:none">
+                                <svg width="60" height="60" viewBox="0 0 100 100" class="analog-clock">
+                                    <!-- Clock face -->
+                                    <circle cx="50" cy="50" r="45" fill="var(--bg-secondary)" stroke="var(--border-color)" stroke-width="2"/>
+                                    <!-- Clock center dot -->
+                                    <circle cx="50" cy="50" r="3" fill="var(--text-primary)"/>
+                                    <!-- Hour hand -->
+                                    <line id="hourHand" x1="50" y1="50" x2="50" y2="30" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+                                    <!-- Minute hand -->
+                                    <line id="minuteHand" x1="50" y1="50" x2="50" y2="23" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"/>
+                                    <!-- Second hand -->
+                                    <line id="secondHand" x1="50" y1="50" x2="50" y2="17" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
+                                    <!-- Hour markers -->
+                                    <line x1="50" y1="5" x2="50" y2="10" stroke="var(--text-primary)" stroke-width="2"/>
+                                    <line x1="50" y1="90" x2="50" y2="95" stroke="var(--text-primary)" stroke-width="2"/>
+                                    <line x1="5" y1="50" x2="10" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
+                                    <line x1="90" y1="50" x2="95" y2="50" stroke="var(--text-primary)" stroke-width="2"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="button-group mt-2">
+                        <button id="contactBtn" class="btn btn-outline-secondary contact-link w-100" title="Contact">
+                            <i class="fas fa-envelope"></i>
+                            Contact
+                        </button>
+                    </div>
                 </div>
             </div>
         </aside>
