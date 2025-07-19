@@ -399,13 +399,11 @@ export class GraphCreator {
         });
         
         // Time display toggle
-        const currentTimeElement = document.getElementById('currentTime');
-        if (currentTimeElement) {
-            currentTimeElement.addEventListener('click', () => {
+        const clockBtn = document.getElementById('clockBtn');
+        if (clockBtn) {
+            clockBtn.addEventListener('click', () => {
                 this.toggleTimeDisplay();
             });
-            // Add cursor pointer style
-            currentTimeElement.style.cursor = 'pointer';
         }
         
         // Contact form submission
@@ -3671,15 +3669,6 @@ export class GraphCreator {
         if (digitalTimeElem) {
             digitalTimeElem.textContent = digitalTime;
         }
-        const analogClockElement = document.getElementById('analogClock');
-        if (this.timeDisplayMode === 'analog') {
-            digitalTimeElem.style.display = 'none';
-            analogClockElement.style.display = 'block';
-        } else {
-            digitalTimeElem.style.display = 'block';
-            analogClockElement.style.display = 'none';
-            // Remove fallback to toLocaleTimeString(); always use 24-hour format
-        }
     }
     
     updateAnalogClock(now) {
@@ -5728,22 +5717,10 @@ export class GraphCreator {
 
     toggleTimeDisplay() {
         const digital = document.getElementById('digitalTime');
-        const analog = document.getElementById('analogClock');
-        if (!digital || !analog) return;
+        if (!digital) return;
         
-        if (this.timeDisplayMode === 'digital') {
-            // Switch to analog
-            this.timeDisplayMode = 'analog';
-            digital.style.display = 'none';
-            analog.style.display = 'block';
-        } else {
-            // Switch to digital
-            this.timeDisplayMode = 'digital';
-            digital.style.display = 'block';
-            analog.style.display = 'none';
-        }
-        
-        // Update the time display immediately
+        // For now, just update the time display since we removed the analog clock
+        // In the future, we could add the analog clock back if needed
         this.updateTime();
     }
 
