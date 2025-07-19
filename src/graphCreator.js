@@ -663,6 +663,10 @@ export class GraphCreator {
             if (confirmDeleteBtn) {
                 confirmDeleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    // If the deleted graph is currently loaded, clear the current graph ID
+                    if (this.currentGraphId === savedGraph.id) {
+                        this.currentGraphId = null;
+                    }
                     this.savedGraphs.splice(index, 1);
                     localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
                     this.updateSavedGraphsList();
@@ -1708,6 +1712,12 @@ export class GraphCreator {
             return;
         }
 
+        // Prevent adding new vertices during edit mode
+        if (this.editModeElement) {
+            console.log('Click prevented - in edit mode');
+            return;
+        }
+
         // Check for vertex clicks first - vertices take priority over edges
         const clickedVertex = this.getVertexAt(pos.x, pos.y);
         if (clickedVertex) {
@@ -1787,6 +1797,7 @@ export class GraphCreator {
                 if (existingEdge) {
                     this.updateStatus('Straight line edge already exists between these vertices');
                     this.selectedVertices = [];
+                    this.flashingVertices.clear(); // Clear purple highlighting
                     this.draw();
                     return;
                 }
@@ -1866,6 +1877,7 @@ export class GraphCreator {
                 if (existingEdge) {
                     this.updateStatus('Straight line edge already exists between these vertices');
                     this.selectedVertices = [];
+                    this.flashingVertices.clear(); // Clear purple highlighting
                     this.draw(); // Redraw to clear highlighting
                     return;
                 }
@@ -3471,6 +3483,10 @@ export class GraphCreator {
             if (confirmDeleteBtn) {
                 confirmDeleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    // If the deleted graph is currently loaded, clear the current graph ID
+                    if (this.currentGraphId === savedGraph.id) {
+                        this.currentGraphId = null;
+                    }
                     // Actually delete the graph now
                     this.savedGraphs.splice(index, 1);
                     this.populateLoadRecentGraphs();
@@ -5260,6 +5276,12 @@ export class GraphCreator {
     commitAllChanges() {
         // Remove graphs marked for deletion
         const graphsToDelete = this.savedGraphs.filter(graph => graph.pendingDelete);
+        
+        // If any of the deleted graphs is currently loaded, clear the current graph ID
+        if (this.currentGraphId && graphsToDelete.some(g => g.id === this.currentGraphId)) {
+            this.currentGraphId = null;
+        }
+        
         this.savedGraphs = this.savedGraphs.filter(graph => !graph.pendingDelete);
         
         // Clear pending flags
@@ -5307,6 +5329,10 @@ export class GraphCreator {
         if (!confirm('Are you sure you want to delete this saved graph?')) return;
         const idx = this.savedGraphs.findIndex(g => g.id === id);
         if (idx !== -1) {
+            // If the deleted graph is currently loaded, clear the current graph ID
+            if (this.currentGraphId === id) {
+                this.currentGraphId = null;
+            }
             this.savedGraphs.splice(idx, 1);
             try {
                 localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
@@ -5333,6 +5359,10 @@ export class GraphCreator {
         }
         
         try {
+            // If any of the deleted graphs is currently loaded, clear the current graph ID
+            if (this.currentGraphId && this.savedGraphs.some(g => g.id === this.currentGraphId)) {
+                this.currentGraphId = null;
+            }
             this.savedGraphs = [];
             localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
             this.updateSavedGraphsList();
@@ -5648,5 +5678,47 @@ export class GraphCreator {
             g: (num >> 8) & 255,
             b: num & 255
         };
+    }
+
+    _handleDeleteProximity(e, pos) {
+        // Only run if dragging a vertex
+        const btn = document.getElementById('deleteNodesBtn');
+        if (!btn) return;
+        const btnRect = btn.getBoundingClientRect();
+        // Mouse position in viewport
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        // Find closest point on button rect
+        const closestX = Math.max(btnRect.left, Math.min(mouseX, btnRect.right));
+        const closestY = Math.max(btnRect.top, Math.min(mouseY, btnRect.bottom));
+        const dist = Math.sqrt((mouseX - closestX) ** 2 + (mouseY - closestY) ** 2);
+        // Movement threshold (in px) to consider as 'not moving'
+        const MOVE_THRESHOLD = 8;
+        // Proximity threshold (in px)
+        const PROXIMITY = 300;
+        // Timer duration (ms)
+        const DURATION = 1500;
+        // If within proximity and not moving significantly
+        let notMoving = true;
+        if (this.deleteProximityLastPos) {
+            const dx = pos.x - this.deleteProximityLastPos.x;
+            const dy = pos.y - this.deleteProximityLastPos.y;
+            if (Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) {
+                notMoving = false;
+            }
+        }
+        this.deleteProximityLastPos = {x: pos.x, y: pos.y};
+        if (dist <= PROXIMITY && notMoving) {
+            if (!this.deleteProximityTimer) {
+                // Start timer
+                this.deleteProximityStart = performance.now();
+                this.deleteProximityActive = true;
+                this.deleteProximityProgress = 0;
+                this.deleteProximityTimer = requestAnimationFrame(this._deleteProximityTick.bind(this));
+            }
+        } else {
+            // Cancel timer if running
+            this._clearDeleteProximity();
+        }
     }
 } // End of GraphCreator class 
