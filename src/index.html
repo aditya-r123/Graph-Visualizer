@@ -25,6 +25,45 @@
                         <h1>Graph Creator Pro</h1>
                     </div>
                 </div>
+                <div class="d-flex justify-content-start mt-2" style="margin-left: 10px; margin-top: 100px; transform: translateX(-50px);">
+                    <button id="themeToggle" class="btn btn-outline-secondary" title="Toggle theme" style="min-width:40px;">
+                        <span class="theme-icon">
+                            <!-- Sun (visible in dark theme) -->
+                            <svg class="sun-icon" width="20" height="20" viewBox="0 0 20 20">
+                                <circle cx="10" cy="10" r="6" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
+                                <line x1="10" y1="2" x2="10" y2="0" stroke="#fbbf24" stroke-width="2"/>
+                                <line x1="10" y1="18" x2="10" y2="20" stroke="#fbbf24" stroke-width="2"/>
+                                <line x1="2" y1="10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                                <line x1="18" y1="10" x2="20" y2="10" stroke="#fbbf24" stroke-width="2"/>
+                                <line x1="3" y1="3" x2="1.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                                <line x1="17" y1="17" x2="18.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                                <line x1="3" y1="17" x2="1.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
+                                <line x1="17" y1="3" x2="18.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
+                                <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                                <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                                <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                                <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                                <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
+                            </svg>
+                            <!-- Moon (visible in light theme) -->
+                            <svg class="moon-icon" width="20" height="20" viewBox="0 0 20 20">
+                                <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
+                                <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
+                                <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
+                                <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
+                                <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
+                                <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
+                                <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
+                                <circle cx="8" cy="5" r="0.8" fill="#9ca3af" opacity="0.6"/>
+                                <circle cx="12" cy="6" r="0.5" fill="#9ca3af" opacity="0.6"/>
+                                <circle cx="6" cy="10" r="0.6" fill="#9ca3af" opacity="0.6"/>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
             </div>
             <!-- Utility controls - status and mouse position -->
             <div class="d-flex gap-2 justify-content-center align-items-center mt-3 mb-3" id="savePanelUtilities">
@@ -53,27 +92,7 @@
                     </h3>
                     <div class="expandable-content show" id="basicControlsContent">
                     
-                    <div class="control-group" style="margin-bottom: 0.5rem;">
-                        <label class="switch-label" for="mouseCoordinateToggle">
-                            <i class="fas fa-eye"></i>
-                            Mouse Position
-                            <div class="switch-container">
-                                <input type="checkbox" id="mouseCoordinateToggle" checked>
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
-                    </div>
-                    
-                    <div class="control-group" style="margin-bottom: 0.5rem;">
-                        <label class="switch-label" for="hideLabelsToggle">
-                            <i class="fas fa-tag"></i>
-                            Hide Vertex Labels
-                            <div class="switch-container">
-                                <input type="checkbox" id="hideLabelsToggle">
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
-                    </div>
+
                     
                     <div class="control-group">
                         <label for="vertexSize">
@@ -129,17 +148,7 @@
                         </div>
                     </div>
                     
-                    <!-- Grid Controls -->
-                    <div class="control-group" style="margin-bottom: 0.5rem;">
-                        <label class="switch-label" for="coordinateGridToggle">
-                            <i class="fas fa-th"></i>
-                            Grid Lines
-                            <div class="switch-container">
-                                <input type="checkbox" id="coordinateGridToggle">
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
-                    </div>
+
                     
                     <div class="control-group" id="gridDensityContainer" style="display: none;">
                         <label for="gridDensity">
@@ -496,6 +505,39 @@
                         <i class="fas fa-chevron-down expand-icon"></i>
                     </h3>
                     <div class="expandable-content show" id="utilitiesContent">
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="mouseCoordinateToggle">
+                            <i class="fas fa-eye"></i>
+                            Mouse Position
+                            <div class="switch-container">
+                                <input type="checkbox" id="mouseCoordinateToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="hideLabelsToggle">
+                            <i class="fas fa-tag"></i>
+                            Hide Vertex Labels
+                            <div class="switch-container">
+                                <input type="checkbox" id="hideLabelsToggle">
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="coordinateGridToggle">
+                            <i class="fas fa-th"></i>
+                            Grid Lines
+                            <div class="switch-container">
+                                <input type="checkbox" id="coordinateGridToggle">
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
                     <div class="button-group mt-2">
                         <button id="clockBtn" class="btn btn-outline-secondary w-100" title="Click to toggle between digital and analog">
                             <i class="fas fa-clock"></i>
@@ -525,46 +567,6 @@
                         <button id="contactBtn" class="btn btn-outline-secondary contact-link w-100" title="Contact">
                             <i class="fas fa-envelope"></i>
                             Contact
-                        </button>
-                    </div>
-                    <div class="button-group mt-2">
-                        <button id="themeToggle" class="btn btn-outline-secondary w-100" title="Toggle theme">
-                            <span class="theme-icon">
-                                <!-- Sun (visible in dark theme) -->
-                                <svg class="sun-icon" width="24" height="24" viewBox="0 0 20 20">
-                                    <circle cx="10" cy="10" r="6" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
-                                    <line x1="10" y1="2" x2="10" y2="0" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="10" y1="18" x2="10" y2="20" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="2" y1="10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="18" y1="10" x2="20" y2="10" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="3" y1="3" x2="1.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="17" y1="17" x2="18.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="3" y1="17" x2="1.5" y2="18.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <line x1="17" y1="3" x2="18.5" y2="1.5" stroke="#fbbf24" stroke-width="2"/>
-                                    <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
-                                    <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
-                                    <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
-                                </svg>
-                                <!-- Moon (visible in light theme) -->
-                                <svg class="moon-icon" width="24" height="24" viewBox="0 0 20 20">
-                                    <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
-                                    <circle class="eye-socket left-eye-socket" cx="7" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye-socket right-eye-socket" cx="13" cy="8" r="1.5" fill="#1f2937" stroke="#0f172a" stroke-width="0.8"/>
-                                    <circle class="eye left-eye" cx="7" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="eye right-eye" cx="13" cy="8" r="1.1" fill="#ffffff"/>
-                                    <circle class="pupil left-pupil" cx="7" cy="8" r="0.6" fill="#1f2937"/>
-                                    <circle class="pupil right-pupil" cx="13" cy="8" r="0.6" fill="#1f2937"/>
-                                    <path d="M 5.5 12 Q 10 16 14.5 12" stroke="#1f2937" stroke-width="1" fill="none" stroke-linecap="round"/>
-                                    <circle cx="8" cy="5" r="0.8" fill="#9ca3af" opacity="0.6"/>
-                                    <circle cx="12" cy="6" r="0.5" fill="#9ca3af" opacity="0.6"/>
-                                    <circle cx="6" cy="10" r="0.6" fill="#9ca3af" opacity="0.6"/>
-                                </svg>
-                            </span>
-                            Theme
                         </button>
                     </div>
                     </div>
