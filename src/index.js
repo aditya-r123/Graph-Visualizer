@@ -192,6 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         e.stopPropagation(); // Prevent other interactions from triggering
         
+
+        
         // Initialize drag detection
         dragStartTime = Date.now();
         dragStartPos = { x: e.clientX, y: e.clientY };
@@ -402,10 +404,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const existingPanels = sidebarContent.querySelectorAll('.draggable-panel');
         existingPanels.forEach(panel => panel.remove());
         
+        // Temporarily remove scroll indicator for left sidebar to avoid interference
+        if (sidebarType === 'left' && scrollIndicator) {
+            scrollIndicator.remove();
+        }
+        
         // Reinsert panels in new order
         panelsToReorder.forEach(panel => {
             sidebarContent.appendChild(panel);
         });
+        
+        // Ensure scroll indicator stays at the bottom for left sidebar
+        if (sidebarType === 'left' && scrollIndicator) {
+            sidebarContent.appendChild(scrollIndicator);
+        }
         
         // Save panel order to localStorage (separate for each sidebar)
         const leftSidebarPanels = Array.from(document.querySelectorAll('.draggable-panel[data-sidebar="left"]')).map(panel => panel.getAttribute('data-panel-id'));
@@ -430,12 +442,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (panels.length === 0) return;
         
+
+        
         // Get the dragged panel's height for preview
         const draggedPanelHeight = draggedPanel.offsetHeight;
         const draggedPanelMargin = 16; // 1rem margin between panels
         const totalHeight = draggedPanelHeight + draggedPanelMargin;
         
-        // Create preview gap
+        // Always create preview - even when moving to original position
+        // This ensures consistent behavior across both sidebars
         if (dropIndex === 0) {
             // Insert at the beginning
             createDropPreview(panels[0], 'before', totalHeight);
