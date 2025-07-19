@@ -2944,17 +2944,7 @@ body {
     background-color: rgba(99, 102, 241, 0.05);
 }
 
-.panel-preview-box {
-    position: absolute;
-    background: rgba(128, 128, 128, 0.3);
-    border: 2px dashed #666;
-    border-radius: 8px;
-    pointer-events: none;
-    z-index: 1000;
-    display: none;
-    transition: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+
 
 /* Ensure proper spacing between panels */
 .draggable-panel + .draggable-panel {

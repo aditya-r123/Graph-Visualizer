@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Panel Drag and Drop System
     let draggedPanel = null;
     let dragOffset = { x: 0, y: 0 };
-    let previewBox = null;
     let originalPositions = new Map();
     let panelOrder = [];
     
@@ -133,21 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'deleteModePanel', title: 'Delete Mode' },
             { id: 'searchSection', title: 'Search Algorithms' }
         ];
-        
-        // Create preview box
-        previewBox = document.createElement('div');
-        previewBox.className = 'panel-preview-box';
-        previewBox.style.cssText = `
-            position: absolute;
-            background: rgba(128, 128, 128, 0.3);
-            border: 2px dashed #666;
-            border-radius: 8px;
-            pointer-events: none;
-            z-index: 1000;
-            display: none;
-            transition: none;
-        `;
-        document.body.appendChild(previewBox);
         
         // Make panels draggable
         panels.forEach(panel => {
@@ -203,10 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
             y: e.clientY - rect.top
         };
         
-        // Show preview box
-        previewBox.style.display = 'block';
-        previewBox.style.width = rect.width + 'px';
-        previewBox.style.height = rect.height + 'px';
+
         
         // Add dragging class
         panel.classList.add('dragging');
@@ -229,24 +210,16 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedPanel.style.left = newX + 'px';
         draggedPanel.style.top = newY + 'px';
         
-        // Update preview box position
+        // Calculate where the panel would be dropped
         const sidebar = document.querySelector('.sidebar');
         const sidebarRect = sidebar.getBoundingClientRect();
         const sidebarContent = document.querySelector('.sidebar-content');
-        
-        // Calculate where the panel would be dropped
         const dropY = e.clientY - sidebarRect.top + sidebarContent.scrollTop;
         const dropIndex = calculateDropIndex(dropY);
-        
-        // Show preview at drop position
-        showPreviewAtPosition(dropIndex);
     }
     
     function handleDragEnd(e) {
         if (!draggedPanel) return;
-        
-        // Hide preview box
-        previewBox.style.display = 'none';
         
         // Remove dragging styles
         draggedPanel.classList.remove('dragging');
@@ -297,25 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return panelPositions.length;
     }
     
-    function showPreviewAtPosition(dropIndex) {
-        const panels = Array.from(document.querySelectorAll('.draggable-panel'));
-        const sidebarContent = document.querySelector('.sidebar-content');
-        const sidebarRect = sidebarContent.getBoundingClientRect();
-        
-        if (dropIndex >= panels.length) {
-            // Drop at the end
-            const lastPanel = panels[panels.length - 1];
-            const lastRect = lastPanel.getBoundingClientRect();
-            previewBox.style.left = (lastRect.left - sidebarRect.left) + 'px';
-            previewBox.style.top = (lastRect.bottom - sidebarRect.top + 10) + 'px';
-        } else {
-            // Drop before the panel at dropIndex
-            const targetPanel = panels[dropIndex];
-            const targetRect = targetPanel.getBoundingClientRect();
-            previewBox.style.left = (targetRect.left - sidebarRect.left) + 'px';
-            previewBox.style.top = (targetRect.top - sidebarRect.top - 5) + 'px';
-        }
-    }
+
     
     function reorderPanels(draggedPanelId, dropIndex) {
         const panels = Array.from(document.querySelectorAll('.draggable-panel'));
