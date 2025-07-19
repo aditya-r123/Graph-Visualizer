@@ -181,18 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const DRAG_THRESHOLD = 5; // pixels
     
     function handleDragStart(e) {
-        const dragHandle = e.target.closest('.panel-drag-handle');
-        if (!dragHandle) return;
+        // Check if clicking on a draggable panel (either drag handle or panel background)
+        const panel = e.target.closest('.draggable-panel');
+        if (!panel) return;
         
-        // Don't start drag if clicking on interactive elements
-        const interactiveElements = e.target.closest('button, input, select, textarea, a, .expand-icon, label, .control-group, .button-group, .slider-container, .checkbox-label, .checkmark');
+        // Don't start drag if clicking on interactive elements or expandable headers
+        const interactiveElements = e.target.closest('button, input, select, textarea, a, .expand-icon, label, .control-group, .button-group, .slider-container, .checkbox-label, .checkmark, .expandable-header');
         if (interactiveElements) return;
         
         e.preventDefault();
         e.stopPropagation(); // Prevent other interactions from triggering
-        
-        const panel = dragHandle.closest('.draggable-panel');
-        if (!panel) return;
         
         // Initialize drag detection
         dragStartTime = Date.now();
@@ -299,8 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reorder panels
             reorderPanels(draggedPanel.getAttribute('data-panel-id'), dropIndex, draggedSidebar);
         } else {
-            // Handle click - toggle panel expansion
-            handlePanelClick(draggedPanel);
+            // Handle click - no action needed since expandable functionality is handled by graphCreator.js
         }
         
         // Remove dragging styles
@@ -491,40 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
         previews.forEach(preview => preview.remove());
     }
     
-    // Handle panel click to toggle expansion
-    function handlePanelClick(panel) {
-        // Find the expandable header within this panel
-        const expandableHeader = panel.querySelector('.expandable-header');
-        if (!expandableHeader) return;
-        
-        // Find the target content
-        const targetId = expandableHeader.getAttribute('data-target');
-        if (!targetId) return;
-        
-        const targetContent = document.getElementById(targetId);
-        if (!targetContent) return;
-        
-        // Toggle the expansion
-        const isExpanded = targetContent.classList.contains('show');
-        
-        if (isExpanded) {
-            // Collapse
-            targetContent.classList.remove('show');
-            expandableHeader.classList.remove('expanded');
-            const expandIcon = expandableHeader.querySelector('.expand-icon');
-            if (expandIcon) {
-                expandIcon.style.transform = 'rotate(0deg)';
-            }
-        } else {
-            // Expand
-            targetContent.classList.add('show');
-            expandableHeader.classList.add('expanded');
-            const expandIcon = expandableHeader.querySelector('.expand-icon');
-            if (expandIcon) {
-                expandIcon.style.transform = 'rotate(180deg)';
-            }
-        }
-    }
+
     
     // Load saved panel order
     function loadPanelOrder() {
