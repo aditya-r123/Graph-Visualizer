@@ -398,6 +398,26 @@ export class GraphCreator {
             this.showContactModal();
         });
         
+        // Image format radio buttons
+        const formatJpg = document.getElementById('formatJpg');
+        const formatPng = document.getElementById('formatPng');
+        if (formatJpg) {
+            formatJpg.addEventListener('change', () => {
+                if (formatJpg.checked) {
+                    this.screenshotFormat = 'jpg';
+                    console.log('Screenshot format changed to JPG');
+                }
+            });
+        }
+        if (formatPng) {
+            formatPng.addEventListener('change', () => {
+                if (formatPng.checked) {
+                    this.screenshotFormat = 'png';
+                    console.log('Screenshot format changed to PNG');
+                }
+            });
+        }
+        
         // Time display toggle
         const clockBtn = document.getElementById('clockBtn');
         if (clockBtn) {
@@ -949,9 +969,10 @@ export class GraphCreator {
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
         
-        // Get the selected format
-        const formatSelect = document.getElementById('screenshotFormat');
-        const format = formatSelect ? formatSelect.value : 'jpg';
+        // Get the selected format from radio buttons
+        const formatJpg = document.getElementById('formatJpg');
+        const formatPng = document.getElementById('formatPng');
+        const format = formatPng && formatPng.checked ? 'png' : 'jpg';
         
         // Fill background - transparent for PNG, theme-based color for JPG
         if (format === 'png') {
@@ -1019,9 +1040,10 @@ export class GraphCreator {
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
             
-            // Get the selected format
-            const formatSelect = document.getElementById('screenshotFormat');
-            const format = formatSelect ? formatSelect.value : 'jpg';
+            // Get the selected format from radio buttons
+            const formatJpg = document.getElementById('formatJpg');
+            const formatPng = document.getElementById('formatPng');
+            const format = formatPng && formatPng.checked ? 'png' : 'jpg';
             
             // Fill background - transparent for PNG, theme-based color for JPG
             if (format === 'png') {
@@ -3669,6 +3691,11 @@ export class GraphCreator {
         if (digitalTimeElem) {
             digitalTimeElem.textContent = digitalTime;
         }
+        
+        // Update analog clock if in analog mode
+        if (this.timeDisplayMode === 'analog') {
+            this.updateAnalogClock(now);
+        }
     }
     
     updateAnalogClock(now) {
@@ -5717,10 +5744,22 @@ export class GraphCreator {
 
     toggleTimeDisplay() {
         const digital = document.getElementById('digitalTime');
-        if (!digital) return;
+        const analog = document.getElementById('analogClock');
+        if (!digital || !analog) return;
         
-        // For now, just update the time display since we removed the analog clock
-        // In the future, we could add the analog clock back if needed
+        if (this.timeDisplayMode === 'digital') {
+            // Switch to analog
+            this.timeDisplayMode = 'analog';
+            digital.style.display = 'none';
+            analog.style.display = 'inline-block';
+        } else {
+            // Switch to digital
+            this.timeDisplayMode = 'digital';
+            digital.style.display = 'inline-block';
+            analog.style.display = 'none';
+        }
+        
+        // Update the time display immediately
         this.updateTime();
     }
 
