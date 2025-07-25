@@ -4532,7 +4532,7 @@ export class GraphCreator {
                 
                 if (distance > 0) {
                     // Normalize and scale to vertex radius, then offset by arrow length
-                    const offsetDistance = vertexRadius + arrowLength;
+                    const offsetDistance = 1;
                     arrowX = targetVertex.x + (dx / distance) * offsetDistance;
                     arrowY = targetVertex.y + (dy / distance) * offsetDistance;
                 } else {
