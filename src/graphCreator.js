@@ -2157,15 +2157,16 @@ export class GraphCreator {
             // Update cursor
             const pos = this.getMousePos(e);
             const vertex = this.getVertexAt(pos.x, pos.y);
-            const edge = this.getEdgeAt(pos.x, pos.y);
+            // Use the same 3px tolerance for both hover and click detection
+            const edge = this.getEdgeAt(pos.x, pos.y, 3);
             if (this.isSearching) {
                 this.canvas.style.cursor = 'not-allowed';
             } else if (vertex) {
                 this.canvas.style.cursor = 'grab';
-            } else if (edge && edge.type === 'curved') {
-                this.canvas.style.cursor = 'grab';
+            } else if (edge) {
+                this.canvas.style.cursor = 'pointer'; // finger pointer for edge hover/click
             } else {
-                this.canvas.style.cursor = 'crosshair';
+                this.canvas.style.cursor = 'crosshair'; // plus icon
             }
         }
     }
@@ -2609,22 +2610,49 @@ export class GraphCreator {
         });
     }
     
-    getEdgeAt(x, y) {
+    getEdgeAt(x, y, hoverTolerance = null) {
         return this.edges.find(edge => {
             if (edge.type === 'self-loop') {
-                // For self-loops, check if click is near the circular arc
                 const vertexSize = edge.from.size || this.vertexSize;
                 const radius = vertexSize + 15;
                 const distanceFromCenter = Math.sqrt((edge.from.x - x) ** 2 + (edge.from.y - y) ** 2);
-                const tolerance = 8; // Click tolerance for self-loops
+                const tolerance = hoverTolerance !== null ? hoverTolerance : 8;
                 return Math.abs(distanceFromCenter - radius) <= tolerance;
-            } else if (edge.type === 'curved' && edge.controlPoint) {
-                // For curved edges, check if click is near the control point
-                const distance = Math.sqrt((edge.controlPoint.x - x) ** 2 + (edge.controlPoint.y - y) ** 2);
-                return distance <= this.edgeControlPointSize;
+            } else if (edge.type === 'curved') {
+                // Always compute control point if missing
+                let controlPoint = edge.controlPoint;
+                if (!controlPoint) {
+                    const edgeIndex = edge.edgeIndex || 0;
+                    const baseCurve = 40;
+                    const curveIncrement = 50;
+                    const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                    const xDiff = Math.abs(edge.from.x - edge.to.x);
+                    const yDiff = Math.abs(edge.from.y - edge.to.y);
+                    const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                    if (isVerticalEdge) {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (edge.from.x + edge.to.x) / 2 + (curveAmount * curveDirection),
+                            y: (edge.from.y + edge.to.y) / 2
+                        };
+                    } else {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (edge.from.x + edge.to.x) / 2,
+                            y: (edge.from.y + edge.to.y) / 2 - (curveAmount * curveDirection)
+                        };
+                    }
+                }
+                const tolerance = hoverTolerance !== null ? hoverTolerance : 8;
+                return this.isPointNearQuadraticCurve(
+                    x, y,
+                    edge.from.x, edge.from.y,
+                    controlPoint.x, controlPoint.y,
+                    edge.to.x, edge.to.y,
+                    tolerance
+                );
             } else {
-                // For straight edges, check if click is near the line
-                const tolerance = 8; // Click tolerance for straight edges
+                const tolerance = hoverTolerance !== null ? hoverTolerance : 8;
                 return this.isPointNearLine(x, y, edge.from.x, edge.from.y, edge.to.x, edge.to.y, tolerance);
             }
         });
@@ -5938,5 +5966,21 @@ export class GraphCreator {
             // Cancel timer if running
             this._clearDeleteProximity();
         }
+    }
+
+    // Helper: Check if point is near a quadratic Bezier curve
+    isPointNearQuadraticCurve(px, py, x1, y1, cx, cy, x2, y2, tolerance) {
+        // Sample N points along the curve and check distance
+        const N = 32; // More samples = more accurate
+        for (let t = 0; t <= 1; t += 1 / N) {
+            const xt = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2;
+            const yt = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2;
+            const dx = px - xt;
+            const dy = py - yt;
+            if (Math.sqrt(dx * dx + dy * dy) <= tolerance) {
+                return true;
+            }
+        }
+        return false;
     }
 } // End of GraphCreator class 
