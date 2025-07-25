@@ -2158,7 +2158,7 @@ export class GraphCreator {
             const pos = this.getMousePos(e);
             const vertex = this.getVertexAt(pos.x, pos.y);
             // Use the same 3px tolerance for both hover and click detection
-            const edge = this.getEdgeAt(pos.x, pos.y, 3);
+            const edge = this.getEdgeAt(pos.x, pos.y, 10);
             if (this.isSearching) {
                 this.canvas.style.cursor = 'not-allowed';
             } else if (vertex) {
