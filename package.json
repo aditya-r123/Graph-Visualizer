@@ -1,6 +1,6 @@
 {
   "name": "graph-creator",
-  "version": "1.3.1",
+  "version": "1.4.1",
   "description": "A modern, interactive graph creation tool with beautiful UI/UX",
   "main": "server.js",
   "scripts": {
