@@ -195,7 +195,7 @@ body {
 }
 
 .logo h1 {
-    font-size: 1rem;
+    font-size: 1.4rem;
     font-weight: 600;
     color: var(--text-primary);
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
@@ -216,8 +216,26 @@ body {
         hsla(var(--glow-hue), 70%, 70%, 0.1) 0%, 
         hsla(calc(var(--glow-hue) + 30), 70%, 70%, 0.1) 50%, 
         hsla(calc(var(--glow-hue) + 60), 70%, 70%, 0.1) 100%);
-    box-shadow: 0 0 12px hsla(var(--glow-hue), 70%, 70%, 0.3);
+    box-shadow: 
+        0 0 8px rgba(99, 102, 241, 0.4),
+        0 0 15px rgba(99, 102, 241, 0.25),
+        0 0 25px rgba(99, 102, 241, 0.15),
+        0 0 35px rgba(99, 102, 241, 0.08),
+        inset 0 0 25px rgba(99, 102, 241, 0.03),
+        0 0 12px hsla(var(--glow-hue), 70%, 70%, 0.3);
     transform: translateY(-2px);
+    animation: laserGlow 2s ease-in-out infinite;
+}
+
+/* Status Panel Laser Glow Effect */
+#statusPanel:hover {
+    box-shadow: 
+        0 0 8px rgba(99, 102, 241, 0.4),
+        0 0 15px rgba(99, 102, 241, 0.25),
+        0 0 25px rgba(99, 102, 241, 0.15),
+        0 0 35px rgba(99, 102, 241, 0.08),
+        inset 0 0 25px rgba(99, 102, 241, 0.03);
+    animation: laserGlow 2s ease-in-out infinite;
 }
 
 @keyframes logoIconPulse {
@@ -265,6 +283,13 @@ body {
     background: var(--border-color);
     transform: scale(1.05);
     color: var(--primary-color);
+    box-shadow: 
+        0 0 8px rgba(99, 102, 241, 0.4),
+        0 0 15px rgba(99, 102, 241, 0.25),
+        0 0 25px rgba(99, 102, 241, 0.15),
+        0 0 35px rgba(99, 102, 241, 0.08),
+        inset 0 0 25px rgba(99, 102, 241, 0.03);
+    animation: laserGlow 2s ease-in-out infinite;
 }
 
 .help-btn i {
@@ -291,73 +316,16 @@ body {
 .theme-toggle:hover {
     background: var(--border-color);
     transform: scale(1.05);
+    box-shadow: 
+        0 0 8px rgba(99, 102, 241, 0.4),
+        0 0 15px rgba(99, 102, 241, 0.25),
+        0 0 25px rgba(99, 102, 241, 0.15),
+        0 0 35px rgba(99, 102, 241, 0.08),
+        inset 0 0 25px rgba(99, 102, 241, 0.03);
+    animation: laserGlow 2s ease-in-out infinite;
 }
 
-.theme-icon {
-    position: relative;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
-}
 
-.sun-icon,
-.moon-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-}
-
-.sun-icon {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7) rotate(-15deg);
-}
-
-.moon-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.9);
-}
-
-/* Dark theme - show moon (default) */
-[data-theme="dark"] .sun-icon {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7) rotate(-15deg);
-}
-
-[data-theme="dark"] .moon-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.9);
-}
-
-/* Light theme - show sun */
-[data-theme="light"] .sun-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
-}
-
-[data-theme="light"] .moon-icon {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7) rotate(15deg);
-}
-
-/* Eye tracking animation */
-.eye-socket {
-    transition: all 0.1s ease-out;
-}
-
-.eye {
-    transition: all 0.1s ease-out;
-}
-
-.pupil {
-    transition: all 0.1s ease-out;
-    transform-origin: center;
-}
 
 .sidebar-content {
     flex: 1;
@@ -916,14 +884,23 @@ body {
 
 .btn-warning {
     background: linear-gradient(135deg, #fbbf24, #d97706);
-    color: white;
+    color: white !important;
 }
 
 .btn-warning:hover:not(:disabled) {
     background: linear-gradient(135deg, #f59e0b, #b45309);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
-    color: white;
+    color: white !important;
+}
+
+/* Ensure stop search button text is always white */
+#stopSearch {
+    color: white !important;
+}
+
+#stopSearch:hover {
+    color: white !important;
 }
 
 .btn-info {
@@ -2351,6 +2328,50 @@ body {
     transform: scale(1.1);
 }
 
+.btn-outline-info {
+    background: transparent;
+    border: 2px solid var(--info-color);
+    color: var(--info-color);
+    transition: var(--transition);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-outline-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.btn-outline-info:hover {
+    background: var(--info-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--info-color);
+}
+
+.btn-outline-info:hover::before {
+    left: 100%;
+}
+
+.btn-outline-info i {
+    margin-right: 0.5rem;
+    transition: var(--transition);
+}
+
+.btn-outline-info:hover i {
+    transform: scale(1.1);
+}
+
 /* Custom button styles for specific buttons */
 #deleteNodesBtn {
     background: linear-gradient(135deg, rgb(252, 61, 3), #e53e3e) !important;
@@ -2493,59 +2514,7 @@ body {
     }
 } 
 
-/* Theme toggle container */
-.theme-toggle-container {
-    display: flex;
-    justify-content: center;
-    margin: 0.75rem 0;
-    padding: 0.375rem;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-}
 
-.theme-toggle-container .theme-toggle {
-    background: var(--bg-primary);
-    border: 2px solid var(--border-color);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    position: relative;
-    overflow: hidden;
-}
-
-.theme-toggle-container .theme-toggle::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    border-radius: 50%;
-}
-
-.theme-toggle-container .theme-toggle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    border-color: var(--primary-color);
-}
-
-.theme-toggle-container .theme-toggle:hover::before {
-    opacity: 0.1;
-}
-
-.theme-toggle-container .theme-toggle:active {
-    transform: scale(0.95);
-}
 
 /* Delete mode styling */
 .delete-mode-active .vertex {
@@ -3089,7 +3058,14 @@ body {
 
 .draggable-panel:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 
+        0 0 8px rgba(99, 102, 241, 0.4),
+        0 0 15px rgba(99, 102, 241, 0.25),
+        0 0 25px rgba(99, 102, 241, 0.15),
+        0 0 35px rgba(99, 102, 241, 0.08),
+        inset 0 0 25px rgba(99, 102, 241, 0.03),
+        var(--shadow-lg);
+    animation: laserGlow 2s ease-in-out infinite;
 }
 
 .draggable-panel.dragging {
@@ -3100,21 +3076,51 @@ body {
 }
 
 @keyframes dragShake {
-    0% { transform: rotate(2deg) translateX(0px) translateY(0px); }
-    25% { transform: rotate(2deg) translateX(-1px) translateY(-1px); }
-    50% { transform: rotate(2deg) translateX(1px) translateY(1px); }
-    75% { transform: rotate(2deg) translateX(-1px) translateY(1px); }
-    100% { transform: rotate(2deg) translateX(0px) translateY(0px); }
+    0% { transform: translateX(0px) translateY(0px); }
+    25% { transform: translateX(-1px) translateY(-1px); }
+    50% { transform: translateX(1px) translateY(1px); }
+    75% { transform: translateX(-1px) translateY(1px); }
+    100% { transform: translateX(0px) translateY(0px); }
 }
 
 /* Alternative shake effect with more variation */
 @keyframes dragShakeVariant {
-    0% { transform: rotate(2deg) translateX(0px) translateY(0px); }
-    20% { transform: rotate(2deg) translateX(-1px) translateY(0px); }
-    40% { transform: rotate(2deg) translateX(1px) translateY(-1px); }
-    60% { transform: rotate(2deg) translateX(0px) translateY(1px); }
-    80% { transform: rotate(2deg) translateX(-1px) translateY(-1px); }
-    100% { transform: rotate(2deg) translateX(0px) translateY(0px); }
+    0% { transform: translateX(0px) translateY(0px); }
+    20% { transform: translateX(-1px) translateY(0px); }
+    40% { transform: translateX(1px) translateY(-1px); }
+    60% { transform: translateX(0px) translateY(1px); }
+    80% { transform: translateX(-1px) translateY(-1px); }
+    100% { transform: translateX(0px) translateY(0px); }
+}
+
+@keyframes laserGlow {
+    0% {
+        box-shadow: 
+            0 0 8px rgba(99, 102, 241, 0.4),
+            0 0 15px rgba(99, 102, 241, 0.25),
+            0 0 25px rgba(99, 102, 241, 0.15),
+            0 0 35px rgba(99, 102, 241, 0.08),
+            inset 0 0 25px rgba(99, 102, 241, 0.03),
+            var(--shadow-lg);
+    }
+    50% {
+        box-shadow: 
+            0 0 12px rgba(99, 102, 241, 0.5),
+            0 0 20px rgba(99, 102, 241, 0.35),
+            0 0 30px rgba(99, 102, 241, 0.25),
+            0 0 40px rgba(99, 102, 241, 0.12),
+            inset 0 0 30px rgba(99, 102, 241, 0.05),
+            var(--shadow-lg);
+    }
+    100% {
+        box-shadow: 
+            0 0 8px rgba(99, 102, 241, 0.4),
+            0 0 15px rgba(99, 102, 241, 0.25),
+            0 0 25px rgba(99, 102, 241, 0.15),
+            0 0 35px rgba(99, 102, 241, 0.08),
+            inset 0 0 25px rgba(99, 102, 241, 0.03),
+            var(--shadow-lg);
+    }
 }
 
 .panel-drag-handle {
@@ -3341,107 +3347,7 @@ body {
 }
 
 /* Visual feedback for draggable panels - moved to header */
-/* Controls Panel */
-#basicControlsSection.draggable-panel .expandable-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
 
-#basicControlsSection.draggable-panel:hover .expandable-header::before {
-    opacity: 1;
-}
-
-/* Edit Controls Panel */
-#editControlsSection.draggable-panel .expandable-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-#editControlsSection.draggable-panel:hover .expandable-header::before {
-    opacity: 1;
-}
-
-/* Search/Algorithms Panel */
-#searchSection.draggable-panel .expandable-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-#searchSection.draggable-panel:hover .expandable-header::before {
-    opacity: 1;
-}
-
-/* Save & Export Panel */
-#saveExportSection.draggable-panel .expandable-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-#saveExportSection.draggable-panel:hover .expandable-header::before {
-    opacity: 1;
-}
-
-/* Canvas Management Panel */
-#canvasManagementSection.draggable-panel .expandable-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-#canvasManagementSection.draggable-panel:hover .expandable-header::before {
-    opacity: 1;
-}
-
-/* Utilities Panel */
-#utilitiesSection.draggable-panel .expandable-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-#utilitiesSection.draggable-panel:hover .expandable-header::before {
-    opacity: 1;
-}
 
 /* Ensure panels maintain their expanded/collapsed state during drag */
 .draggable-panel .expandable-content {

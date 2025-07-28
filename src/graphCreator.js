@@ -6229,6 +6229,7 @@ export class GraphCreator {
     toggleTimeDisplay() {
         const digital = document.getElementById('digitalTime');
         const analog = document.getElementById('analogClock');
+        const clockIcon = document.querySelector('#clockBtn i.fas.fa-clock');
         if (!digital || !analog) return;
         
         if (this.timeDisplayMode === 'digital') {
@@ -6236,11 +6237,17 @@ export class GraphCreator {
             this.timeDisplayMode = 'analog';
             digital.style.display = 'none';
             analog.style.display = 'inline-block';
+            if (clockIcon) {
+                clockIcon.style.display = 'none';
+            }
         } else {
             // Switch to digital
             this.timeDisplayMode = 'digital';
             digital.style.display = 'inline-block';
             analog.style.display = 'none';
+            if (clockIcon) {
+                clockIcon.style.display = 'inline-block';
+            }
         }
         
         // Update the time display immediately
