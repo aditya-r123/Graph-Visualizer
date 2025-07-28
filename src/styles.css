@@ -2145,11 +2145,13 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 0.5rem;
-    min-height: 32px;
+    padding: 0.75rem;
+    min-height: 40px;
+    width: 100%;
     display: flex;
     align-items: center;
     transition: var(--transition);
+    overflow: hidden; /* Prevent content from overflowing */
 }
 
 .target-display.has-target {
@@ -2159,14 +2161,21 @@ body {
 
 .target-placeholder {
     color: var(--text-muted);
-    font-style: italic;
     font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .target-vertex-label {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .target-vertex-info {
@@ -3334,11 +3343,13 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 0.5rem;
-    min-height: 32px;
+    padding: 0.75rem;
+    min-height: 40px;
+    width: 100%;
     display: flex;
     align-items: center;
     transition: var(--transition);
+    overflow: hidden; /* Prevent content from overflowing */
 }
 
 .root-display.has-root {
@@ -3348,12 +3359,19 @@ body {
 
 .root-placeholder {
     color: var(--text-muted);
-    font-style: italic;
     font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .root-vertex-label {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }

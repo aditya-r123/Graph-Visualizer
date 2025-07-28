@@ -4690,7 +4690,7 @@ export class GraphCreator {
             display.innerHTML = `<span class="target-vertex-label">${this.selectedTargetVertex.label}</span>`;
             display.classList.add('has-target');
         } else {
-            display.innerHTML = '<span class="target-placeholder">Not selected</span>';
+            display.innerHTML = '<span class="target-placeholder">Unselected</span>';
             display.classList.remove('has-target');
         }
     }
@@ -6071,8 +6071,8 @@ export class GraphCreator {
         const dropdown = document.getElementById('searchRoot');
         
         if (this.vertices.length === 0) {
-            // No vertices - show "Not selected"
-            display.innerHTML = '<span class="root-placeholder">Not selected</span>';
+            // No vertices - show "unselected"
+            display.innerHTML = '<span class="root-placeholder">Unselected</span>';
             display.classList.remove('has-root');
             display.style.display = 'flex'; // Make sure display is visible
             dropdown.style.display = 'none';
