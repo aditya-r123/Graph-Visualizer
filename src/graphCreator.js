@@ -270,6 +270,36 @@ export class GraphCreator {
             // Do NOT update existing vertices or redraw
         });
         
+        // Edge weight input
+        const edgeWeightInput = document.getElementById('edgeWeight');
+        if (edgeWeightInput) {
+            // Ensure the input is enabled and accessible
+            edgeWeightInput.disabled = false;
+            edgeWeightInput.readOnly = false;
+            edgeWeightInput.style.pointerEvents = 'auto';
+            edgeWeightInput.style.opacity = '1';
+            
+            edgeWeightInput.addEventListener('input', (e) => {
+                // Allow typing in the edge weight field
+                // The weight will be used when creating edges
+                this.updateStatus('Edge weight set - will be applied to next edge created');
+            });
+            
+            // Add focus event for debugging
+            edgeWeightInput.addEventListener('focus', (e) => {
+                console.log('Edge weight input focused');
+            });
+            
+            // Add click event for debugging
+            edgeWeightInput.addEventListener('click', (e) => {
+                console.log('Edge weight input clicked');
+            });
+            
+            console.log('Edge weight input initialized successfully');
+        } else {
+            console.error('Edge weight input not found!');
+        }
+        
         // Edge type radio buttons
         const edgeTypeStraight = document.getElementById('edgeTypeStraight');
         const edgeTypeCurved = document.getElementById('edgeTypeCurved');
@@ -1926,6 +1956,12 @@ export class GraphCreator {
             const weightInput = document.getElementById('edgeWeight');
             const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
             this.addSelfLoop(vertex, weight);
+            
+            // Clear the edge weight input after creating the edge
+            if (weightInput) {
+                weightInput.value = '';
+            }
+            
             this.selectedVertices = [];
             this.flashVertices(vertex, vertex);
             this.lastVertexClick = null;
@@ -1960,6 +1996,12 @@ export class GraphCreator {
             const weightInput = document.getElementById('edgeWeight');
             const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
             this.addEdge(vertex1, vertex2, weight);
+            
+            // Clear the edge weight input after creating the edge
+            if (weightInput) {
+                weightInput.value = '';
+            }
+            
             this.selectedVertices = [];
             // Flash both vertices when edge is created
             this.flashVertices(vertex1, vertex2);
@@ -2013,6 +2055,12 @@ export class GraphCreator {
                 
                 // Create the self-loop edge
                 this.addSelfLoop(vertex1, weight);
+                
+                // Clear the edge weight input after creating the edge
+                if (weightInput) {
+                    weightInput.value = '';
+                }
+                
                 this.selectedVertices = [];
                 
                 // Flash the vertex briefly
@@ -2046,6 +2094,12 @@ export class GraphCreator {
             
             // Create the edge
             this.addEdge(vertex1, vertex2, weight);
+            
+            // Clear the edge weight input after creating the edge
+            if (weightInput) {
+                weightInput.value = '';
+            }
+            
             this.selectedVertices = [];
             
             // Flash the vertices briefly
