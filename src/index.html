@@ -65,15 +65,11 @@
                     </button>
                 </div>
             </div>
-            <!-- Utility controls - status and mouse position -->
+            <!-- Utility controls - status -->
             <div class="d-flex gap-2 justify-content-center align-items-center mt-3 mb-3" id="savePanelUtilities">
                 <div id="statusPanel" class="btn btn-outline-secondary" style="min-width:120px; font-size:0.75rem; padding:0.5rem; text-align:center;">
                     <i class="fas fa-info-circle"></i>
                     <div id="statusMessageTop" style="font-weight:bold;">Ready to create your graph!</div>
-                </div>
-                <div id="mousePositionPanel" class="btn btn-outline-secondary" style="min-width:80px; font-size:0.75rem; padding:0.5rem; text-align:center; display:none;">
-                    <i class="fas fa-mouse-pointer"></i>
-                    <div id="mousePositionTop" style="font-weight:bold;">(0, 0)</div>
                 </div>
             </div>
             
@@ -557,6 +553,35 @@
                                 <span class="switch-slider"></span>
                             </div>
                         </label>
+                    </div>
+                    
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="vertexVisibilityToggle">
+                            <i class="fas fa-circle"></i>
+                            Show Vertices
+                            <div class="switch-container">
+                                <input type="checkbox" id="vertexVisibilityToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="edgeVisibilityToggle">
+                            <i class="fas fa-minus"></i>
+                            Show Edges
+                            <div class="switch-container">
+                                <input type="checkbox" id="edgeVisibilityToggle" checked>
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="button-group mt-2">
+                        <div id="mousePositionDisplay" class="btn btn-outline-secondary w-100" style="font-size:0.75rem; padding:0.5rem; text-align:center; display:none;">
+                            <i class="fas fa-mouse-pointer"></i>
+                            <div id="mousePositionTop" style="font-weight:bold;">(0, 0)</div>
+                        </div>
                     </div>
                     
                     <div class="button-group mt-2">

@@ -102,6 +102,7 @@ export class GraphCreator {
         
         // Vertex visibility
         this.showVertices = true;
+        this.showEdges = true;
         this.gridSpacing = 50;
         
         // Debug mode
@@ -337,10 +338,6 @@ export class GraphCreator {
                 this.updateMouseCoordinateDisplay();
                 this.updateStatus(`Mouse coordinates ${this.showMouseCoordinates ? 'enabled' : 'disabled'}`);
                 console.log('Mouse coordinate checkbox changed to:', this.showMouseCoordinates);
-                // Hide or show the mouse position display
-                if (mousePositionDisplay) {
-                    mousePositionDisplay.style.display = this.showMouseCoordinates ? 'block' : 'none';
-                }
             });
             mouseCoordinateToggle.addEventListener('click', (e) => {
                 // Prevent event bubbling
@@ -388,6 +385,34 @@ export class GraphCreator {
             });
         } else {
             console.error('Hide labels toggle not found!');
+        }
+        
+        // Vertex visibility toggle
+        const vertexVisibilityToggle = document.getElementById('vertexVisibilityToggle');
+        if (vertexVisibilityToggle) {
+            // Initialize the checkbox state
+            vertexVisibilityToggle.checked = this.showVertices;
+            vertexVisibilityToggle.addEventListener('change', (e) => {
+                this.showVertices = e.target.checked;
+                this.draw(); // Redraw to show/hide vertices
+                this.updateStatus(`Vertices ${this.showVertices ? 'shown' : 'hidden'}`);
+            });
+        } else {
+            console.error('Vertex visibility toggle not found!');
+        }
+        
+        // Edge visibility toggle
+        const edgeVisibilityToggle = document.getElementById('edgeVisibilityToggle');
+        if (edgeVisibilityToggle) {
+            // Initialize the checkbox state
+            edgeVisibilityToggle.checked = this.showEdges;
+            edgeVisibilityToggle.addEventListener('change', (e) => {
+                this.showEdges = e.target.checked;
+                this.draw(); // Redraw to show/hide edges
+                this.updateStatus(`Edges ${this.showEdges ? 'shown' : 'hidden'}`);
+            });
+        } else {
+            console.error('Edge visibility toggle not found!');
         }
         
         document.getElementById('hideInstructions').addEventListener('click', () => {
@@ -604,14 +629,7 @@ export class GraphCreator {
             }
         });
         
-        // Global 'x' key listener for toggling vertex visibility
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'x' || e.key === 'X') {
-                this.showVertices = !this.showVertices;
-                this.draw(); // Redraw to show/hide vertices
-                this.updateStatus(`Vertices ${this.showVertices ? 'shown' : 'hidden'}`);
-            }
-        });
+
         
         // Edit mode controls - these are handled in setupMinimalEditModeEvents()
         
@@ -3839,8 +3857,10 @@ export class GraphCreator {
         // Draw coordinate grid first (behind everything)
         this.drawCoordinateGrid();
         
-        // Draw edges
-        this.edges.forEach(edge => this.drawEdge(edge));
+        // Draw edges (only if edges are visible)
+        if (this.showEdges) {
+            this.edges.forEach(edge => this.drawEdge(edge));
+        }
         
         // Draw vertices with debug logging and duplicate detection (only if vertices are visible)
         if (this.showVertices) {
@@ -4802,9 +4822,9 @@ export class GraphCreator {
         
         // Hide theme toggle and mouse position display when in edit mode
         const themeToggle = document.getElementById('themeToggle');
-        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        const mousePositionDisplay = document.getElementById('mousePositionDisplay');
         if (themeToggle) themeToggle.style.display = 'none';
-        if (mousePositionPanel) mousePositionPanel.style.display = 'none';
+        if (mousePositionDisplay) mousePositionDisplay.style.display = 'none';
         
         const editSection = document.getElementById('editControlsSection');
         if (editSection) editSection.style.display = 'block';
@@ -4890,13 +4910,13 @@ export class GraphCreator {
         
         // Show theme toggle and mouse position display when exiting edit mode
         const themeToggle = document.getElementById('themeToggle');
-        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        const mousePositionDisplay = document.getElementById('mousePositionDisplay');
         if (themeToggle) themeToggle.style.display = 'block';
-        // Only show mouse position panel if it was previously visible (controlled by toggle)
-        if (mousePositionPanel) {
+        // Only show mouse position display if it was previously visible (controlled by toggle)
+        if (mousePositionDisplay) {
             const mouseToggle = document.getElementById('mouseCoordinateToggle');
             if (mouseToggle && mouseToggle.checked) {
-                mousePositionPanel.style.display = 'block';
+                mousePositionDisplay.style.display = 'block';
             }
         }
         
@@ -5316,7 +5336,7 @@ export class GraphCreator {
     // Update mouse coordinate display
     updateMouseCoordinateDisplay() {
         const coordDisplay = document.getElementById('mouseCoordinates');
-        const topPanel = document.getElementById('mousePositionPanel');
+        const mousePositionDisplay = document.getElementById('mousePositionDisplay');
         const topDisplay = document.getElementById('mousePositionTop');
         
         // Check if a panel is currently being dragged
@@ -5336,12 +5356,12 @@ export class GraphCreator {
             }
         }
         
-        // Update top panel display
-        if (topPanel && topDisplay) {
+        // Update utilities section display
+        if (mousePositionDisplay && topDisplay) {
             if (!this.showMouseCoordinates || !this.mouseOverCanvas || isDragging) {
-                topPanel.style.display = 'none';
+                mousePositionDisplay.style.display = 'none';
             } else {
-                topPanel.style.display = 'block';
+                mousePositionDisplay.style.display = 'block';
                 // Display coordinates in bottom-left origin system
                 const displayX = Math.round(this.mouseCoordinates.x);
                 const displayY = Math.round(this.mouseCoordinates.y);
@@ -5646,9 +5666,9 @@ export class GraphCreator {
         
         // Hide theme toggle and mouse position display when in delete mode
         const themeToggle = document.getElementById('themeToggle');
-        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        const mousePositionDisplay = document.getElementById('mousePositionDisplay');
         if (themeToggle) themeToggle.style.display = 'none';
-        if (mousePositionPanel) mousePositionPanel.style.display = 'none';
+        if (mousePositionDisplay) mousePositionDisplay.style.display = 'none';
         
         // Show delete mode panel
         this.showDeleteModePanel();
@@ -5707,13 +5727,13 @@ export class GraphCreator {
         
         // Show theme toggle and mouse position display when exiting delete mode
         const themeToggle = document.getElementById('themeToggle');
-        const mousePositionPanel = document.getElementById('mousePositionPanel');
+        const mousePositionDisplay = document.getElementById('mousePositionDisplay');
         if (themeToggle) themeToggle.style.display = 'block';
-        // Only show mouse position panel if it was previously visible (controlled by toggle)
-        if (mousePositionPanel) {
+        // Only show mouse position display if it was previously visible (controlled by toggle)
+        if (mousePositionDisplay) {
             const mouseToggle = document.getElementById('mouseCoordinateToggle');
             if (mouseToggle && mouseToggle.checked) {
-                mousePositionPanel.style.display = 'block';
+                mousePositionDisplay.style.display = 'block';
             }
         }
         
