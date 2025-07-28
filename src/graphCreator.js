@@ -1839,6 +1839,15 @@ export class GraphCreator {
             return;
         }
 
+        // If we have selected vertices for edge creation, deselect them when clicking empty space
+        if (this.selectedVertices.length > 0) {
+            this.selectedVertices = [];
+            this.flashingVertices.clear(); // Clear purple highlighting
+            this.draw(); // Redraw to clear the highlighting
+            this.updateStatus('Vertex selection cleared');
+            return;
+        }
+
         // Only add a vertex if you click empty space (not on a vertex or edge)
         this.addVertex(pos.x, pos.y);
     }
