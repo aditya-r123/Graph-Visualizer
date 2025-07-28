@@ -17,10 +17,8 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="d-flex align-items-center justify-content-between w-100">
-                    <button id="helpBtn" class="btn btn-outline-secondary help-btn" title="Show Help" style="min-width:40px;">
-                        <i class="fas fa-question-circle"></i>
-                    </button>
-                    <div class="logo d-flex align-items-center" style="margin-left: 40px;">
+                    <i id="helpBtn" class="fas fa-question-circle help-btn" title="Show Help"></i>
+                    <div class="logo d-flex align-items-center" style="margin-left: 8px;">
                         <i class="fas fa-project-diagram"></i>
                         <h1>Graph Creator Pro</h1>
                     </div>
@@ -28,7 +26,7 @@
 
             </div>
             <!-- Utility controls - status -->
-            <div class="d-flex gap-2 justify-content-center align-items-center mt-3 mb-3" id="savePanelUtilities">
+            <div class="d-flex gap-2 justify-content-center align-items-center mt-3 mb-1" id="savePanelUtilities">
                 <div id="statusPanel" class="btn btn-outline-secondary" style="min-width:120px; font-size:0.75rem; padding:0.5rem; text-align:center;">
                     <i class="fas fa-info-circle"></i>
                     <div id="statusMessageTop" style="font-weight:bold;">Ready to create your graph!</div>
@@ -323,54 +321,75 @@
                 <div class="modal-content instructions-content p-3" style="max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
                     <button type="button" class="btn-close position-absolute end-0 top-0 m-2" id="closeInstructionsX" aria-label="Close"></button>
                     <h3 class="modal-title text-center mb-3"><i class="fas fa-lightbulb"></i> How to Use</h3>
-                    <div class="instruction-grid mb-3">
+                    
+                    <!-- Introduction -->
+                    <div class="mb-4 p-3" style="background: var(--bg-secondary); border-radius: var(--radius-md); border-left: 4px solid var(--primary-color);">
+                        <h5 class="mb-2"><i class="fas fa-info-circle"></i> About Graph Creator Pro</h5>
+                        <p class="mb-2" style="font-size: 0.9rem; line-height: 1.4;">
+                            Graph Creator Pro is the first modern UI graph creation web software, designed for creating, visualizing, and analyzing graphs with an intuitive interface. Perfect for students, researchers, and professionals working with graph theory, algorithms, and data visualization.
+                        </p>
+                        <p class="mb-0" style="font-size: 0.9rem; line-height: 1.4;">
+                            <strong>Need help?</strong> Visit <strong>Utilities > Contact</strong> to reach out for support or feature requests.
+                        </p>
+                    </div>
+
+                    <h5 class="mb-3"><i class="fas fa-mouse"></i> Core Controls</h5>
+                    <div class="instruction-grid mb-4">
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-mouse-pointer"></i></div>
-                            <div class="instruction-text"><strong>Add Vertex:</strong> Left-click on canvas</div>
+                            <div class="instruction-text"><strong>Add Vertex:</strong> Left-click on empty canvas area</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-hand-pointer"></i></div>
-                            <div class="instruction-text"><strong>Move Vertex:</strong> Drag to reposition (5px threshold)</div>
+                            <div class="instruction-text"><strong>Move Vertex:</strong> Drag vertex to reposition (5px movement threshold)</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-mouse"></i></div>
-                            <div class="instruction-text"><strong>Create Edge:</strong> Right-click two vertices consecutively</div>
+                            <div class="instruction-text"><strong>Create Edge:</strong> Right-click on first vertex, then right-click on second vertex</div>
                         </div>
+                        <div class="instruction-item d-flex align-items-center mb-2">
+                            <div class="instruction-icon me-2"><i class="fas fa-bullseye"></i></div>
+                            <div class="instruction-text"><strong>Set Target:</strong> Right-click on vertex to set as search target</div>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3"><i class="fas fa-edit"></i> Advanced Modes</h5>
+                    <div class="instruction-grid mb-4">
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-edit"></i></div>
                             <div class="instruction-text"><strong>Edit Mode:</strong> Hold vertex for 2.5 seconds (red glow appears at 1s). Click other vertices to switch between them.</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="instruction-text"><strong>Note:</strong> Dragging prevents edit mode</div>
+                            <div class="instruction-icon me-2"><i class="fas fa-trash"></i></div>
+                            <div class="instruction-text"><strong>Delete Mode:</strong> Use "Delete Mode" button in Utilities panel to delete multiple vertices</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-sliders-h"></i></div>
-                            <div class="instruction-text"><strong>Customize:</strong> Adjust size, colors, fonts</div>
+                            <div class="instruction-icon me-2"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="instruction-text"><strong>Important:</strong> Dragging prevents edit mode activation</div>
                         </div>
+                    </div>
+
+                    <h5 class="mb-3"><i class="fas fa-star"></i> Key Features</h5>
+                    <div class="instruction-grid mb-4">
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-search"></i></div>
-                            <div class="instruction-text"><strong>Search:</strong> Run BFS/DFS algorithms</div>
-                        </div>
-                        <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-bullseye"></i></div>
-                            <div class="instruction-text"><strong>Set Target:</strong> Right-click on vertex</div>
+                            <div class="instruction-text"><strong>Graph Algorithms:</strong> Run BFS/DFS with visual pathfinding</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-ruler"></i></div>
-                            <div class="instruction-text"><strong>Calculate:</strong> Measure distances between vertices</div>
+                            <div class="instruction-text"><strong>Distance Calculator:</strong> Measure shortest paths between vertices</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-save"></i></div>
-                            <div class="instruction-text"><strong>Save/Load:</strong> Save and load graphs</div>
+                            <div class="instruction-text"><strong>Save & Load:</strong> Auto-save and manual save/load functionality</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-camera"></i></div>
-                            <div class="instruction-text"><strong>Screenshot:</strong> Capture your graph</div>
+                            <div class="instruction-text"><strong>Export:</strong> Screenshot and export graphs in multiple formats</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-moon"></i></div>
-                            <div class="instruction-text"><strong>Theme:</strong> Toggle dark/light mode</div>
+                            <div class="instruction-icon me-2"><i class="fas fa-sliders-h"></i></div>
+                            <div class="instruction-text"><strong>Customization:</strong> Adjust vertex size, colors, edge types, and themes</div>
                         </div>
                     </div>
                     <button class="btn btn-secondary w-100" id="hideInstructions"><i class="fas fa-times"></i> Got it!</button>
@@ -601,7 +620,7 @@
                     
                     <div class="button-group mt-2">
                         <button id="themeToggle" class="btn btn-outline-secondary w-100" title="Toggle theme">
-                            <i class="fas fa-palette"></i>
+                            <i class="fas fa-moon"></i>
                             <span>Theme</span>
                         </button>
                     </div>
