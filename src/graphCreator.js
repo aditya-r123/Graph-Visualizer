@@ -268,15 +268,49 @@ export class GraphCreator {
             // Do NOT update existing vertices or redraw
         });
         
-        document.getElementById('edgeType').addEventListener('change', (e) => {
-            this.edgeType = e.target.value;
-            this.forceRedraw();
-        });
+        // Edge type radio buttons
+        const edgeTypeStraight = document.getElementById('edgeTypeStraight');
+        const edgeTypeCurved = document.getElementById('edgeTypeCurved');
+        if (edgeTypeStraight) {
+            edgeTypeStraight.addEventListener('change', () => {
+                if (edgeTypeStraight.checked) {
+                    this.edgeType = 'straight';
+                    this.forceRedraw();
+                    this.updateStatus('Edge type set to Straight');
+                }
+            });
+        }
+        if (edgeTypeCurved) {
+            edgeTypeCurved.addEventListener('change', () => {
+                if (edgeTypeCurved.checked) {
+                    this.edgeType = 'curved';
+                    this.forceRedraw();
+                    this.updateStatus('Edge type set to Curved');
+                }
+            });
+        }
         
-        document.getElementById('edgeDirection').addEventListener('change', (e) => {
-            this.edgeDirection = e.target.value;
-            this.forceRedraw();
-        });
+        // Edge direction radio buttons
+        const edgeDirectionUndirected = document.getElementById('edgeDirectionUndirected');
+        const edgeDirectionDirected = document.getElementById('edgeDirectionDirected');
+        if (edgeDirectionUndirected) {
+            edgeDirectionUndirected.addEventListener('change', () => {
+                if (edgeDirectionUndirected.checked) {
+                    this.edgeDirection = 'undirected';
+                    this.forceRedraw();
+                    this.updateStatus('Edge direction set to Undirected');
+                }
+            });
+        }
+        if (edgeDirectionDirected) {
+            edgeDirectionDirected.addEventListener('change', () => {
+                if (edgeDirectionDirected.checked) {
+                    this.edgeDirection = 'directed-forward';
+                    this.forceRedraw();
+                    this.updateStatus('Edge direction set to Directed');
+                }
+            });
+        }
         
         // clearGraph event listener is now handled in the shared confirmation system
         

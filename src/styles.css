@@ -2924,6 +2924,164 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Edge Type Buttons - Adjacent Style */
+.edge-type-buttons {
+    display: flex;
+    gap: 0;
+    margin-top: 0.5rem;
+}
+
+.edge-type-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.edge-type-option input[type="radio"] {
+    display: none;
+}
+
+.edge-type-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 60px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.edge-type-option:first-child .edge-type-button {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-right: 1px solid var(--border-color);
+}
+
+.edge-type-option:last-child .edge-type-button {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-left: none;
+}
+
+.edge-type-button i {
+    font-size: 1.25rem;
+    margin-bottom: 0.15rem;
+    opacity: 0.7;
+}
+
+.edge-type-option input[type="radio"]:checked + .edge-type-button {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.edge-type-option input[type="radio"]:checked + .edge-type-button i {
+    opacity: 1;
+}
+
+.edge-type-button:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edge-type-option input[type="radio"]:checked + .edge-type-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Edge Direction Buttons - Adjacent Style */
+.edge-direction-buttons {
+    display: flex;
+    gap: 0;
+    margin-top: 0.5rem;
+}
+
+.edge-direction-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.edge-direction-option input[type="radio"] {
+    display: none;
+}
+
+.edge-direction-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 60px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.edge-direction-option:first-child .edge-direction-button {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-right: 1px solid var(--border-color);
+}
+
+.edge-direction-option:last-child .edge-direction-button {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-left: none;
+}
+
+.edge-direction-button i {
+    font-size: 1.25rem;
+    margin-bottom: 0.15rem;
+    opacity: 0.7;
+}
+
+.edge-direction-option input[type="radio"]:checked + .edge-direction-button {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.edge-direction-option input[type="radio"]:checked + .edge-direction-button i {
+    opacity: 1;
+}
+
+.edge-direction-button:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edge-direction-option input[type="radio"]:checked + .edge-direction-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 /* Panel Drag and Drop Styles */
 .draggable-panel {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
