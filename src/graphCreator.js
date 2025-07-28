@@ -1880,22 +1880,27 @@ export class GraphCreator {
             return;
         }
 
-        // Prevent adding new vertices during edit mode
+        // Check for vertex clicks first - vertices take priority over edges
+        const clickedVertex = this.getVertexAt(pos.x, pos.y);
+        if (clickedVertex) {
+            // In edit mode, allow switching to edit different vertices
+            if (this.editModeElement && this.editModeType === 'vertex') {
+                this.enterEditMode(clickedVertex);
+                return;
+            }
+            // Handle vertex click (this will be handled by mouse events for edge creation, target setting, etc.)
+            return;
+        }
+
+        // Prevent adding new vertices during edit mode (only for empty space clicks)
         if (this.editModeElement) {
             console.log('Click prevented - in edit mode');
             return;
         }
 
-        // Prevent adding new vertices during delete mode
+        // Prevent adding new vertices during delete mode (only for empty space clicks)
         if (this.isDeleteMode) {
             console.log('Click prevented - in delete mode');
-            return;
-        }
-
-        // Check for vertex clicks first - vertices take priority over edges
-        const clickedVertex = this.getVertexAt(pos.x, pos.y);
-        if (clickedVertex) {
-            // Handle vertex click (this will be handled by mouse events for edge creation, target setting, etc.)
             return;
         }
 
@@ -1929,6 +1934,11 @@ export class GraphCreator {
         
         // Prevent interactions during search animations
         if (this.isSearching) {
+            return;
+        }
+        
+        // Prevent target vertex changes in delete mode or edit mode
+        if (this.isDeleteMode || this.editModeElement) {
             return;
         }
         
@@ -2366,12 +2376,17 @@ export class GraphCreator {
                 }
                 return;
             } else {
-                // Not a drag: treat as click for edge creation
+                // Not a drag: treat as click for edge creation or vertex switching in edit mode
                 const pos = this.getMousePos(e);
                 const vertex = this.getVertexAt(pos.x, pos.y);
                 if (vertex && this.mouseDownOnVertex && vertex.id === this.mouseDownOnVertex.id) {
-                    // Simulate a click for edge creation
-                    this.handleVertexLeftEdge(vertex);
+                    // In edit mode, allow switching to edit different vertices
+                    if (this.editModeElement && this.editModeType === 'vertex') {
+                        this.enterEditMode(vertex);
+                    } else {
+                        // Simulate a click for edge creation
+                        this.handleVertexLeftEdge(vertex);
+                    }
                 }
                 this.draggedVertex = null;
                 this.mouseDownOnVertex = null;
@@ -4886,6 +4901,13 @@ export class GraphCreator {
     // --- Minimal Vertex Edit Mode Implementation ---
     enterEditMode(vertex) {
         console.log('[EditMode] Entering edit mode for vertex:', vertex.label);
+        
+        // If we're already in edit mode, switch to the new vertex
+        if (this.editModeElement && this.editModeType === 'vertex') {
+            this.switchEditModeVertex(vertex);
+            return;
+        }
+        
         this.exitEditMode();
         this.editModeElement = vertex;
         this.editModeType = 'vertex';
@@ -4916,7 +4938,7 @@ export class GraphCreator {
             if (section.id !== 'editControlsSection') section.style.display = 'none';
         });
         const editTitle = editSection.querySelector('h3');
-        if (editTitle) editTitle.innerHTML = `<i class="fas fa-edit"></i> Edit Vertex "${vertex.label}"`;
+        if (editTitle) editTitle.innerHTML = `<i class="fas fa-edit"></i> Edit Vertex "${vertex.label}" <small style="color: var(--text-muted);">(Click other vertices to switch)</small>`;
         const labelInput = document.getElementById('editVertexLabel');
         const sizeInput = document.getElementById('editVertexSize');
         const sizeValue = document.getElementById('editVertexSizeValue');
@@ -4936,6 +4958,64 @@ export class GraphCreator {
         this._updateEditPanelForPendingDelete(false);
         this._updateDeleteButtonText();
         this.draw();
+    }
+    
+    // Switch to editing a different vertex while in edit mode
+    switchEditModeVertex(vertex) {
+        console.log('[EditMode] Switching to vertex:', vertex.label);
+        
+        // Save current edit state to the previous vertex
+        if (this.editModeElement && this._editPreview) {
+            this.editModeElement.label = this._editPreview.label;
+            this.editModeElement.size = this._editPreview.size;
+        }
+        
+        // Switch to the new vertex
+        this.editModeElement = vertex;
+        
+        // Update edit state for the new vertex
+        this._editOriginal = {
+            label: vertex.label,
+            size: vertex.size || this.vertexSize,
+        };
+        this._editPreview = {
+            label: vertex.label,
+            size: vertex.size || this.vertexSize,
+            pendingDelete: false
+        };
+        
+        // Update UI to reflect the new vertex
+        const editTitle = document.querySelector('#editControlsSection h3');
+        if (editTitle) editTitle.innerHTML = `<i class="fas fa-edit"></i> Edit Vertex "${vertex.label}" <small style="color: var(--text-muted);">(Click other vertices to switch)</small>`;
+        
+        const labelInput = document.getElementById('editVertexLabel');
+        const sizeInput = document.getElementById('editVertexSize');
+        const sizeValue = document.getElementById('editVertexSizeValue');
+        if (labelInput && sizeInput && sizeValue) {
+            labelInput.value = vertex.label;
+            sizeInput.value = vertex.size || this.vertexSize;
+            sizeValue.textContent = vertex.size || this.vertexSize;
+        }
+        
+        // Clear any warnings
+        labelInput.style.borderColor = '';
+        labelInput.style.boxShadow = '';
+        const warningMsg = document.getElementById('editVertexLabelWarning');
+        if (warningMsg) warningMsg.textContent = '';
+        
+        // Reset apply to all toggle
+        const applyToAllToggle = document.getElementById('applyToAllToggle');
+        if (applyToAllToggle) applyToAllToggle.checked = false;
+        
+        // Update delete button state
+        this._updateEditPanelForPendingDelete(false);
+        this._updateDeleteButtonText();
+        
+        // Redraw to show the new vertex shaking
+        this.draw();
+        
+        // Focus on the label input
+        setTimeout(() => { if (labelInput) { labelInput.focus(); labelInput.select(); } }, 100);
     }
 
     _setupApplyToAllImmediateListeners() {
