@@ -1730,10 +1730,15 @@ body {
     cursor: pointer;
     user-select: none;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: center;
     transition: var(--transition);
+    flex: 1;
+    text-align: center;
+    margin: 0;
 }
+
+
 
 .expandable-header:hover {
     color: var(--primary-color);
@@ -1743,6 +1748,9 @@ body {
     font-size: 0.875rem;
     transition: var(--transition);
     color: var(--text-muted);
+    margin-left: auto;
+    flex-shrink: 0;
+    margin-right: 3px;
 }
 
 .expandable-header:hover .expand-icon {
@@ -3192,7 +3200,9 @@ body {
 .panel-header-container {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 /* Drag handle area */
@@ -3202,6 +3212,10 @@ body {
     padding: 0.25rem;
     border-radius: 4px;
     transition: background-color 0.2s ease;
+    margin-left: 3px;
+    margin-top: -8px;
+    min-width: 2rem;
+    width: 2rem;
 }
 
 .drag-handle-area:hover {
@@ -3211,16 +3225,35 @@ body {
 /* Drag handle icon styling */
 .drag-handle-icon {
     color: var(--primary-color);
-    font-size: 1rem;
+    font-size: 1.4rem;
     font-weight: bold;
-    opacity: 0.9;
+    opacity: 1;
     transition: opacity 0.2s ease;
     display: block;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .drag-handle-area:hover .drag-handle-icon {
     opacity: 1;
     color: var(--text-primary);
+}
+
+/* Adjust drag handle position for Controls and Algorithms panels */
+#basicControlsSection .drag-handle-area {
+    margin-top: -12px;
+}
+
+#searchSection .drag-handle-area {
+    margin-top: -12px;
+}
+
+/* Adjust title position for Controls and Algorithms panels */
+#basicControlsSection .expandable-header {
+    transform: translateY(3px);
+}
+
+#searchSection .expandable-header {
+    transform: translateY(3px);
 }
 
 
