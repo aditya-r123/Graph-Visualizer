@@ -90,6 +90,7 @@ export class GraphCreator {
         
         // Shared confirmation system
         this.pendingAction = null; // 'clearGraph' or 'deleteAllGraphs'
+        this.rootUserSelected = false; // Track if user has manually selected a root vertex
         
         // Mouse coordinate tracking
         this.showMouseCoordinates = true;
@@ -122,9 +123,9 @@ export class GraphCreator {
         this.loadSavedGraphs();
         this.setupExpandableSections();
         this.setupMouseCoordinateTracking();
-        this.setupResetTargetBtn();
         this.setupMinimalEditModeEvents();
         this.updateInfo();
+        this.updateRootVertexDisplay();
         this.updateTime();
         
         // Set up time update interval
@@ -630,6 +631,16 @@ export class GraphCreator {
                 this.exitEditMode();
             }
         });
+        
+        // Root dropdown change listener to track user selection
+        const searchRootDropdown = document.getElementById('searchRoot');
+        if (searchRootDropdown) {
+            searchRootDropdown.addEventListener('change', () => {
+                this.rootUserSelected = true;
+            });
+        }
+        
+
         
 
         
@@ -2824,12 +2835,9 @@ export class GraphCreator {
         // Start fade-in animation for the new vertex
         this.startVertexFadeInAnimation(vertex);
         
-        // Set the newly created vertex as the target
-        this.selectTargetVertex(vertex);
-        
         // Clear custom label input
         document.getElementById('vertexLabel').value = '';
-        this.updateRootDropdown();
+        this.updateRootVertexDisplay();
         
         // Auto-save if enabled
         if (this.autosaveEnabled) {
@@ -2996,6 +3004,12 @@ export class GraphCreator {
         return this.vertices.find(vertex => vertex.label === label);
     }
     
+    findMostRecentVertex() {
+        if (this.vertices.length === 0) return null;
+        // Return the last vertex added (most recent)
+        return this.vertices[this.vertices.length - 1];
+    }
+    
     findMostUpwardVertex() {
         if (this.vertices.length === 0) return null;
         
@@ -3071,7 +3085,7 @@ export class GraphCreator {
                 return;
             }
         } else {
-            startVertex = this.findMostUpwardVertex();
+            startVertex = this.findMostRecentVertex();
         }
         
         // Check if root node is connected to at least one other node
@@ -3113,7 +3127,7 @@ export class GraphCreator {
                 return;
             }
         } else {
-            startVertex = this.findMostUpwardVertex();
+            startVertex = this.findMostRecentVertex();
         }
         
         // Check if root node is connected to at least one other node
@@ -3749,9 +3763,12 @@ export class GraphCreator {
         // Reset current graph ID so new graph will be saved as a new entry
         this.currentGraphId = null;
         
+        // Reset root user selection flag for new canvas
+        this.rootUserSelected = false;
+        
         // Update UI
         this.updateInfo();
-        this.updateRootDropdown();
+        this.updateRootVertexDisplay();
         this.updateTargetVertexDisplay();
         this.draw();
     }
@@ -4629,25 +4646,19 @@ export class GraphCreator {
         if (current && Array.from(rootDropdown.options).some(o => o.value === current)) {
             rootDropdown.value = current;
         } else {
-            rootDropdown.value = '';
+                    // Always set to most recent vertex if no current selection
+        if (!current) {
+            const mostRecentVertex = this.findMostRecentVertex();
+            if (mostRecentVertex) {
+                rootDropdown.value = mostRecentVertex.label;
+            } else {
+                rootDropdown.value = '';
+            }
+        }
         }
     }
     
-    // Setup reset target button
-    setupResetTargetBtn() {
-        const resetBtn = document.getElementById('resetTargetBtn');
-        console.log('Reset button found:', resetBtn); // Debug
-        if (resetBtn) {
-            resetBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Reset button clicked'); // Debug
-                this.clearTargetVertex();
-            });
-        } else {
-            console.error('Reset target button not found!');
-        }
-    }
+
     
     // Target Selection Methods
     selectTargetVertex(vertex) {
@@ -4722,7 +4733,12 @@ export class GraphCreator {
         
         this.draw();
         this.updateEditModeInfo();
-        this.updateRootDropdown();
+        this.updateRootVertexDisplay();
+        
+        // Update target display if the edited vertex is the current target
+        if (property === 'label' && this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
+            this.updateTargetVertexDisplay();
+        }
     }
     
     applyEdgeEdit(property, value) {
@@ -5580,9 +5596,12 @@ export class GraphCreator {
         this.flashingVertices.clear();
         this.distanceFlashingVertices = null;
         
+        // Reset root user selection flag for cleared canvas
+        this.rootUserSelected = false;
+        
         // Update UI
         this.updateInfo();
-        this.updateRootDropdown();
+        this.updateRootVertexDisplay();
         this.updateTargetVertexDisplay();
         this.draw();
         
@@ -6014,5 +6033,59 @@ export class GraphCreator {
             }
         }
         return false;
+    }
+
+    updateRootVertexDisplay() {
+        const display = document.getElementById('rootVertexDisplay');
+        const dropdown = document.getElementById('searchRoot');
+        
+        if (this.vertices.length === 0) {
+            // No vertices - show "Not selected"
+            display.innerHTML = '<span class="root-placeholder">Not selected</span>';
+            display.classList.remove('has-root');
+            dropdown.style.display = 'none';
+        } else {
+            // Has vertices - show dropdown
+            dropdown.style.display = 'block';
+            display.style.display = 'none';
+            
+            // Update dropdown options
+            this.updateRootDropdown();
+        }
+    }
+    
+    updateRootDropdown() {
+        const rootDropdown = document.getElementById('searchRoot');
+        if (!rootDropdown) return;
+        
+        const current = rootDropdown.value;
+        
+        // Clear all options
+        rootDropdown.innerHTML = '';
+        
+        // Add all vertices as options
+        this.vertices.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.label;
+            opt.textContent = v.label;
+            rootDropdown.appendChild(opt);
+        });
+        
+        // Set selection logic
+        if (current && Array.from(rootDropdown.options).some(o => o.value === current)) {
+            // Keep current selection if it still exists
+            rootDropdown.value = current;
+        } else if (!this.rootUserSelected) {
+            // Auto-select most recent vertex if user hasn't manually selected
+            const mostRecentVertex = this.findMostRecentVertex();
+            if (mostRecentVertex) {
+                rootDropdown.value = mostRecentVertex.label;
+            } else {
+                rootDropdown.value = '';
+            }
+        } else {
+            // User has manually selected, keep empty if no current selection
+            rootDropdown.value = '';
+        }
     }
 } // End of GraphCreator class 

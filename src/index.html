@@ -271,22 +271,22 @@
                                     <i class="fas fa-arrow-up"></i>
                                     Root
                                 </label>
-                                <select id="searchRoot">
-                                    <option value="">(Auto: Most Upward)</option>
-                                </select>
+                                <div class="root-vertex-display">
+                                    <div id="rootVertexDisplay" class="root-display">
+                                        <span class="root-placeholder">Not selected</span>
+                                    </div>
+                                    <select id="searchRoot" style="display: none;"></select>
+                                </div>
                             </div>
                             <div class="control-group flex-fill">
                                 <label for="searchTarget">
                                     <i class="fas fa-bullseye"></i>
                                     Target
                                 </label>
-                                <div class="target-vertex-display" style="position: relative;">
+                                <div class="target-vertex-display">
                                     <div id="targetVertexDisplay" class="target-display">
                                         <span class="target-placeholder">Not selected</span>
                                     </div>
-                                    <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
-                                        <i class="fas fa-recycle"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -500,19 +500,19 @@
                             Reset Canvas
                         </button>
                     </div>
-                </div>
+                    <!-- Shared confirmation buttons -->
+                    <div id="sharedConfirmation" class="d-flex gap-2 mt-3" style="display: none;">
+                        <button id="confirmAction" class="btn btn-success flex-fill">
+                            <i class="fas fa-check"></i>
+                            Confirm
+                        </button>
+                        <button id="cancelAction" class="btn btn-secondary flex-fill">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
                     </div>
                 </div>
-                <!-- Shared confirmation buttons -->
-                <div id="sharedConfirmation" class="d-flex gap-2 mt-2" style="display: none;">
-                    <button id="confirmAction" class="btn btn-success flex-fill">
-                        <i class="fas fa-check"></i>
-                        Confirm
-                    </button>
-                    <button id="cancelAction" class="btn btn-secondary flex-fill">
-                        <i class="fas fa-times"></i>
-                        Cancel
-                    </button>
+                    </div>
                 </div>
                 <!-- Clock and Contact Panel -->
                 <div class="control-section" id="utilitiesSection" style="margin-top: 1rem;">
