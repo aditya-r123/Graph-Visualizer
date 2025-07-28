@@ -2845,11 +2845,15 @@ body {
 
 
 
-/* Image Format Buttons */
+/* Image Format Buttons - Subpanel Style */
 .image-format-buttons {
     display: flex;
-    gap: 0.25rem;
+    gap: 0;
     margin-top: 0.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-secondary);
 }
 
 .format-option {
@@ -2866,27 +2870,38 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0.4rem 0.25rem;
+    padding: 0.75rem 0.5rem;
     background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border: none;
+    border-radius: 0;
     color: var(--text-secondary);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.3s ease;
     cursor: pointer;
-    min-height: 40px;
+    min-height: 60px;
+    height: 100%;
+    width: 100%;
+}
+
+.format-option:first-child .format-button {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.format-option:last-child .format-button {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 }
 
 .format-button i {
-    font-size: 1rem;
-    margin-bottom: 0.15rem;
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
     opacity: 0.7;
 }
 
 .format-option input[type="radio"]:checked + .format-button {
     background: var(--primary-color);
-    border-color: var(--primary-color);
     color: white;
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -2898,7 +2913,6 @@ body {
 
 .format-button:hover {
     background: var(--bg-tertiary);
-    border-color: var(--primary-color);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
