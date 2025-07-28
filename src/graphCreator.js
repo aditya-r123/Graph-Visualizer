@@ -1856,6 +1856,12 @@ export class GraphCreator {
             return;
         }
 
+        // Prevent adding new vertices during delete mode
+        if (this.isDeleteMode) {
+            console.log('Click prevented - in delete mode');
+            return;
+        }
+
         // Check for vertex clicks first - vertices take priority over edges
         const clickedVertex = this.getVertexAt(pos.x, pos.y);
         if (clickedVertex) {
@@ -2675,6 +2681,7 @@ export class GraphCreator {
         
         this.exitEditMode();
         this.updateInfo();
+        this.updateRootVertexDisplay(); // Update root display to handle case when all vertices are deleted
         this.draw();
         this.updateRootDropdown();
     }
@@ -2793,6 +2800,12 @@ export class GraphCreator {
     }
     
     addVertex(x, y) {
+        // Prevent adding vertices in delete mode
+        if (this.isDeleteMode) {
+            this.updateStatus('Cannot add vertices while in delete mode');
+            return;
+        }
+        
         // Check if vertex would be within canvas boundaries
         const size = this.vertexSize;
         if (this.isVertexTouchingCanvasBoundary(x, y, size)) {
@@ -4710,6 +4723,11 @@ export class GraphCreator {
                 }
             });
             this.updateStatus(`Applied ${property} to all vertices`);
+            
+            // Update target display if the target vertex was among the edited vertices
+            if (property === 'label' && this.selectedTargetVertex) {
+                this.updateTargetVertexDisplay();
+            }
         } else {
             // Apply to selected vertex only
             if (property === 'size') {
@@ -4729,16 +4747,16 @@ export class GraphCreator {
                 this.editModeElement[property] = value;
             }
             this.updateStatus(`Updated vertex ${property}`);
+            
+            // Update target display if the edited vertex is the current target
+            if (property === 'label' && this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
+                this.updateTargetVertexDisplay();
+            }
         }
         
         this.draw();
         this.updateEditModeInfo();
         this.updateRootVertexDisplay();
-        
-        // Update target display if the edited vertex is the current target
-        if (property === 'label' && this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
-            this.updateTargetVertexDisplay();
-        }
     }
     
     applyEdgeEdit(property, value) {
@@ -5039,8 +5057,9 @@ export class GraphCreator {
                     this.edges = this.edges.filter(edge => edge.from.id !== vertexToDelete.id && edge.to.id !== vertexToDelete.id);
                     this.vertices = this.vertices.filter(v => v.id !== vertexToDelete.id);
                     this.updateStatus(`Vertex "${vertexLabel}" deleted`);
-                this.exitEditMode();
+                    this.exitEditMode();
                     this.updateInfo();
+                    this.updateRootVertexDisplay(); // Update root display to handle case when all vertices are deleted
                     this.updateRootDropdown();
                     this.draw();
                     if (this.autosaveEnabled) this.saveGraph(true);
@@ -5049,6 +5068,12 @@ export class GraphCreator {
                 // Apply label/size edits
                 this.editModeElement.label = this._editPreview.label;
                 this.editModeElement.size = this._editPreview.size;
+                
+                // Update target display if the edited vertex is the current target
+                if (this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
+                    this.updateTargetVertexDisplay();
+                }
+                
                 this.updateStatus('Vertex updated successfully!');
                 this.exitEditMode();
                 this.updateRootDropdown();
@@ -5066,6 +5091,11 @@ export class GraphCreator {
                 // Restore original values for the selected vertex
                 this.editModeElement.label = this._editOriginal.label;
                 this.editModeElement.size = this._editOriginal.size;
+                
+                // Update target display if the edited vertex is the current target
+                if (this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
+                    this.updateTargetVertexDisplay();
+                }
                 
                 // Restore original sizes for ALL vertices if we have them stored
                 if (this._originalAllVertexSizes) {
@@ -5722,6 +5752,7 @@ export class GraphCreator {
             if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
         });
         this.updateInfo();
+        this.updateRootVertexDisplay(); // Update root display to handle case when all vertices are deleted
         this.updateRootDropdown();
         this.draw();
         this.updateStatus('Deleted selected nodes');
@@ -6043,6 +6074,7 @@ export class GraphCreator {
             // No vertices - show "Not selected"
             display.innerHTML = '<span class="root-placeholder">Not selected</span>';
             display.classList.remove('has-root');
+            display.style.display = 'flex'; // Make sure display is visible
             dropdown.style.display = 'none';
         } else {
             // Has vertices - show dropdown
