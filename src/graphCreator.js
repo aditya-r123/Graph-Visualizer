@@ -4912,6 +4912,13 @@ export class GraphCreator {
     enterEditMode(vertex) {
         console.log('[EditMode] Entering edit mode for vertex:', vertex.label);
         
+        // Clear any edge creation selection (purple highlight) when entering edit mode
+        if (this.selectedVertices.length > 0) {
+            this.selectedVertices = [];
+            this.flashingVertices.clear();
+            this.updateStatus('Edge creation cancelled - entering edit mode');
+        }
+        
         // If we're already in edit mode, switch to the new vertex
         if (this.editModeElement && this.editModeType === 'vertex') {
             this.switchEditModeVertex(vertex);
@@ -5966,6 +5973,13 @@ export class GraphCreator {
 
     // --- Delete Nodes Mode ---
     enterDeleteMode() {
+        // Clear any edge creation selection (purple highlight) when entering delete mode
+        if (this.selectedVertices.length > 0) {
+            this.selectedVertices = [];
+            this.flashingVertices.clear();
+            this.updateStatus('Edge creation cancelled - entering delete mode');
+        }
+        
         this.isDeleteMode = true;
         this.verticesToDelete = new Set();
         // Save original state for cancel

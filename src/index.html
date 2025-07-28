@@ -82,10 +82,15 @@
                 </div>
                 
                 <div class="control-section" id="basicControlsSection">
-                    <h3 class="expandable-header" data-target="basicControlsContent">
-                        <i class="fas fa-sliders-h"></i> Controls
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </h3>
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3 class="expandable-header" data-target="basicControlsContent">
+                            Controls
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </h3>
+                    </div>
                     <div class="expandable-content show" id="basicControlsContent">
                     
 
@@ -188,7 +193,12 @@
                 </div>
                 
                 <div class="control-section" id="editControlsSection" style="display: none;">
-                    <h3><i class="fas fa-edit"></i> Edit Vertex</h3>
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3>Edit Vertex</h3>
+                    </div>
                     <form id="vertexEditForm" autocomplete="off">
                         <div class="control-group">
                             <label for="editVertexLabel">
@@ -260,10 +270,15 @@
                 </div>
                 
                 <div class="control-section" id="searchSection">
-                    <h3 class="expandable-header" data-target="searchSectionContent">
-                        <i class="fas fa-search"></i> Algorithms
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </h3>
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3 class="expandable-header" data-target="searchSectionContent">
+                            Algorithms
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </h3>
+                    </div>
                     <div class="expandable-content show" id="searchSectionContent">
                         <div class="d-flex gap-2">
                             <div class="control-group flex-fill">
@@ -405,11 +420,15 @@
         <aside class="right-sidebar">
             <div class="right-sidebar-content">
                 <div class="control-section" id="saveExportSection">
-                    <h3 class="expandable-header" data-target="saveExportContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                        <i class="fas fa-save"></i>
-                        Save & Export
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </h3>
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3 class="expandable-header" data-target="saveExportContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                            Save & Export
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </h3>
+                    </div>
                     <div class="expandable-content show" id="saveExportContent">
                     <!-- Auto-Save Section -->
                     <div class="control-group mb-3">
@@ -479,11 +498,15 @@
                     </div>
                 </div>
                 <div class="control-section" id="canvasManagementSection" style="margin-top: 1rem;">
-                    <h3 class="expandable-header" data-target="canvasManagementContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                        <i class="fas fa-history"></i>
-                        Canvas Management
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </h3>
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3 class="expandable-header" data-target="canvasManagementContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                            Canvas Management
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </h3>
+                    </div>
                     <div class="expandable-content show" id="canvasManagementContent">
                     <div class="saved-graphs">
                         <h4><i class="fas fa-history"></i> Recent Canvases</h4>
@@ -493,7 +516,7 @@
                                             <div class="d-flex gap-2 mt-3">
                         <button id="deleteAllGraphs" class="btn btn-danger flex-fill">
                             <i class="fas fa-trash-alt"></i>
-                            Erase Storage
+                            Clear Storage
                         </button>
                         <button id="clearGraph" class="btn btn-warning flex-fill">
                             <i class="fas fa-trash"></i>
@@ -516,11 +539,15 @@
                 </div>
                 <!-- Clock and Contact Panel -->
                 <div class="control-section" id="utilitiesSection" style="margin-top: 1rem;">
-                    <h3 class="expandable-header" data-target="utilitiesContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                        <i class="fas fa-cog"></i>
-                        Utilities
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </h3>
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3 class="expandable-header" data-target="utilitiesContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                            Utilities
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </h3>
+                    </div>
                     <div class="expandable-content show" id="utilitiesContent">
                     <div class="control-group" style="margin-bottom: 0.5rem;">
                         <label class="switch-label" for="mouseCoordinateToggle">

@@ -3173,6 +3173,56 @@ body {
     100% { opacity: 0.3; }
 }
 
+/* Make expand/collapse button non-draggable with 5px border */
+.panel-drag-handle .expand-icon {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+    cursor: pointer;
+    padding: 5px;
+    margin: -5px;
+    border-radius: 4px;
+}
+
+.panel-drag-handle .expand-icon:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Panel header container */
+.panel-header-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Drag handle area */
+.drag-handle-area {
+    flex-shrink: 0;
+    cursor: grab;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.drag-handle-area:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+/* Drag handle icon styling */
+.drag-handle-icon {
+    color: var(--primary-color);
+    font-size: 1rem;
+    font-weight: bold;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+    display: block;
+}
+
+.drag-handle-area:hover .drag-handle-icon {
+    opacity: 1;
+    color: var(--text-primary);
+}
+
 
 
 /* Drop preview styles */
@@ -3257,8 +3307,9 @@ body {
     user-select: none;
 }
 
-/* Visual feedback for draggable panels */
-.draggable-panel::before {
+/* Visual feedback for draggable panels - moved to header */
+/* Controls Panel */
+#basicControlsSection.draggable-panel .expandable-header::before {
     content: '';
     position: absolute;
     top: 0;
@@ -3270,7 +3321,92 @@ body {
     transition: opacity 0.2s ease;
 }
 
-.draggable-panel:hover::before {
+#basicControlsSection.draggable-panel:hover .expandable-header::before {
+    opacity: 1;
+}
+
+/* Edit Controls Panel */
+#editControlsSection.draggable-panel .expandable-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#editControlsSection.draggable-panel:hover .expandable-header::before {
+    opacity: 1;
+}
+
+/* Search/Algorithms Panel */
+#searchSection.draggable-panel .expandable-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#searchSection.draggable-panel:hover .expandable-header::before {
+    opacity: 1;
+}
+
+/* Save & Export Panel */
+#saveExportSection.draggable-panel .expandable-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#saveExportSection.draggable-panel:hover .expandable-header::before {
+    opacity: 1;
+}
+
+/* Canvas Management Panel */
+#canvasManagementSection.draggable-panel .expandable-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#canvasManagementSection.draggable-panel:hover .expandable-header::before {
+    opacity: 1;
+}
+
+/* Utilities Panel */
+#utilitiesSection.draggable-panel .expandable-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#utilitiesSection.draggable-panel:hover .expandable-header::before {
     opacity: 1;
 }
 
@@ -3283,23 +3419,9 @@ body {
     transition: none !important;
 }
 
-/* Visual drag indicator for right sidebar panels */
-.right-sidebar .panel-drag-handle::before {
-    content: '⋮⋮';
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
-    z-index: 10;
-}
 
-.right-sidebar .panel-drag-handle:hover::before {
-    opacity: 0.6;
-}
+
+
 
 /* Ensure right sidebar panels have proper spacing */
 .right-sidebar .draggable-panel + .draggable-panel {

@@ -148,11 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 element.setAttribute('data-panel-id', panel.id);
                 element.setAttribute('data-panel-title', panel.title);
                 element.setAttribute('data-sidebar', panel.sidebar);
-                
-                // Make the entire panel draggable (except buttons and interactive elements)
-                element.classList.add('panel-drag-handle');
-                element.style.cursor = 'grab';
                 element.style.position = 'relative';
+                
+                // Find the drag handle area and make it the drag handle
+                const dragHandleArea = element.querySelector('.drag-handle-area');
+                if (dragHandleArea) {
+                    dragHandleArea.classList.add('panel-drag-handle');
+                    dragHandleArea.style.cursor = 'grab';
+                }
                 
                 // Store original position
                 originalPositions.set(panel.id, {
@@ -181,13 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const DRAG_THRESHOLD = 5; // pixels
     
     function handleDragStart(e) {
-        // Check if clicking on a draggable panel (either drag handle or panel background)
-        const panel = e.target.closest('.draggable-panel');
-        if (!panel) return;
+        // Check if clicking on a drag handle area
+        const dragHandle = e.target.closest('.drag-handle-area');
+        if (!dragHandle) return;
         
-        // Don't start drag if clicking on interactive elements or expandable headers
-        const interactiveElements = e.target.closest('button, input, select, textarea, a, .expand-icon, label, .control-group, .button-group, .slider-container, .checkbox-label, .checkmark, .expandable-header');
-        if (interactiveElements) return;
+        // Get the panel that contains this drag handle
+        const panel = dragHandle.closest('.draggable-panel');
+        if (!panel) return;
         
         e.preventDefault();
         e.stopPropagation(); // Prevent other interactions from triggering
