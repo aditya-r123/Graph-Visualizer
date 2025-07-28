@@ -99,6 +99,9 @@ export class GraphCreator {
         // Coordinate grid
         this.showCoordinateGrid = false;
         this.gridDensity = 50;
+        
+        // Vertex visibility
+        this.showVertices = true;
         this.gridSpacing = 50;
         
         // Debug mode
@@ -564,6 +567,15 @@ export class GraphCreator {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.editModeElement) {
                 this.exitEditMode();
+            }
+        });
+        
+        // Global 'x' key listener for toggling vertex visibility
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'x' || e.key === 'X') {
+                this.showVertices = !this.showVertices;
+                this.draw(); // Redraw to show/hide vertices
+                this.updateStatus(`Vertices ${this.showVertices ? 'shown' : 'hidden'}`);
             }
         });
         
@@ -1147,22 +1159,21 @@ export class GraphCreator {
         const dy = edge.to.y - edge.from.y;
         const angle = Math.atan2(dy, dx);
         
-        // Determine arrow direction
+        // For directed edges, arrow points to the 'to' vertex
         let endX, endY;
-        if (edge.direction === 'directed-backward') {
-            angle += Math.PI;
-            endX = edge.from.x;
-            endY = edge.from.y;
-        } else {
+        if (edge.direction === 'directed-forward') {
             endX = edge.to.x;
             endY = edge.to.y;
+        } else {
+            // undirected - no arrow
+            return;
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
         const vertexRadius = this.vertexSize;
         
         // Calculate the exact intersection point between the edge and vertex boundary
-        const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+        const targetVertex = edge.to;
         
         // Calculate intersection of line with circle
         const intersectionDx = endX - targetVertex.x;
@@ -1302,21 +1313,20 @@ export class GraphCreator {
             angle = Math.atan2(dy, dx);
         }
         
-        // Determine arrow direction
-        if (edge.direction === 'directed-backward') {
-            angle += Math.PI;
-            endX = edge.from.x;
-            endY = edge.from.y;
-        } else {
+        // For directed edges, arrow points to the 'to' vertex
+        if (edge.direction === 'directed-forward') {
             endX = edge.to.x;
             endY = edge.to.y;
+        } else {
+            // undirected - no arrow
+            return;
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
         const vertexRadius = edge.from.size || this.vertexSize;
         
         // Calculate the exact intersection point between the edge and vertex boundary
-        const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+        const targetVertex = edge.to;
         
         // Calculate intersection of line/curve with circle
         const dx = endX - targetVertex.x;
@@ -1325,13 +1335,13 @@ export class GraphCreator {
         
         let arrowX, arrowY;
         if (distance > 0) {
-            // Normalize and scale to vertex radius
-            arrowX = targetVertex.x + (dx / distance) * vertexRadius;
-            arrowY = targetVertex.y + (dy / distance) * vertexRadius;
+            // Position arrow one radius away from the target vertex center (toward source)
+            arrowX = targetVertex.x + (dx / distance) * (-vertexRadius);
+            arrowY = targetVertex.y + (dy / distance) * (-vertexRadius);
         } else {
             // Fallback if distance is 0
-            arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
-            arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+            arrowX = targetVertex.x + (-vertexRadius) * Math.cos(angle);
+            arrowY = targetVertex.y + (-vertexRadius) * Math.sin(angle);
         }
         
         // Draw arrow
@@ -1402,8 +1412,10 @@ export class GraphCreator {
         // Draw edges
         this.edges.forEach(edge => this.drawEdgeOnCanvas(ctx, edge));
         
-        // Draw vertices
-        this.vertices.forEach(vertex => this.drawVertexOnCanvas(ctx, vertex));
+        // Draw vertices (only if vertices are visible)
+        if (this.showVertices) {
+            this.vertices.forEach(vertex => this.drawVertexOnCanvas(ctx, vertex));
+        }
     }
     
     drawEdgeOnCanvas(ctx, edge) {
@@ -1496,22 +1508,20 @@ export class GraphCreator {
             angle = Math.atan2(dy, dx);
         }
         
-        // Determine arrow direction based on edge direction setting
-        if (edge.direction === 'directed-backward') {
-            angle += Math.PI; // Reverse the arrow
-            endX = edge.from.x;
-            endY = edge.from.y;
-        } else {
-            // directed-forward or default
+        // For directed edges, arrow points to the 'to' vertex
+        if (edge.direction === 'directed-forward') {
             endX = edge.to.x;
             endY = edge.to.y;
+        } else {
+            // undirected - no arrow
+            return;
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
         const vertexRadius = edge.from.size || this.vertexSize;
         
         // Calculate the exact intersection point between the edge and vertex boundary
-        const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+        const targetVertex = edge.to;
         
         // Calculate intersection of line/curve with circle
         const dx = endX - targetVertex.x;
@@ -1520,13 +1530,13 @@ export class GraphCreator {
         
         let arrowX, arrowY;
         if (distance > 0) {
-            // Normalize and scale to vertex radius
-            arrowX = targetVertex.x + (dx / distance) * vertexRadius;
-            arrowY = targetVertex.y + (dy / distance) * vertexRadius;
+            // Position arrow one radius away from the target vertex center (toward source)
+            arrowX = targetVertex.x + (dx / distance) * (-vertexRadius);
+            arrowY = targetVertex.y + (dy / distance) * (-vertexRadius);
         } else {
             // Fallback if distance is 0
-            arrowX = targetVertex.x + vertexRadius * Math.cos(angle);
-            arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
+            arrowX = targetVertex.x + (-vertexRadius) * Math.cos(angle);
+            arrowY = targetVertex.y + (-vertexRadius) * Math.sin(angle);
         }
         
         // Draw arrow
@@ -2890,9 +2900,6 @@ export class GraphCreator {
             } else if (edge.direction === 'directed-forward') {
                 // Forward directed edges can only be traversed from 'from' to 'to'
                 adjacencyList[edge.from.id].push(edge.to);
-            } else if (edge.direction === 'directed-backward') {
-                // Backward directed edges can only be traversed from 'to' to 'from'
-                adjacencyList[edge.to.id].push(edge.from);
             } else {
                 // Default to undirected behavior for any other direction values
                 adjacencyList[edge.from.id].push(edge.to);
@@ -2915,9 +2922,6 @@ export class GraphCreator {
             if (edge.direction === 'directed-forward') {
                 // Only allow traversal from edge.from to edge.to
                 return edge.from.id === from.id && edge.to.id === to.id;
-            } else if (edge.direction === 'directed-backward') {
-                // Only allow traversal from edge.to to edge.from
-                return edge.to.id === from.id && edge.from.id === to.id;
             } else {
                 // Undirected edges allow traversal in both directions
                 return true;
@@ -3145,8 +3149,7 @@ export class GraphCreator {
                     } else if (edge.to.id === current.id) {
                         // We're at the 'to' vertex, can traverse to 'from' vertex if:
                         // - edge is undirected (bidirectional)
-                        // - edge is directed-backward (reverse direction)
-                        if (edge.direction === 'undirected' || edge.direction === 'directed-backward') {
+                        if (edge.direction === 'undirected') {
                             neighbor = edge.from;
                         }
                     }
@@ -3214,8 +3217,7 @@ export class GraphCreator {
                 } else if (edge.to.id === current.id) {
                     // We're at the 'to' vertex, can traverse to 'from' vertex if:
                     // - edge is undirected (bidirectional)
-                    // - edge is directed-backward (reverse direction)
-                    if (edge.direction === 'undirected' || edge.direction === 'directed-backward') {
+                    if (edge.direction === 'undirected') {
                         neighbor = edge.from;
                     }
                 }
@@ -3280,8 +3282,14 @@ export class GraphCreator {
         let resultText = '';
         
         if (found) {
-            // --- FIX: Report path length as number of edges (vertices - 1) ---
-            const pathLength = Math.max(0, this.pathVertices.size - 1);
+            // For DFS, show visited count - 1 as path length, for BFS use actual path length
+            let pathLength;
+            if (algorithm === 'DFS') {
+                pathLength = Math.max(0, visitedCount - 1);
+            } else {
+                // BFS uses actual path length
+                pathLength = Math.max(0, this.pathVertices.size - 1);
+            }
             const distanceText = distance !== null ? `Distance: ${distance} edges` : `Path length: ${pathLength} edges`;
             const visitedText = visitedCount !== null ? `, Visited: ${visitedCount} vertices` : '';
             resultText = `${algorithm} found target! ${distanceText}${visitedText}`;
@@ -3791,25 +3799,27 @@ export class GraphCreator {
         // Draw edges
         this.edges.forEach(edge => this.drawEdge(edge));
         
-        // Draw vertices with debug logging and duplicate detection
-        this.vertices.forEach(vertex => {
-            // Debug: Log each vertex being drawn
-            if (this.debugMode) {
-                console.log(`Drawing vertex: ${vertex.label} at (${vertex.x}, ${vertex.y})`);
-                
-                // Track how many times each vertex is drawn
-                const key = `${vertex.label}-${vertex.x}-${vertex.y}`;
-                this.vertexDrawCount.set(key, (this.vertexDrawCount.get(key) || 0) + 1);
-                
-                if (this.vertexDrawCount.get(key) > 1) {
-                    console.warn(`VERTEX DRAWN MULTIPLE TIMES: ${vertex.label} at (${vertex.x}, ${vertex.y}) - drawn ${this.vertexDrawCount.get(key)} times`);
+        // Draw vertices with debug logging and duplicate detection (only if vertices are visible)
+        if (this.showVertices) {
+            this.vertices.forEach(vertex => {
+                // Debug: Log each vertex being drawn
+                if (this.debugMode) {
+                    console.log(`Drawing vertex: ${vertex.label} at (${vertex.x}, ${vertex.y})`);
+                    
+                    // Track how many times each vertex is drawn
+                    const key = `${vertex.label}-${vertex.x}-${vertex.y}`;
+                    this.vertexDrawCount.set(key, (this.vertexDrawCount.get(key) || 0) + 1);
+                    
+                    if (this.vertexDrawCount.get(key) > 1) {
+                        console.warn(`VERTEX DRAWN MULTIPLE TIMES: ${vertex.label} at (${vertex.x}, ${vertex.y}) - drawn ${this.vertexDrawCount.get(key)} times`);
+                    }
                 }
-            }
-            this.drawVertex(vertex);
-        });
+                this.drawVertex(vertex);
+            });
+        }
         
-        // Draw delete buttons if in delete mode
-        if (this.isDeleteMode) {
+        // Draw delete buttons if in delete mode and vertices are visible
+        if (this.isDeleteMode && this.showVertices) {
             this.vertices.forEach(vertex => this.drawDeleteButton(vertex));
         }
         
@@ -4453,46 +4463,10 @@ export class GraphCreator {
             endY = edge.to.y;
         }
         
-        // Determine arrow direction based on edge direction setting
-        if (edge.direction === 'directed-backward') {
-            angle += Math.PI; // Reverse the arrow
-            if (edge.type === 'curved') {
-                // For curved edges, calculate the start point of the curve (t = 0)
-                const edgeIndex = edge.edgeIndex || 0;
-                const baseCurve = 40;
-                const curveIncrement = 50;
-                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
-                
-                const xDiff = Math.abs(edge.from.x - edge.to.x);
-                const yDiff = Math.abs(edge.from.y - edge.to.y);
-                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
-                
-                let controlPoint;
-                if (isVerticalEdge) {
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (edge.from.x + edge.to.x) / 2 + (curveAmount * curveDirection),
-                        y: (edge.from.y + edge.to.y) / 2
-                    };
-                } else {
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    controlPoint = {
-                        x: (edge.from.x + edge.to.x) / 2,
-                        y: (edge.from.y + edge.to.y) / 2 - (curveAmount * curveDirection)
-                    };
-                }
-                
-                // Calculate the arrow position along the curve for backward direction
-                const t = 0.15 + (edgeIndex * 0.1); // Start at 15% of curve, increase by 10% per edge
-                const clampedT = Math.min(0.7, t); // Don't go above 70% of the curve
-                
-                endX = Math.pow(1 - clampedT, 2) * edge.from.x + 2 * (1 - clampedT) * clampedT * controlPoint.x + Math.pow(clampedT, 2) * edge.to.x;
-                endY = Math.pow(1 - clampedT, 2) * edge.from.y + 2 * (1 - clampedT) * clampedT * controlPoint.y + Math.pow(clampedT, 2) * edge.to.y;
-            } else if (edge.type !== 'self-loop') {
-                // For straight edges with backward direction, arrow goes at the 'from' vertex
-                endX = edge.from.x;
-                endY = edge.from.y;
-            }
+        // For directed edges, arrow points to the 'to' vertex
+        if (edge.direction !== 'directed-forward') {
+            // undirected - no arrow
+            return;
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
@@ -4505,7 +4479,7 @@ export class GraphCreator {
             arrowY = endY - vertexRadius;
         } else {
             // Calculate the exact intersection point between the edge and vertex boundary
-            const targetVertex = edge.direction === 'directed-backward' ? edge.from : edge.to;
+            const targetVertex = edge.to;
             
             // Calculate intersection of line/curve with circle
             if (edge.type === 'curved') {
@@ -4525,20 +4499,19 @@ export class GraphCreator {
                     arrowY = targetVertex.y + vertexRadius * Math.sin(angle);
                 }
             } else {
-                // For straight edges, offset the arrow away from the vertex boundary to make it visible
+                // For straight edges, position arrow one radius away from target vertex center
                 const dx = endX - targetVertex.x;
                 const dy = endY - targetVertex.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance > 0) {
-                    // Normalize and scale to vertex radius, then offset by arrow length
-                    const offsetDistance = 1;
-                    arrowX = targetVertex.x + (dx / distance) * offsetDistance;
-                    arrowY = targetVertex.y + (dy / distance) * offsetDistance;
+                    // Position arrow one radius away from the target vertex center (toward source)
+                    arrowX = targetVertex.x + (dx / distance) * (-vertexRadius);
+                    arrowY = targetVertex.y + (dy / distance) * (-vertexRadius);
                 } else {
                     // Fallback if distance is 0
-                    arrowX = targetVertex.x + (vertexRadius + arrowLength) * Math.cos(angle);
-                    arrowY = targetVertex.y + (vertexRadius + arrowLength) * Math.sin(angle);
+                    arrowX = targetVertex.x + (-vertexRadius) * Math.cos(angle);
+                    arrowY = targetVertex.y + (-vertexRadius) * Math.sin(angle);
                 }
             }
         }
