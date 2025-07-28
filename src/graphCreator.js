@@ -2564,20 +2564,17 @@ export class GraphCreator {
     }
     
     startShakeAnimation() {
-        this.shakeFrame = 0;
-        const amplitude = 2.0; // updated distance
-        const frequency = 0.2; // updated frequency (radians per frame)
-        const shake = () => {
+        // Use the same red glow effect as holding animation
+        this.editGlowProgress = 0;
+        const glow = () => {
             if (this.editModeElement) {
-                // Circular vibration pattern
-                this.shakeX = amplitude * Math.cos(this.shakeFrame * 2 * Math.PI * frequency);
-                this.shakeY = amplitude * Math.sin(this.shakeFrame * 2 * Math.PI * frequency);
-                this.shakeFrame = (this.shakeFrame + 1) % 1000;
+                // Pulsing red glow effect similar to holding animation
+                this.editGlowProgress = (this.editGlowProgress + 0.02) % (2 * Math.PI);
                 this.draw();
-                this.shakeAnimation = requestAnimationFrame(shake);
+                this.shakeAnimation = requestAnimationFrame(glow);
             }
         };
-        this.shakeAnimation = requestAnimationFrame(shake);
+        this.shakeAnimation = requestAnimationFrame(glow);
     }
     
     stopShakeAnimation() {
@@ -2585,8 +2582,7 @@ export class GraphCreator {
             cancelAnimationFrame(this.shakeAnimation);
             this.shakeAnimation = null;
         }
-        this.shakeX = 0;
-        this.shakeY = 0;
+        this.editGlowProgress = 0;
         this.draw();
     }
     
@@ -4409,13 +4405,9 @@ export class GraphCreator {
         // Check if this vertex is being held for edit mode
         const isBeingHeld = this.holdProgressVertex === vertex && this.holdProgress > 0;
         
-        // Apply shake offset if in edit mode
+        // No shake offset needed for edit mode - using glow effect instead
         let drawX = vertex.x;
         let drawY = vertex.y;
-        if (isInEditMode && this.shakeX !== undefined && this.shakeY !== undefined) {
-            drawX += this.shakeX;
-            drawY += this.shakeY;
-        }
         
         // Set colors based on selection state
         let fillColor = vertex.color || this.vertexColor;
@@ -4495,6 +4487,24 @@ export class GraphCreator {
             const glowIntensity = 0.5 + 0.5 * this.holdProgress;
             const gradient = ctx.createRadialGradient(drawX, drawY, size, drawX, drawY, glowRadius);
             gradient.addColorStop(0, `rgba(239, 68, 68, ${glowAlpha * glowIntensity})`);
+            gradient.addColorStop(0.5, `rgba(239, 68, 68, ${glowAlpha * 0.7})`);
+            gradient.addColorStop(1, `rgba(239, 68, 68, 0)`);
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, glowRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // Draw red glow effect for vertex in edit mode
+        if (isInEditMode && this.editGlowProgress !== undefined) {
+            ctx.save();
+            const maxGlowRadius = size * 2.5; // Slightly larger glow for edit mode
+            const pulse = Math.sin(this.editGlowProgress) * 0.3 + 0.7; // Pulsing effect
+            const glowRadius = size + (maxGlowRadius - size) * pulse;
+            const glowAlpha = 0.4 + 0.3 * pulse;
+            const gradient = ctx.createRadialGradient(drawX, drawY, size, drawX, drawY, glowRadius);
+            gradient.addColorStop(0, `rgba(239, 68, 68, ${glowAlpha})`);
             gradient.addColorStop(0.5, `rgba(239, 68, 68, ${glowAlpha * 0.7})`);
             gradient.addColorStop(1, `rgba(239, 68, 68, 0)`);
             ctx.beginPath();
@@ -4924,6 +4934,15 @@ export class GraphCreator {
         };
         // Store original sizes for all vertices (for cancel/undo)
         this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
+        
+        // Initialize pending changes tracking for this edit session
+        this._pendingChanges = {
+            deletedVertices: [],
+            modifiedVertices: new Map(), // vertex.id -> { original: {...}, current: {...} }
+            originalVertices: [...this.vertices],
+            originalEdges: [...this.edges]
+        };
+        
         this.startShakeAnimation();
         
         // Hide theme toggle and mouse position display when in edit mode
@@ -4964,10 +4983,16 @@ export class GraphCreator {
     switchEditModeVertex(vertex) {
         console.log('[EditMode] Switching to vertex:', vertex.label);
         
-        // Save current edit state to the previous vertex
+        // Save current edit state to the previous vertex and track in pending changes
         if (this.editModeElement && this._editPreview) {
             this.editModeElement.label = this._editPreview.label;
             this.editModeElement.size = this._editPreview.size;
+            
+            // Track this modification in pending changes
+            this._pendingChanges.modifiedVertices.set(this.editModeElement.id, {
+                original: { ...this._editOriginal },
+                current: { ...this._editPreview }
+            });
         }
         
         // Switch to the new vertex
@@ -5016,6 +5041,107 @@ export class GraphCreator {
         
         // Focus on the label input
         setTimeout(() => { if (labelInput) { labelInput.focus(); labelInput.select(); } }, 100);
+    }
+    
+    // Handle vertex deletion while staying in edit mode
+    handleVertexDeletionInEditMode() {
+        // Update UI and data structures
+        this.updateInfo();
+        this.updateRootVertexDisplay();
+        this.updateRootDropdown();
+        this.draw();
+        
+        // Auto-save if enabled
+        if (this.autosaveEnabled) this.saveGraph(true);
+        
+        // Check if there are any vertices left to edit
+        if (this.vertices.length === 0) {
+            // No vertices left, exit edit mode
+            this.exitEditMode();
+            this.updateStatus('No vertices left to edit - exiting edit mode');
+            return;
+        }
+        
+        // Find the next vertex to edit (prefer the most recent one)
+        const nextVertex = this.findMostRecentVertex();
+        if (nextVertex) {
+            // Switch to editing the next vertex
+            this.switchEditModeVertex(nextVertex);
+            this.updateStatus(`Switched to editing vertex "${nextVertex.label}"`);
+        } else {
+            // Fallback: exit edit mode if no suitable vertex found
+            this.exitEditMode();
+            this.updateStatus('No suitable vertex found - exiting edit mode');
+        }
+    }
+    
+    // Apply all pending changes (deletions and modifications)
+    applyPendingChanges() {
+        // Apply deletions (they're already removed from data structures, just need to confirm)
+        this._pendingChanges.deletedVertices.forEach(deletion => {
+            console.log(`[EditMode] Confirming deletion of vertex: ${deletion.label}`);
+        });
+        
+        // Apply modifications
+        this._pendingChanges.modifiedVertices.forEach((modification, vertexId) => {
+            const vertex = this.vertices.find(v => v.id === vertexId);
+            if (vertex) {
+                vertex.label = modification.current.label;
+                vertex.size = modification.current.size;
+                console.log(`[EditMode] Applied modification to vertex: ${vertex.label}`);
+            }
+        });
+        
+        // Clear pending changes
+        this._pendingChanges = null;
+    }
+    
+    // Revert all pending changes back to original state
+    revertPendingChanges() {
+        if (!this._pendingChanges) return;
+        
+        // Restore deleted vertices and their connected edges
+        this._pendingChanges.deletedVertices.forEach(deletion => {
+            // Add the vertex back to the vertices array
+            this.vertices.push(deletion.vertex);
+            
+            // Restore edges that were connected to this vertex
+            if (deletion.connectedEdges) {
+                deletion.connectedEdges.forEach(edge => {
+                    this.edges.push(edge);
+                });
+                console.log(`[EditMode] Restored deleted vertex: ${deletion.label} with ${deletion.connectedEdges.length} connected edges`);
+            } else {
+                console.log(`[EditMode] Restored deleted vertex: ${deletion.label}`);
+            }
+        });
+        
+        // Revert modifications
+        this._pendingChanges.modifiedVertices.forEach((modification, vertexId) => {
+            const vertex = this.vertices.find(v => v.id === vertexId);
+            if (vertex) {
+                vertex.label = modification.original.label;
+                vertex.size = modification.original.size;
+                console.log(`[EditMode] Reverted modification for vertex: ${vertex.label}`);
+            }
+        });
+        
+        // Restore original sizes for all vertices
+        if (this._originalAllVertexSizes) {
+            this.vertices.forEach((v, idx) => {
+                if (this._originalAllVertexSizes[idx] !== undefined) {
+                    v.size = this._originalAllVertexSizes[idx];
+                }
+            });
+        }
+        
+        // Update target display if the edited vertex is the current target
+        if (this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
+            this.updateTargetVertexDisplay();
+        }
+        
+        // Clear pending changes
+        this._pendingChanges = null;
     }
 
     _setupApplyToAllImmediateListeners() {
@@ -5071,6 +5197,7 @@ export class GraphCreator {
         this._editOriginal = null;
         this._editPreview = null;
         this._originalAllVertexSizes = null;
+        this._pendingChanges = null;
         
         // Show theme toggle and mouse position display when exiting edit mode
         const themeToggle = document.getElementById('themeToggle');
@@ -5185,30 +5312,51 @@ export class GraphCreator {
             e.preventDefault();
             if (this.editModeElement && this._editPreview) {
                 if (this._editPreview.pendingDelete) {
-                    // Actually delete the node now
+                    // Mark vertex for deletion in pending changes
                     const vertexToDelete = this.editModeElement;
                     const vertexLabel = vertexToDelete.label;
+                    
+                    // Find edges connected to this vertex before removing them
+                    const connectedEdges = this.edges.filter(edge => 
+                        edge.from.id === vertexToDelete.id || edge.to.id === vertexToDelete.id
+                    );
+                    
+                    // Add to pending deletions with connected edges
+                    this._pendingChanges.deletedVertices.push({
+                        vertex: vertexToDelete,
+                        label: vertexLabel,
+                        connectedEdges: connectedEdges
+                    });
+                    
+                    // Remove from current data structures for display purposes
                     this.edges = this.edges.filter(edge => edge.from.id !== vertexToDelete.id && edge.to.id !== vertexToDelete.id);
                     this.vertices = this.vertices.filter(v => v.id !== vertexToDelete.id);
-                    this.updateStatus(`Vertex "${vertexLabel}" deleted`);
-                    this.exitEditMode();
-                    this.updateInfo();
-                    this.updateRootVertexDisplay(); // Update root display to handle case when all vertices are deleted
-                    this.updateRootDropdown();
-                    this.draw();
-                    if (this.autosaveEnabled) this.saveGraph(true);
+                    
+                    this.updateStatus(`Vertex "${vertexLabel}" marked for deletion`);
+                    
+                    // Stay in edit mode and switch to another vertex if available
+                    this.handleVertexDeletionInEditMode();
                     return;
                 }
-                // Apply label/size edits
+                // Apply label/size edits to current vertex
                 this.editModeElement.label = this._editPreview.label;
                 this.editModeElement.size = this._editPreview.size;
+                
+                // Track this modification in pending changes
+                this._pendingChanges.modifiedVertices.set(this.editModeElement.id, {
+                    original: { ...this._editOriginal },
+                    current: { ...this._editPreview }
+                });
+                
+                // Apply all pending changes (deletions and modifications)
+                this.applyPendingChanges();
                 
                 // Update target display if the edited vertex is the current target
                 if (this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
                     this.updateTargetVertexDisplay();
                 }
                 
-                this.updateStatus('Vertex updated successfully!');
+                this.updateStatus('All changes saved successfully!');
                 this.exitEditMode();
                 this.updateRootDropdown();
                 this.draw();
@@ -5220,25 +5368,8 @@ export class GraphCreator {
         document.getElementById('cancelVertexEdit').addEventListener('click', (e) => {
             e.preventDefault();
             if (this.editModeElement && this._editPreview) {
-                // Revert preview
-                this._editPreview = null;
-                // Restore original values for the selected vertex
-                this.editModeElement.label = this._editOriginal.label;
-                this.editModeElement.size = this._editOriginal.size;
-                
-                // Update target display if the edited vertex is the current target
-                if (this.selectedTargetVertex && this.selectedTargetVertex.id === this.editModeElement.id) {
-                    this.updateTargetVertexDisplay();
-                }
-                
-                // Restore original sizes for ALL vertices if we have them stored
-                if (this._originalAllVertexSizes) {
-                    this.vertices.forEach((v, idx) => {
-                        if (this._originalAllVertexSizes[idx] !== undefined) {
-                            v.size = this._originalAllVertexSizes[idx];
-                        }
-                    });
-                }
+                // Revert all pending changes
+                this.revertPendingChanges();
                 
                 const labelInput = document.getElementById('editVertexLabel');
                 if (labelInput) { labelInput.style.borderColor = ''; labelInput.style.boxShadow = ''; }
@@ -5247,7 +5378,7 @@ export class GraphCreator {
                 this.exitEditMode();
                 this.updateRootDropdown();
                 this.draw();
-                this.updateStatus('Edit cancelled - changes reverted.');
+                this.updateStatus('Edit cancelled - all changes reverted.');
             }
         });
         
