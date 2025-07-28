@@ -269,7 +269,7 @@
                             <div class="control-group flex-fill">
                                 <label for="searchRoot">
                                     <i class="fas fa-arrow-up"></i>
-                                    Root Node
+                                    Root
                                 </label>
                                 <select id="searchRoot">
                                     <option value="">(Auto: Most Upward)</option>
@@ -278,11 +278,11 @@
                             <div class="control-group flex-fill">
                                 <label for="searchTarget">
                                     <i class="fas fa-bullseye"></i>
-                                    Target Vertex
+                                    Target
                                 </label>
                                 <div class="target-vertex-display" style="position: relative;">
                                     <div id="targetVertexDisplay" class="target-display">
-                                        <span class="target-placeholder">No target selected</span>
+                                        <span class="target-placeholder">Not selected</span>
                                     </div>
                                     <button id="resetTargetBtn" class="btn btn-link p-0 m-0" title="Reset target" style="position: absolute; top: 6px; right: 6px; font-size: 1rem; color: var(--text-muted);">
                                         <i class="fas fa-recycle"></i>
@@ -517,7 +517,7 @@
                 <!-- Clock and Contact Panel -->
                 <div class="control-section" id="utilitiesSection" style="margin-top: 1rem;">
                     <h3 class="expandable-header" data-target="utilitiesContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                        <i class="fas fa-info-circle"></i>
+                        <i class="fas fa-cog"></i>
                         Utilities
                         <i class="fas fa-chevron-down expand-icon"></i>
                     </h3>
@@ -536,9 +536,9 @@
                     <div class="control-group" style="margin-bottom: 0.5rem;">
                         <label class="switch-label" for="hideLabelsToggle">
                             <i class="fas fa-tag"></i>
-                            Hide Vertex Labels
+                            Show Labels
                             <div class="switch-container">
-                                <input type="checkbox" id="hideLabelsToggle">
+                                <input type="checkbox" id="hideLabelsToggle" checked>
                                 <span class="switch-slider"></span>
                             </div>
                         </label>

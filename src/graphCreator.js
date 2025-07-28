@@ -375,16 +375,18 @@ export class GraphCreator {
             console.error('Grid density slider not found!');
         }
         
-        // Hide labels toggle
+        // Show labels toggle
         const hideLabelsToggle = document.getElementById('hideLabelsToggle');
         if (hideLabelsToggle) {
+            // Initialize the checkbox state
+            hideLabelsToggle.checked = !this.hideLabels;
             hideLabelsToggle.addEventListener('change', (e) => {
-                this.hideLabels = e.target.checked;
+                this.hideLabels = !e.target.checked;
                 this.draw(); // Redraw to show/hide labels
                 this.updateStatus(`Vertex labels ${this.hideLabels ? 'hidden' : 'shown'}`);
             });
         } else {
-            console.error('Hide labels toggle not found!');
+            console.error('Show labels toggle not found!');
         }
         
         // Vertex visibility toggle
