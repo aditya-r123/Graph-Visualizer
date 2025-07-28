@@ -731,13 +731,19 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.4rem 0.6rem;
+    padding: 0.3rem 0.5rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.2rem;
     background: var(--bg-secondary);
     transition: var(--transition);
-    min-height: 38px;
+    min-height: 32px;
+}
+
+.load-graph-actions {
+    display: flex;
+    gap: 0.15rem;
+    align-items: center;
 }
 
 .load-graph-item:hover {
@@ -746,43 +752,35 @@ body {
 }
 
 .load-graph-item.pending-delete {
-    opacity: 0.6;
-    filter: blur(1px);
-    background: var(--bg-tertiary);
     border-color: var(--danger-color);
+    border-width: 2px;
+    background: rgba(239, 68, 68, 0.1);
     position: relative;
 }
 
-.load-graph-item.pending-delete::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--danger-color);
-    transform: translateY(-50%);
-    z-index: 1;
+/* Always show solid colors for action buttons in pending-delete state */
+.load-graph-item.pending-delete .load-graph-actions .confirm-delete-btn {
+    background: var(--success-color) !important;
+    color: white !important;
+    border: 1px solid var(--success-color) !important;
 }
 
-.load-graph-item.pending-delete .load-graph-info {
-    text-decoration: line-through;
-    color: var(--text-muted);
+.load-graph-item.pending-delete .load-graph-actions .delete-btn {
+    background: var(--danger-color) !important;
+    color: white !important;
+    border: 1px solid var(--danger-color) !important;
 }
 
-.load-graph-item.pending-delete .load-graph-name {
-    text-decoration: line-through;
-    color: var(--text-muted);
+/* Light blue edit button for load window */
+.load-graph-actions .edit-name-btn {
+    border-color: #60a5fa !important;
+    color: #60a5fa !important;
 }
 
-.load-graph-item.pending-delete .load-graph-details {
-    text-decoration: line-through;
-    color: var(--text-muted);
-}
-
-.load-graph-item.pending-delete .load-graph-time {
-    text-decoration: line-through;
-    color: var(--text-muted);
+.load-graph-actions .edit-name-btn:hover {
+    background: #60a5fa !important;
+    color: white !important;
+    border-color: #60a5fa !important;
 }
 
 
@@ -1085,43 +1083,23 @@ body {
 }
 
 .saved-graph-item.pending-delete {
-    opacity: 0.6;
-    filter: blur(1px);
-    background: var(--bg-tertiary);
     border-color: var(--danger-color);
+    border-width: 2px;
+    background: rgba(239, 68, 68, 0.1);
     position: relative;
 }
 
-.saved-graph-item.pending-delete::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--danger-color);
-    transform: translateY(-50%);
-    z-index: 1;
+/* Always show solid colors for action buttons in pending-delete state */
+.saved-graph-item.pending-delete .saved-graph-actions .confirm-delete-btn {
+    background: var(--success-color) !important;
+    color: white !important;
+    border: 1px solid var(--success-color) !important;
 }
 
-.saved-graph-item.pending-delete .saved-graph-info {
-    text-decoration: line-through;
-    color: var(--text-muted);
-}
-
-.saved-graph-item.pending-delete .saved-graph-name {
-    text-decoration: line-through;
-    color: var(--text-muted);
-}
-
-.saved-graph-item.pending-delete .saved-graph-details {
-    text-decoration: line-through;
-    color: var(--text-muted);
-}
-
-.saved-graph-item.pending-delete .saved-graph-time {
-    text-decoration: line-through;
-    color: var(--text-muted);
+.saved-graph-item.pending-delete .saved-graph-actions .delete-btn {
+    background: var(--danger-color) !important;
+    color: white !important;
+    border: 1px solid var(--danger-color) !important;
 }
 
 .saved-graph-item.pending-rename {
