@@ -4663,16 +4663,10 @@ export class GraphCreator {
         const display = document.getElementById('targetVertexDisplay');
         
         if (this.selectedTargetVertex) {
-            display.innerHTML = `
-                <div class="target-vertex-info">
-                    <div class="target-vertex-icon">${this.selectedTargetVertex.label}</div>
-                    <span class="target-vertex-label">Vertex ${this.selectedTargetVertex.label}</span>
-                    <span class="target-vertex-coords">(${Math.round(this.selectedTargetVertex.x)}, ${Math.round(this.selectedTargetVertex.y)})</span>
-                </div>
-            `;
+            display.innerHTML = `<span class="target-vertex-label">${this.selectedTargetVertex.label}</span>`;
             display.classList.add('has-target');
         } else {
-            display.innerHTML = '<span class="target-placeholder">Right click on any vertex to set as target</span>';
+            display.innerHTML = '<span class="target-placeholder">Not selected</span>';
             display.classList.remove('has-target');
         }
     }
