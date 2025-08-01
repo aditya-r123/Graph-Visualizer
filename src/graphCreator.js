@@ -2357,12 +2357,39 @@ export class GraphCreator {
     }
     
     handleMouseUp(e) {
+        // Check if hold timer was active (user held long enough to potentially enter edit mode)
+        const wasHoldTimerActive = this.holdTimerWasActive;
+        const holdStartTime = this.holdStartTime; // Store before clearing
+        
         // Clear edit mode timer and hold progress
         if (this.longPressTimer) {
             clearTimeout(this.longPressTimer);
             this.longPressTimer = null;
         }
         this.clearHoldProgress();
+        
+        // If hold timer was active but user released before full 2.5 seconds, prevent any actions
+        if (wasHoldTimerActive && holdStartTime) {
+            const elapsed = Date.now() - holdStartTime;
+            if (elapsed < this.longPressDelay) {
+                // User released before full hold time - prevent any actions
+                this.draggedVertex = null;
+                this.mouseDownOnVertex = null;
+                this.mouseDownPos = null;
+                this.canvas.style.cursor = 'crosshair';
+                // Remove global mouse event listeners
+                if (this.globalMouseMoveHandler) {
+                    document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                    this.globalMouseMoveHandler = null;
+                }
+                if (this.globalMouseUpHandler) {
+                    document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                    this.globalMouseUpHandler = null;
+                }
+                return;
+            }
+        }
+        
         if (this.draggedVertex) {
             if (this.isDragging) {
                 // End of a drag
