@@ -149,6 +149,14 @@
                             Delete Nodes
                         </button>
                     </div>
+                    
+                    <!-- Edit Mode Button -->
+                    <div class="button-group">
+                        <button id="editModeBtn" class="btn btn-primary">
+                            <i class="fas fa-edit"></i>
+                            Edit Mode
+                        </button>
+                    </div>
                     </div>
                 </div>
                 
@@ -175,6 +183,36 @@
                             <div class="slider-container">
                                 <input type="range" id="editVertexSize" min="15" max="60" value="25">
                                 <span id="editVertexSizeValue">25</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="editVertexColor">
+                                <i class="fas fa-fill-drip"></i>
+                                Fill Color
+                            </label>
+                            <div class="color-input-container">
+                                <input type="color" id="editVertexColor" value="#1f2937">
+                                <input type="text" id="editVertexColorText" placeholder="#1f2937" maxlength="7">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="editVertexBorderColor">
+                                <i class="fas fa-circle"></i>
+                                Outline Color
+                            </label>
+                            <div class="color-input-container">
+                                <input type="color" id="editVertexBorderColor" value="#111827">
+                                <input type="text" id="editVertexBorderColorText" placeholder="#111827" maxlength="7">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="editVertexLabelSize">
+                                <i class="fas fa-font"></i>
+                                Label Size
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" id="editVertexLabelSize" min="10" max="24" value="14">
+                                <span id="editVertexLabelSizeValue">14</span>
                             </div>
                         </div>
                         <div class="control-group">

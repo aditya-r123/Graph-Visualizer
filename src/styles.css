@@ -557,6 +557,25 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+/* Color input container for edit mode */
+.color-input-container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.color-input-container input[type="color"] {
+    width: 50px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.color-input-container input[type="text"] {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
 .edit-label-container {
     display: flex;
     gap: 0.5rem;

@@ -72,6 +72,7 @@ export class GraphCreator {
         this.vertexColor = '#1f2937'; // Much darker gray for maximum contrast
         this.vertexBorderColor = '#111827'; // Very dark border
         this.vertexFontSize = 14;
+        this.vertexLabelSize = 14;
         this.vertexFontFamily = 'Inter, sans-serif';
         this.vertexFontColor = '#ffffff'; // White text for contrast
         this.edgeColor = '#6b7280';
@@ -623,6 +624,7 @@ export class GraphCreator {
         
         // Delete nodes mode controls
         const deleteNodesBtn = document.getElementById('deleteNodesBtn');
+        const editModeBtn = document.getElementById('editModeBtn');
         const saveDeleteChangesBtn = document.getElementById('saveDeleteChanges');
         const cancelDeleteChangesBtn = document.getElementById('cancelDeleteChanges');
         
@@ -632,6 +634,14 @@ export class GraphCreator {
             });
         } else {
             console.error('Delete Nodes button not found!');
+        }
+        
+        if (editModeBtn) {
+            editModeBtn.addEventListener('click', () => {
+                this.enterEditModeFromButton();
+            });
+        } else {
+            console.error('Edit Mode button not found!');
         }
         
         if (saveDeleteChangesBtn) {
@@ -1463,7 +1473,7 @@ export class GraphCreator {
         // Read vertex data and recreate appearance
         const fillColor = vertex.color || this.vertexColor;
         const borderColor = vertex.borderColor || this.vertexBorderColor;
-        const fontSize = vertex.fontSize || this.vertexFontSize;
+        const labelSize = vertex.labelSize || this.vertexLabelSize;
         const fontFamily = vertex.fontFamily || this.vertexFontFamily;
         const fontColor = vertex.fontColor || this.vertexFontColor;
         const size = vertex.size || this.vertexSize;
@@ -1479,7 +1489,7 @@ export class GraphCreator {
         
         // Draw vertex label (only if not hidden)
         if (!this.hideLabels) {
-            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.font = `${labelSize}px ${fontFamily}`;
             ctx.fillStyle = fontColor;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1658,7 +1668,7 @@ export class GraphCreator {
         // Use individual vertex styling or fall back to global styling
         const fillColor = vertex.color || this.vertexColor;
         const borderColor = vertex.borderColor || this.vertexBorderColor;
-        const fontSize = vertex.fontSize || this.vertexFontSize;
+        const labelSize = vertex.labelSize || this.vertexLabelSize;
         const fontFamily = vertex.fontFamily || this.vertexFontFamily;
         const fontColor = vertex.fontColor || this.vertexFontColor;
         const size = vertex.size || this.vertexSize;
@@ -1674,7 +1684,7 @@ export class GraphCreator {
         
         // Draw vertex label (only if not hidden)
         if (!this.hideLabels) {
-            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.font = `${labelSize}px ${fontFamily}`;
             ctx.fillStyle = fontColor;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1693,14 +1703,6 @@ export class GraphCreator {
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
         }
-        
-        ctx.fillText(vertex.label, vertex.x, vertex.y);
-        
-        // Reset shadow
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
     }
     
     exportGraph() {
@@ -1713,7 +1715,7 @@ export class GraphCreator {
                 size: v.size,
                 color: v.color,
                 borderColor: v.borderColor,
-                fontSize: v.fontSize,
+                labelSize: v.labelSize,
                 fontFamily: v.fontFamily,
                 fontColor: v.fontColor
             })),
@@ -1740,6 +1742,7 @@ export class GraphCreator {
             vertexColor: this.vertexColor,
             vertexBorderColor: this.vertexBorderColor,
             vertexFontSize: this.vertexFontSize,
+            vertexLabelSize: this.vertexLabelSize,
             vertexFontFamily: this.vertexFontFamily,
             vertexFontColor: this.vertexFontColor,
             edgeColor: this.edgeColor,
@@ -1767,7 +1770,7 @@ export class GraphCreator {
             size: v.size,
             color: v.color,
             borderColor: v.borderColor,
-            fontSize: v.fontSize,
+            labelSize: v.labelSize,
             fontFamily: v.fontFamily,
             fontColor: v.fontColor
         }));
@@ -1796,6 +1799,7 @@ export class GraphCreator {
         this.vertexColor = graphData.vertexColor || '#1e293b';
         this.vertexBorderColor = graphData.vertexBorderColor || '#475569';
         this.vertexFontSize = graphData.vertexFontSize || 14;
+        this.vertexLabelSize = graphData.vertexLabelSize || 14;
         this.vertexFontFamily = graphData.vertexFontFamily || 'Inter';
         this.vertexFontColor = graphData.vertexFontColor || '#ffffff';
         this.edgeColor = graphData.edgeColor || '#6366f1';
@@ -2377,12 +2381,13 @@ export class GraphCreator {
                 return;
             } else {
                 // Not a drag: treat as click for edge creation or vertex switching in edit mode
+                // Only if the hold timer was active (held long enough to be considered intentional)
                 const pos = this.getMousePos(e);
                 const vertex = this.getVertexAt(pos.x, pos.y);
-                if (vertex && this.mouseDownOnVertex && vertex.id === this.mouseDownOnVertex.id) {
+                if (vertex && this.mouseDownOnVertex && vertex.id === this.mouseDownOnVertex.id && this.holdTimerWasActive) {
                     // In edit mode, allow switching to edit different vertices
                     if (this.editModeElement && this.editModeType === 'vertex') {
-                        this.enterEditMode(vertex);
+                        this.switchEditModeVertex(vertex);
                     } else {
                         // Simulate a click for edge creation
                         this.handleVertexLeftEdge(vertex);
@@ -2422,15 +2427,26 @@ export class GraphCreator {
         this._editOriginal = {
             label: vertex.label,
             size: vertex.size || this.vertexSize,
+            color: vertex.color || this.vertexColor,
+            borderColor: vertex.borderColor || this.vertexBorderColor,
+            labelSize: vertex.labelSize || this.vertexLabelSize,
         };
         // Temporary edit state for preview
         this._editPreview = {
             label: vertex.label,
             size: vertex.size || this.vertexSize,
+            color: vertex.color || this.vertexColor,
+            borderColor: vertex.borderColor || this.vertexBorderColor,
+            labelSize: vertex.labelSize || this.vertexLabelSize,
             pendingDelete: false
         };
-        // Store original sizes for all vertices (for cancel/undo)
+        // Store original sizes, colors, and label sizes for all vertices (for cancel/undo)
         this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
+        this._originalAllVertexColors = this.vertices.map(v => ({
+            color: v.color || this.vertexColor,
+            borderColor: v.borderColor || this.vertexBorderColor
+        }));
+        this._originalAllVertexLabelSizes = this.vertices.map(v => v.labelSize || this.vertexLabelSize);
         this.startShakeAnimation();
         const editSection = document.getElementById('editControlsSection');
         if (editSection) editSection.style.display = 'block';
@@ -2442,11 +2458,38 @@ export class GraphCreator {
         const labelInput = document.getElementById('editVertexLabel');
         const sizeInput = document.getElementById('editVertexSize');
         const sizeValue = document.getElementById('editVertexSizeValue');
+        const labelSizeInput = document.getElementById('editVertexLabelSize');
+        const labelSizeValue = document.getElementById('editVertexLabelSizeValue');
+        
         if (labelInput && sizeInput && sizeValue) {
             labelInput.value = vertex.label;
             sizeInput.value = vertex.size || this.vertexSize;
             sizeValue.textContent = vertex.size || this.vertexSize;
         }
+        
+        if (labelSizeInput && labelSizeValue) {
+            labelSizeInput.value = vertex.labelSize || this.vertexLabelSize;
+            labelSizeValue.textContent = vertex.labelSize || this.vertexLabelSize;
+        }
+        
+        // Handle color inputs
+        const colorInput = document.getElementById('editVertexColor');
+        const colorTextInput = document.getElementById('editVertexColorText');
+        const borderColorInput = document.getElementById('editVertexBorderColor');
+        const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+        
+        if (colorInput && colorTextInput) {
+            const fillColor = vertex.color || this.vertexColor;
+            colorInput.value = fillColor;
+            colorTextInput.value = fillColor;
+        }
+        
+        if (borderColorInput && borderColorTextInput) {
+            const borderColor = vertex.borderColor || this.vertexBorderColor;
+            borderColorInput.value = borderColor;
+            borderColorTextInput.value = borderColor;
+        }
+        
         labelInput.style.borderColor = '';
         labelInput.style.boxShadow = '';
         const warningMsg = document.getElementById('editVertexLabelWarning');
@@ -2458,6 +2501,18 @@ export class GraphCreator {
         this._updateEditPanelForPendingDelete(false);
         this._updateDeleteButtonText();
         this.draw();
+    }
+
+    enterEditModeFromButton() {
+        // Find the most recent vertex to edit
+        const mostRecentVertex = this.findMostRecentVertex();
+        
+        if (mostRecentVertex) {
+            this.enterEditMode(mostRecentVertex);
+        } else {
+            // If no vertices exist, show a message
+            this.updateStatus('No vertices to edit. Add a vertex first.');
+        }
     }
 
     _updateEditPanelForPendingDelete(isPending) {
@@ -2494,6 +2549,18 @@ export class GraphCreator {
             }
             // Hide size control when marked for deletion
             if (sizeInput) sizeInput.style.display = 'none';
+            // Hide label size control when marked for deletion
+            const labelSizeInput = document.getElementById('editVertexLabelSize');
+            if (labelSizeInput) labelSizeInput.style.display = 'none';
+            // Hide color controls when marked for deletion
+            const colorInput = document.getElementById('editVertexColor');
+            const colorTextInput = document.getElementById('editVertexColorText');
+            const borderColorInput = document.getElementById('editVertexBorderColor');
+            const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+            if (colorInput) colorInput.style.display = 'none';
+            if (colorTextInput) colorTextInput.style.display = 'none';
+            if (borderColorInput) borderColorInput.style.display = 'none';
+            if (borderColorTextInput) borderColorTextInput.style.display = 'none';
             // Hide apply to all toggle when marked for deletion
             if (applyToAllToggle) {
                 const applyToAllContainer = applyToAllToggle.closest('.control-group');
@@ -2517,6 +2584,18 @@ export class GraphCreator {
                 }
             }
             if (sizeInput) sizeInput.style.display = 'block';
+            // Show label size control when not marked for deletion
+            const labelSizeInput = document.getElementById('editVertexLabelSize');
+            if (labelSizeInput) labelSizeInput.style.display = 'block';
+            // Show color controls when not marked for deletion
+            const colorInput = document.getElementById('editVertexColor');
+            const colorTextInput = document.getElementById('editVertexColorText');
+            const borderColorInput = document.getElementById('editVertexBorderColor');
+            const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+            if (colorInput) colorInput.style.display = 'block';
+            if (colorTextInput) colorTextInput.style.display = 'block';
+            if (borderColorInput) borderColorInput.style.display = 'block';
+            if (borderColorTextInput) borderColorTextInput.style.display = 'block';
             if (applyToAllToggle) {
                 const applyToAllContainer = applyToAllToggle.closest('.control-group');
                 if (applyToAllContainer) applyToAllContainer.style.display = 'block';
@@ -2902,6 +2981,7 @@ export class GraphCreator {
             color: this.vertexColor,
             borderColor: this.vertexBorderColor,
             fontSize: this.vertexFontSize,
+            labelSize: this.vertexLabelSize,
             fontFamily: this.vertexFontFamily,
             fontColor: this.vertexFontColor
         };
@@ -4379,11 +4459,13 @@ export class GraphCreator {
         
         let size = (vertex.size || this.vertexSize);
         let label = vertex.label;
+        let labelSize = (vertex.labelSize || this.vertexLabelSize);
         let isPendingDeleteEdit = false;
         // If in edit mode and this is the vertex being edited, use preview state
         if (this.editModeElement === vertex && this._editPreview) {
             size = this._editPreview.size;
             label = this._editPreview.label;
+            labelSize = this._editPreview.labelSize;
             isPendingDeleteEdit = !!this._editPreview.pendingDelete;
         }
         
@@ -4544,10 +4626,9 @@ export class GraphCreator {
         }
         // Draw vertex label (only if not hidden)
         if (!this.hideLabels) {
-            const fontSize = (vertex.fontSize || this.vertexFontSize);
             const fontFamily = vertex.fontFamily || this.vertexFontFamily;
             const fontColor = vertex.fontColor || this.vertexFontColor;
-            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.font = `${labelSize}px ${fontFamily}`;
             ctx.fillStyle = fontColor;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -5009,10 +5090,16 @@ export class GraphCreator {
         this._editOriginal = {
             label: vertex.label,
             size: vertex.size || this.vertexSize,
+            color: vertex.color || this.vertexColor,
+            borderColor: vertex.borderColor || this.vertexBorderColor,
+            labelSize: vertex.labelSize || this.vertexLabelSize
         };
         this._editPreview = {
             label: vertex.label,
             size: vertex.size || this.vertexSize,
+            color: vertex.color || this.vertexColor,
+            borderColor: vertex.borderColor || this.vertexBorderColor,
+            labelSize: vertex.labelSize || this.vertexLabelSize,
             pendingDelete: false
         };
         
@@ -5027,6 +5114,32 @@ export class GraphCreator {
             labelInput.value = vertex.label;
             sizeInput.value = vertex.size || this.vertexSize;
             sizeValue.textContent = vertex.size || this.vertexSize;
+        }
+        
+        // Update color inputs
+        const colorInput = document.getElementById('editVertexColor');
+        const colorTextInput = document.getElementById('editVertexColorText');
+        const borderColorInput = document.getElementById('editVertexBorderColor');
+        const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+        
+        if (colorInput && colorTextInput) {
+            const fillColor = vertex.color || this.vertexColor;
+            colorInput.value = fillColor;
+            colorTextInput.value = fillColor;
+        }
+        
+        if (borderColorInput && borderColorTextInput) {
+            const borderColor = vertex.borderColor || this.vertexBorderColor;
+            borderColorInput.value = borderColor;
+            borderColorTextInput.value = borderColor;
+        }
+        
+        // Update label size slider
+        const labelSizeInput = document.getElementById('editVertexLabelSize');
+        const labelSizeValue = document.getElementById('editVertexLabelSizeValue');
+        if (labelSizeInput && labelSizeValue) {
+            labelSizeInput.value = vertex.labelSize || this.vertexLabelSize;
+            labelSizeValue.textContent = vertex.labelSize || this.vertexLabelSize;
         }
         
         // Clear any warnings
@@ -5153,16 +5266,26 @@ export class GraphCreator {
 
     _setupApplyToAllImmediateListeners() {
         const sizeInput = document.getElementById('editVertexSize');
+        const labelSizeInput = document.getElementById('editVertexLabelSize');
+        const colorInput = document.getElementById('editVertexColor');
+        const borderColorInput = document.getElementById('editVertexBorderColor');
         const applyToAllToggle = document.getElementById('applyToAllToggle');
         if (!sizeInput || !applyToAllToggle) return;
         // Remove previous listeners if any
         if (this._applyToAllSizeListener) sizeInput.removeEventListener('input', this._applyToAllSizeListener);
+        if (this._applyToAllLabelSizeListener) labelSizeInput?.removeEventListener('input', this._applyToAllLabelSizeListener);
+        if (this._applyToAllColorListener) colorInput?.removeEventListener('input', this._applyToAllColorListener);
+        if (this._applyToAllBorderColorListener) borderColorInput?.removeEventListener('input', this._applyToAllBorderColorListener);
+        if (this._applyToAllColorTextListener) document.getElementById('editVertexColorText')?.removeEventListener('input', this._applyToAllColorTextListener);
+        if (this._applyToAllBorderColorTextListener) document.getElementById('editVertexBorderColorText')?.removeEventListener('input', this._applyToAllBorderColorTextListener);
         if (this._applyToAllToggleListener) applyToAllToggle.removeEventListener('change', this._applyToAllToggleListener);
+        
         // Listener for size slider
         this._applyToAllSizeListener = (e) => {
             const newSize = parseInt(e.target.value);
             document.getElementById('editVertexSizeValue').textContent = newSize;
-            if (this.editModeElement) {
+            if (this.editModeElement && this._editPreview) {
+                this._editPreview.size = newSize;
                 this.editModeElement.size = newSize;
                 if (applyToAllToggle.checked) {
                     this.vertices.forEach((v, idx) => {
@@ -5173,20 +5296,140 @@ export class GraphCreator {
             }
         };
         sizeInput.addEventListener('input', this._applyToAllSizeListener);
+        
+        // Listener for label size slider
+        if (labelSizeInput) {
+            this._applyToAllLabelSizeListener = (e) => {
+                const newLabelSize = parseInt(e.target.value);
+                document.getElementById('editVertexLabelSizeValue').textContent = newLabelSize;
+                if (this.editModeElement && this._editPreview) {
+                    this._editPreview.labelSize = newLabelSize;
+                    this.editModeElement.labelSize = newLabelSize;
+                    if (applyToAllToggle.checked) {
+                        this.vertices.forEach((v, idx) => {
+                            if (v !== this.editModeElement) v.labelSize = newLabelSize;
+                        });
+                    }
+                    this.draw();
+                }
+            };
+            labelSizeInput.addEventListener('input', this._applyToAllLabelSizeListener);
+        }
+        
+        // Listener for color input
+        if (colorInput) {
+            this._applyToAllColorListener = (e) => {
+                const newColor = e.target.value;
+                if (this.editModeElement && this._editPreview) {
+                    this._editPreview.color = newColor;
+                    this.editModeElement.color = newColor;
+                    if (applyToAllToggle.checked) {
+                        this.vertices.forEach((v, idx) => {
+                            if (v !== this.editModeElement) v.color = newColor;
+                        });
+                    }
+                    this.draw();
+                }
+            };
+            colorInput.addEventListener('input', this._applyToAllColorListener);
+        }
+        
+        // Listener for border color input
+        if (borderColorInput) {
+            this._applyToAllBorderColorListener = (e) => {
+                const newColor = e.target.value;
+                if (this.editModeElement && this._editPreview) {
+                    this._editPreview.borderColor = newColor;
+                    this.editModeElement.borderColor = newColor;
+                    if (applyToAllToggle.checked) {
+                        this.vertices.forEach((v, idx) => {
+                            if (v !== this.editModeElement) v.borderColor = newColor;
+                        });
+                    }
+                    this.draw();
+                }
+            };
+            borderColorInput.addEventListener('input', this._applyToAllBorderColorListener);
+        }
+        
+        // Listener for color text input
+        const colorTextInput = document.getElementById('editVertexColorText');
+        if (colorTextInput) {
+            this._applyToAllColorTextListener = (e) => {
+                const newColor = e.target.value;
+                // Validate hex color format
+                if (/^#[0-9A-F]{6}$/i.test(newColor)) {
+                    if (this.editModeElement && this._editPreview) {
+                        this._editPreview.color = newColor;
+                        this.editModeElement.color = newColor;
+                        if (applyToAllToggle.checked) {
+                            this.vertices.forEach((v, idx) => {
+                                if (v !== this.editModeElement) v.color = newColor;
+                            });
+                        }
+                        if (colorInput) colorInput.value = newColor;
+                        this.draw();
+                    }
+                }
+            };
+            colorTextInput.addEventListener('input', this._applyToAllColorTextListener);
+        }
+        
+        // Listener for border color text input
+        const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+        if (borderColorTextInput) {
+            this._applyToAllBorderColorTextListener = (e) => {
+                const newColor = e.target.value;
+                // Validate hex color format
+                if (/^#[0-9A-F]{6}$/i.test(newColor)) {
+                    if (this.editModeElement && this._editPreview) {
+                        this._editPreview.borderColor = newColor;
+                        this.editModeElement.borderColor = newColor;
+                        if (applyToAllToggle.checked) {
+                            this.vertices.forEach((v, idx) => {
+                                if (v !== this.editModeElement) v.borderColor = newColor;
+                            });
+                        }
+                        if (borderColorInput) borderColorInput.value = newColor;
+                        this.draw();
+                    }
+                }
+            };
+            borderColorTextInput.addEventListener('input', this._applyToAllBorderColorTextListener);
+        }
+        
         // Listener for apply-to-all toggle
         this._applyToAllToggleListener = (e) => {
             const checked = e.target.checked;
             const newSize = parseInt(sizeInput.value);
+            const newLabelSize = parseInt(labelSizeInput?.value || this.vertexLabelSize);
+            const newColor = colorInput?.value || this.vertexColor;
+            const newBorderColor = borderColorInput?.value || this.vertexBorderColor;
+            
             if (checked) {
-                // Apply current size to all other vertices
+                // Apply current size, label size, and colors to all other vertices
                 this.vertices.forEach((v, idx) => {
-                    if (v !== this.editModeElement) v.size = newSize;
+                    if (v !== this.editModeElement) {
+                        v.size = newSize;
+                        v.labelSize = newLabelSize;
+                        v.color = newColor;
+                        v.borderColor = newBorderColor;
+                    }
                 });
             } else {
-                // Revert all other vertices to their original sizes
+                // Revert all other vertices to their original sizes, label sizes, and colors
                 this.vertices.forEach((v, idx) => {
-                    if (v !== this.editModeElement && this._originalAllVertexSizes) {
-                        v.size = this._originalAllVertexSizes[idx];
+                    if (v !== this.editModeElement) {
+                        if (this._originalAllVertexSizes && this._originalAllVertexSizes[idx]) {
+                            v.size = this._originalAllVertexSizes[idx];
+                        }
+                        if (this._originalAllVertexLabelSizes && this._originalAllVertexLabelSizes[idx]) {
+                            v.labelSize = this._originalAllVertexLabelSizes[idx];
+                        }
+                        if (this._originalAllVertexColors && this._originalAllVertexColors[idx]) {
+                            v.color = this._originalAllVertexColors[idx].color;
+                            v.borderColor = this._originalAllVertexColors[idx].borderColor;
+                        }
                     }
                 });
             }
@@ -5204,6 +5447,8 @@ export class GraphCreator {
         this._editOriginal = null;
         this._editPreview = null;
         this._originalAllVertexSizes = null;
+        this._originalAllVertexColors = null;
+        this._originalAllVertexLabelSizes = null;
         this._pendingChanges = null;
         
         // Show theme toggle and mouse position display when exiting edit mode
@@ -5288,25 +5533,101 @@ export class GraphCreator {
             }
         });
         
+        // Label size slider: immediate update with apply-to-all support
+        document.getElementById('editVertexLabelSize').addEventListener('input', (e) => {
+            if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                const newLabelSize = parseInt(e.target.value);
+                document.getElementById('editVertexLabelSizeValue').textContent = newLabelSize;
+                this._editPreview.labelSize = newLabelSize;
+                this.draw();
+            }
+        });
+        
+        // Color inputs: immediate update
+        const colorInput = document.getElementById('editVertexColor');
+        const colorTextInput = document.getElementById('editVertexColorText');
+        const borderColorInput = document.getElementById('editVertexBorderColor');
+        const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+        
+        if (colorInput) {
+            colorInput.addEventListener('input', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    const newColor = e.target.value;
+                    this._editPreview.color = newColor;
+                    if (colorTextInput) colorTextInput.value = newColor;
+                    this.draw();
+                }
+            });
+        }
+        
+        if (colorTextInput) {
+            colorTextInput.addEventListener('input', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    const newColor = e.target.value;
+                    // Validate hex color format
+                    if (/^#[0-9A-F]{6}$/i.test(newColor)) {
+                        this._editPreview.color = newColor;
+                        if (colorInput) colorInput.value = newColor;
+                        this.draw();
+                    }
+                }
+            });
+        }
+        
+        if (borderColorInput) {
+            borderColorInput.addEventListener('input', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    const newColor = e.target.value;
+                    this._editPreview.borderColor = newColor;
+                    if (borderColorTextInput) borderColorTextInput.value = newColor;
+                    this.draw();
+                }
+            });
+        }
+        
+        if (borderColorTextInput) {
+            borderColorTextInput.addEventListener('input', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    const newColor = e.target.value;
+                    // Validate hex color format
+                    if (/^#[0-9A-F]{6}$/i.test(newColor)) {
+                        this._editPreview.borderColor = newColor;
+                        if (borderColorInput) borderColorInput.value = newColor;
+                        this.draw();
+                    }
+                }
+            });
+        }
+        
         // Apply-to-all toggle: immediate apply/revert
         document.getElementById('applyToAllToggle').addEventListener('change', (e) => {
             const checked = e.target.checked;
             const newSize = parseInt(document.getElementById('editVertexSize').value);
+            const newColor = document.getElementById('editVertexColor')?.value || this.vertexColor;
+            const newBorderColor = document.getElementById('editVertexBorderColor')?.value || this.vertexBorderColor;
             
             if (checked) {
-                // Apply current size to all other vertices
+                // Apply current size and colors to all other vertices
                 this.vertices.forEach(vertex => {
                     if (vertex !== this.editModeElement) {
                         vertex.size = newSize;
+                        vertex.color = newColor;
+                        vertex.borderColor = newBorderColor;
                     }
                 });
             } else {
-                // Revert all other vertices to their original sizes
+                // Revert all other vertices to their original sizes and colors
                 this.vertices.forEach(vertex => {
-                    if (vertex !== this.editModeElement && this._originalAllVertexSizes) {
+                    if (vertex !== this.editModeElement) {
                         const originalIndex = this.vertices.findIndex(v => v === vertex);
-                        if (originalIndex !== -1 && this._originalAllVertexSizes[originalIndex]) {
-                            vertex.size = this._originalAllVertexSizes[originalIndex];
+                        if (originalIndex !== -1) {
+                            if (this._originalAllVertexSizes && this._originalAllVertexSizes[originalIndex]) {
+                                vertex.size = this._originalAllVertexSizes[originalIndex];
+                            }
+                            if (this._originalAllVertexColors && this._originalAllVertexColors[originalIndex]) {
+                                vertex.color = this._originalAllVertexColors[originalIndex].color;
+                                vertex.borderColor = this._originalAllVertexColors[originalIndex].borderColor;
+                            }
                         }
                     }
                 });
@@ -5345,9 +5666,25 @@ export class GraphCreator {
                     this.handleVertexDeletionInEditMode();
                     return;
                 }
-                // Apply label/size edits to current vertex
+                // Apply label/size/color/labelSize edits to current vertex
                 this.editModeElement.label = this._editPreview.label;
                 this.editModeElement.size = this._editPreview.size;
+                this.editModeElement.color = this._editPreview.color;
+                this.editModeElement.borderColor = this._editPreview.borderColor;
+                this.editModeElement.labelSize = this._editPreview.labelSize;
+                
+                // If "Apply to All" was checked, apply the final values to all other vertices
+                const applyToAllToggle = document.getElementById('applyToAllToggle');
+                if (applyToAllToggle && applyToAllToggle.checked) {
+                    this.vertices.forEach((v) => {
+                        if (v !== this.editModeElement) {
+                            v.size = this._editPreview.size;
+                            v.labelSize = this._editPreview.labelSize;
+                            v.color = this._editPreview.color;
+                            v.borderColor = this._editPreview.borderColor;
+                        }
+                    });
+                }
                 
                 // Track this modification in pending changes
                 this._pendingChanges.modifiedVertices.set(this.editModeElement.id, {
