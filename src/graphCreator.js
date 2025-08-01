@@ -41,7 +41,7 @@ export class GraphCreator {
         
         // Edit mode variables
         this.editModeElement = null;
-        this.editModeType = null;
+        this.editModeType = null; // 'vertex' or 'edge'
         this.longPressTimer = null;
         this.longPressDelay = 2500; // 2.5 seconds for edit mode
         this.holdProgress = 0;
@@ -52,6 +52,11 @@ export class GraphCreator {
         this.shakeOffset = 0;
         this.shakeAnimationId = null;
         this._editPreview = null;
+        this._editOriginal = null;
+        this._originalAllVertexSizes = null;
+        this._originalAllVertexColors = null;
+        this._originalAllVertexLabelSizes = null;
+        this._originalAllEdgeStyles = null;
         
         // Delete mode variables
         this.isDeleteMode = false;
@@ -2381,10 +2386,9 @@ export class GraphCreator {
                 return;
             } else {
                 // Not a drag: treat as click for edge creation or vertex switching in edit mode
-                // Only if the hold timer was active (held long enough to be considered intentional)
                 const pos = this.getMousePos(e);
                 const vertex = this.getVertexAt(pos.x, pos.y);
-                if (vertex && this.mouseDownOnVertex && vertex.id === this.mouseDownOnVertex.id && this.holdTimerWasActive) {
+                if (vertex && this.mouseDownOnVertex && vertex.id === this.mouseDownOnVertex.id) {
                     // In edit mode, allow switching to edit different vertices
                     if (this.editModeElement && this.editModeType === 'vertex') {
                         this.switchEditModeVertex(vertex);
@@ -2407,6 +2411,15 @@ export class GraphCreator {
                     this.globalMouseUpHandler = null;
                 }
                 return;
+            }
+        }
+        
+        // Handle edge clicking in edit mode
+        if (!this.draggedVertex && !this.isDraggingEdge && this.editModeElement && this.editModeType === 'edge') {
+            const pos = this.getMousePos(e);
+            const edge = this.getEdgeAt(pos.x, pos.y, 10); // Increased tolerance for easier clicking
+            if (edge) {
+                this.switchEditModeEdge(edge);
             }
         }
         
@@ -3034,7 +3047,7 @@ export class GraphCreator {
                 type: this.edgeType,
                 direction: this.edgeDirection,
                 edgeIndex: edgeIndex, // Track which edge this is between these vertices
-                lineStyle: 'solid' // Default to solid
+                style: 'straight' // Default to straight
             };
             
             this.edges.push(edge);
@@ -3057,7 +3070,7 @@ export class GraphCreator {
                     weight: weight,
                     type: this.edgeType,
                     direction: this.edgeDirection,
-                    lineStyle: 'solid' // Default to solid
+                    style: 'straight' // Default to straight
                 };
                 
                 this.edges.push(edge);
@@ -3093,7 +3106,7 @@ export class GraphCreator {
                 weight: weight,
                 type: 'self-loop', // Special type for self-loops
                 direction: this.edgeDirection,
-                lineStyle: 'solid' // Default to solid
+                style: 'straight' // Default to straight
             };
             this.edges.push(edge);
             
@@ -4094,7 +4107,8 @@ export class GraphCreator {
         let edgeFontColor = edge.fontColor || this.edgeFontColor;
         
         if (this.editModeElement === edge && this.editModeType === 'edge') {
-            edgeColor = '#ef4444';
+            edgeColor = '#fbbf24'; // Yellow highlight for selected edge
+            edgeWidth = Math.max(edgeWidth, 4); // Make it slightly thicker
         }
         
         // Enhanced edge styling for search animations
@@ -4297,7 +4311,12 @@ export class GraphCreator {
         this.ctx.lineCap = 'round';
         
         // Set line dash pattern for dashed edges
-        if (edge.lineStyle === 'dashed') {
+        let lineStyle = edge.style;
+        if (this.editModeElement === edge && this.editModeType === 'edge' && this._editPreview) {
+            lineStyle = this._editPreview.style;
+        }
+        
+        if (lineStyle === 'dashed') {
             this.ctx.setLineDash([8, 4]); // 8px dash, 4px gap
         } else {
             this.ctx.setLineDash([]); // Solid line
@@ -5465,13 +5484,15 @@ export class GraphCreator {
         
         // Hide edit controls
         const editSection = document.getElementById('editControlsSection');
+        const edgeEditSection = document.getElementById('edgeEditControlsSection');
         if (editSection) editSection.style.display = 'none';
+        if (edgeEditSection) edgeEditSection.style.display = 'none';
         // Always hide delete mode panel when exiting edit mode
         const deletePanel = document.getElementById('deleteModePanel');
         if (deletePanel) deletePanel.style.display = 'none';
         // Show all other control sections
         document.querySelectorAll('.control-section').forEach(section => {
-            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
+            if (section.id !== 'editControlsSection' && section.id !== 'edgeEditControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
         });
         // Reset the edit section title
         const editTitle = editSection?.querySelector('h3');
@@ -5479,6 +5500,186 @@ export class GraphCreator {
             editTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Vertex';
         }
         this.draw();
+    }
+
+    enterEdgeEditMode(edge) {
+        console.log('[EditMode] Entering edge edit mode for edge:', edge);
+        this.exitEditMode();
+        this.editModeElement = edge;
+        this.editModeType = 'edge';
+        
+        // Store original values for cancellation
+        this._editOriginal = {
+            style: edge.style || 'straight'
+        };
+        
+        // Temporary edit state for preview
+        this._editPreview = {
+            style: edge.style || 'straight',
+            pendingDelete: false
+        };
+        
+        // Store original styles for all edges (for cancel/undo)
+        this._originalAllEdgeStyles = this.edges.map(e => e.style || 'straight');
+        
+        this.startShakeAnimation();
+        const editSection = document.getElementById('edgeEditControlsSection');
+        if (editSection) editSection.style.display = 'block';
+        document.querySelectorAll('.control-section').forEach(section => {
+            if (section.id !== 'edgeEditControlsSection') section.style.display = 'none';
+        });
+        
+        // Populate the edge style radio buttons
+        const straightRadio = document.getElementById('editEdgeStyleStraight');
+        const dashedRadio = document.getElementById('editEdgeStyleDashed');
+        if (straightRadio && dashedRadio) {
+            if (this._editPreview.style === 'straight') {
+                straightRadio.checked = true;
+            } else {
+                dashedRadio.checked = true;
+            }
+        }
+        
+        this.setupEdgeEditModeEvents();
+        this.draw();
+    }
+
+    switchEditModeEdge(edge) {
+        if (!this.editModeElement || this.editModeType !== 'edge') {
+            return;
+        }
+        
+        console.log('[EditMode] Switching to edge:', edge);
+        this.editModeElement = edge;
+        
+        // Update edit state for the new edge
+        this._editOriginal = {
+            style: edge.style || 'straight'
+        };
+        this._editPreview = {
+            style: edge.style || 'straight',
+            pendingDelete: false
+        };
+        
+        // Update UI elements
+        const straightRadio = document.getElementById('editEdgeStyleStraight');
+        const dashedRadio = document.getElementById('editEdgeStyleDashed');
+        if (straightRadio && dashedRadio) {
+            if (this._editPreview.style === 'straight') {
+                straightRadio.checked = true;
+            } else {
+                dashedRadio.checked = true;
+            }
+        }
+        
+        this.draw();
+    }
+
+    setupEdgeEditModeEvents() {
+        // Edge style radio buttons
+        const straightRadio = document.getElementById('editEdgeStyleStraight');
+        const dashedRadio = document.getElementById('editEdgeStyleDashed');
+        const applyToAllToggle = document.getElementById('applyToAllEdgesToggle');
+        
+        if (straightRadio) {
+            straightRadio.addEventListener('change', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    this._editPreview.style = 'straight';
+                    this.draw();
+                }
+            });
+        }
+        
+        if (dashedRadio) {
+            dashedRadio.addEventListener('change', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    this._editPreview.style = 'dashed';
+                    this.draw();
+                }
+            });
+        }
+        
+        // Apply to all edges toggle
+        if (applyToAllToggle) {
+            applyToAllToggle.addEventListener('change', (e) => {
+                if (this.editModeElement && this._editPreview) {
+                    if (e.target.checked) {
+                        // Apply current style to all edges
+                        this.edges.forEach(edge => {
+                            if (edge !== this.editModeElement) {
+                                edge.style = this._editPreview.style;
+                            }
+                        });
+                    } else {
+                        // Revert all edges to original styles
+                        this.edges.forEach((edge, index) => {
+                            if (edge !== this.editModeElement) {
+                                edge.style = this._originalAllEdgeStyles[index];
+                            }
+                        });
+                    }
+                    this.draw();
+                }
+            });
+        }
+        
+        // Save button
+        const saveBtn = document.getElementById('saveEdgeEdit');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.saveAndExitEdgeEditMode();
+            });
+        }
+        
+        // Cancel button
+        const cancelBtn = document.getElementById('cancelEdgeEdit');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.exitEditMode();
+            });
+        }
+        
+        // Delete button
+        const deleteBtn = document.getElementById('deleteCurrentEdge');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleEdgeDeletionInEditMode();
+            });
+        }
+    }
+
+    saveAndExitEdgeEditMode() {
+        if (this.editModeElement && this._editPreview) {
+            // Apply style edits to current edge
+            this.editModeElement.style = this._editPreview.style;
+            
+            // If "Apply to All" was checked, apply final values to all other edges
+            const applyToAllToggle = document.getElementById('applyToAllEdgesToggle');
+            if (applyToAllToggle && applyToAllToggle.checked) {
+                this.edges.forEach(edge => {
+                    if (edge !== this.editModeElement) {
+                        edge.style = this._editPreview.style;
+                    }
+                });
+            }
+        }
+        this.exitEditMode();
+    }
+
+    handleEdgeDeletionInEditMode() {
+        if (this.editModeElement && this.editModeType === 'edge') {
+            // Remove the edge from the edges array
+            const edgeIndex = this.edges.indexOf(this.editModeElement);
+            if (edgeIndex > -1) {
+                this.edges.splice(edgeIndex, 1);
+                this.updateStatus(`Edge deleted`);
+                this.draw();
+            }
+            this.exitEditMode();
+        }
     }
 
     setupMinimalEditModeEvents() {
@@ -5752,6 +5953,38 @@ export class GraphCreator {
                 this.draw();
             }
         });
+        
+        // Toggle edit mode buttons
+        const toggleEditModeBtn = document.getElementById('toggleEditMode');
+        const toggleEditModeEdgeBtn = document.getElementById('toggleEditModeEdge');
+        
+        if (toggleEditModeBtn) {
+            toggleEditModeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Switch to edge editing mode
+                if (this.edges.length > 0) {
+                    // Find the first edge to edit
+                    const firstEdge = this.edges[0];
+                    this.enterEdgeEditMode(firstEdge);
+                } else {
+                    this.updateStatus('No edges to edit');
+                }
+            });
+        }
+        
+        if (toggleEditModeEdgeBtn) {
+            toggleEditModeEdgeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Switch to vertex editing mode
+                if (this.vertices.length > 0) {
+                    // Find the first vertex to edit
+                    const firstVertex = this.vertices[0];
+                    this.enterEditMode(firstVertex);
+                } else {
+                    this.updateStatus('No vertices to edit');
+                }
+            });
+        }
     }
 
     // --- END Minimal Vertex Edit Mode ---

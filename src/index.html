@@ -166,6 +166,11 @@
                             <span class="drag-handle-icon">⋮⋮</span>
                         </div>
                         <h3>Edit Vertex</h3>
+                        <div class="edit-mode-toggle">
+                            <button type="button" id="toggleEditMode" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-exchange-alt"></i> Switch to Edge Editing
+                            </button>
+                        </div>
                     </div>
                     <form id="vertexEditForm" autocomplete="off">
                         <div class="control-group">
@@ -233,6 +238,64 @@
                             </button>
                             <button type="button" id="deleteCurrentVertex" class="btn btn-danger">
                                 <i class="fas fa-trash"></i> Delete Current Node
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="control-section" id="edgeEditControlsSection" style="display: none;">
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3>Edge Editing</h3>
+                        <div class="edit-mode-toggle">
+                            <button type="button" id="toggleEditModeEdge" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-exchange-alt"></i> Switch to Vertex Editing
+                            </button>
+                        </div>
+                    </div>
+                    <form id="edgeEditForm" autocomplete="off">
+                        <div class="control-group">
+                            <label for="editEdgeStyle">
+                                <i class="fas fa-wave-square"></i>
+                                Edge Style
+                            </label>
+                            <div class="edge-style-buttons">
+                                <label class="edge-style-option" for="editEdgeStyleStraight">
+                                    <input type="radio" name="editEdgeStyle" id="editEdgeStyleStraight" value="straight">
+                                    <span class="edge-style-button">
+                                        <i class="fas fa-minus"></i>
+                                        Straight
+                                    </span>
+                                </label>
+                                <label class="edge-style-option" for="editEdgeStyleDashed">
+                                    <input type="radio" name="editEdgeStyle" id="editEdgeStyleDashed" value="dashed">
+                                    <span class="edge-style-button">
+                                        <i class="fas fa-grip-lines"></i>
+                                        Dashed
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="checkbox-label" for="applyToAllEdgesToggle">
+                                <i class="fas fa-copy"></i>
+                                Apply to All Edges
+                                <input type="checkbox" id="applyToAllEdgesToggle">
+                                <span class="checkmark"></span>
+                            </label>
+                            <small>Apply these changes to all edges in the graph</small>
+                        </div>
+                        <div class="button-group mt-3">
+                            <button type="submit" id="saveEdgeEdit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Save
+                            </button>
+                            <button type="button" id="cancelEdgeEdit" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="button" id="deleteCurrentEdge" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Current Edge
                             </button>
                         </div>
                     </form>
