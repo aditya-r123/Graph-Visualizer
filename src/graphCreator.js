@@ -1313,7 +1313,6 @@ export class GraphCreator {
                                             // Check if Web Share API is supported
                         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                             navigator.share({
-                                title: 'Graph Visualizer Pro - My Graph Data',
                                 text: 'Hey, check out this graph data I made with Graph Visualizer Pro! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
                                 files: [file]
                             }).then(() => {
@@ -1366,7 +1365,6 @@ export class GraphCreator {
                         // Check if Web Share API is supported
                         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                             navigator.share({
-                                title: 'Graph Visualizer Pro - My Graph',
                                 text: 'Hey, check out this cool graph I made with Graph Visualizer Pro! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
                                 files: [file]
                             }).then(() => {
