@@ -1569,7 +1569,7 @@ export class GraphCreator {
         ctx.fillStyle = fillColor;
         ctx.fill();
         ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = vertex.borderThickness || 2;
         ctx.stroke();
         
         // Draw vertex label (only if not hidden)
@@ -1802,7 +1802,7 @@ export class GraphCreator {
         ctx.fillStyle = fillColor;
         ctx.fill();
         ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = vertex.borderThickness || 2;
         ctx.stroke();
         
         // Draw vertex label (only if not hidden)
@@ -1838,6 +1838,7 @@ export class GraphCreator {
                 size: v.size,
                 color: v.color,
                 borderColor: v.borderColor,
+                borderThickness: v.borderThickness || 2,
                 labelSize: v.labelSize,
                 fontFamily: v.fontFamily,
                 fontColor: v.fontColor,
@@ -1894,6 +1895,7 @@ export class GraphCreator {
             size: v.size,
             color: v.color,
             borderColor: v.borderColor,
+            borderThickness: v.borderThickness || 2,
             labelSize: v.labelSize,
             fontFamily: v.fontFamily,
             fontColor: v.fontColor,
@@ -2577,6 +2579,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
+            borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
         };
         // Temporary edit state for preview
@@ -2585,6 +2588,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
+            borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
             pendingDelete: false
         };
@@ -2593,6 +2597,7 @@ export class GraphCreator {
         this._originalAllVertexColors = this.vertices.map(v => ({
             color: v.color || this.vertexColor,
             borderColor: v.borderColor || this.vertexBorderColor,
+            borderThickness: v.borderThickness || 2,
             labelSize: v.labelSize || this.vertexLabelSize,
             shape: v.shape || 'circle'
         }));
@@ -2638,6 +2643,16 @@ export class GraphCreator {
             const borderColor = vertex.borderColor || this.vertexBorderColor;
             borderColorInput.value = borderColor;
             borderColorTextInput.value = borderColor;
+        }
+        
+        // Handle border thickness input
+        const borderThicknessInput = document.getElementById('editVertexBorderThickness');
+        const borderThicknessValue = document.getElementById('editVertexBorderThicknessValue');
+        
+        if (borderThicknessInput && borderThicknessValue) {
+            const borderThickness = vertex.borderThickness || 2;
+            borderThicknessInput.value = borderThickness;
+            borderThicknessValue.textContent = borderThickness;
         }
         
         labelInput.style.borderColor = '';
@@ -2707,10 +2722,12 @@ export class GraphCreator {
             const colorTextInput = document.getElementById('editVertexColorText');
             const borderColorInput = document.getElementById('editVertexBorderColor');
             const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+            const borderThicknessInput = document.getElementById('editVertexBorderThickness');
             if (colorInput) colorInput.style.display = 'none';
             if (colorTextInput) colorTextInput.style.display = 'none';
             if (borderColorInput) borderColorInput.style.display = 'none';
             if (borderColorTextInput) borderColorTextInput.style.display = 'none';
+            if (borderThicknessInput) borderThicknessInput.style.display = 'none';
             // Hide apply to all toggle when marked for deletion
             if (applyToAllToggle) {
                 const applyToAllContainer = applyToAllToggle.closest('.control-group');
@@ -2742,10 +2759,12 @@ export class GraphCreator {
             const colorTextInput = document.getElementById('editVertexColorText');
             const borderColorInput = document.getElementById('editVertexBorderColor');
             const borderColorTextInput = document.getElementById('editVertexBorderColorText');
+            const borderThicknessInput = document.getElementById('editVertexBorderThickness');
             if (colorInput) colorInput.style.display = 'block';
             if (colorTextInput) colorTextInput.style.display = 'block';
             if (borderColorInput) borderColorInput.style.display = 'block';
             if (borderColorTextInput) borderColorTextInput.style.display = 'block';
+            if (borderThicknessInput) borderThicknessInput.style.display = 'block';
             if (applyToAllToggle) {
                 const applyToAllContainer = applyToAllToggle.closest('.control-group');
                 if (applyToAllContainer) applyToAllContainer.style.display = 'block';
@@ -3137,6 +3156,7 @@ export class GraphCreator {
             size: size, // Use the current slider value for new vertex
             color: this.vertexColor,
             borderColor: this.vertexBorderColor,
+            borderThickness: 2, // Default border thickness
             fontSize: this.vertexFontSize,
             labelSize: this.vertexLabelSize,
             fontFamily: this.vertexFontFamily,
@@ -4899,7 +4919,7 @@ export class GraphCreator {
         ctx.fillStyle = fillColor;
         ctx.fill();
         ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = vertex.borderThickness || 2;
         ctx.stroke();
         
         // Restore context for gradient effects and fade effects
@@ -5299,6 +5319,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
+            borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize
         };
         // Temporary edit state for preview
@@ -5307,6 +5328,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
+            borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
             pendingDelete: false
         };
@@ -5316,6 +5338,7 @@ export class GraphCreator {
         this._originalAllVertexColors = this.vertices.map(v => ({
             color: v.color || this.vertexColor,
             borderColor: v.borderColor || this.vertexBorderColor,
+            borderThickness: v.borderThickness || 2,
             labelSize: v.labelSize || this.vertexLabelSize,
             shape: v.shape || 'circle'
         }));
@@ -5374,6 +5397,7 @@ export class GraphCreator {
             this.editModeElement.size = this._editPreview.size;
             this.editModeElement.color = this._editPreview.color;
             this.editModeElement.borderColor = this._editPreview.borderColor;
+            this.editModeElement.borderThickness = this._editPreview.borderThickness;
             this.editModeElement.labelSize = this._editPreview.labelSize;
             
             // Track this modification in pending changes
@@ -5392,6 +5416,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
+            borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
             shape: vertex.shape || 'circle'
         };
@@ -5400,6 +5425,7 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
+            borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
             shape: vertex.shape || 'circle',
             pendingDelete: false
@@ -5449,6 +5475,15 @@ export class GraphCreator {
         const shapeSelect = document.getElementById('editVertexShape');
         if (shapeSelect) {
             shapeSelect.value = shape;
+        }
+        
+        // Update border thickness slider
+        const borderThicknessInput = document.getElementById('editVertexBorderThickness');
+        const borderThicknessValue = document.getElementById('editVertexBorderThicknessValue');
+        if (borderThicknessInput && borderThicknessValue) {
+            const borderThickness = vertex.borderThickness || 2;
+            borderThicknessInput.value = borderThickness;
+            borderThicknessValue.textContent = borderThickness;
         }
         
         // Clear any warnings
@@ -6135,6 +6170,20 @@ export class GraphCreator {
             });
         }
         
+        // Border thickness slider: immediate update
+        const borderThicknessInput = document.getElementById('editVertexBorderThickness');
+        if (borderThicknessInput) {
+            borderThicknessInput.addEventListener('input', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    const newBorderThickness = parseInt(e.target.value);
+                    document.getElementById('editVertexBorderThicknessValue').textContent = newBorderThickness;
+                    this._editPreview.borderThickness = newBorderThickness;
+                    this.editModeElement.borderThickness = newBorderThickness; // Also update the current vertex immediately
+                    this.draw();
+                }
+            });
+        }
+        
         // Apply-to-all toggle: immediate apply/revert
         document.getElementById('applyToAllToggle').addEventListener('change', (e) => {
             const checked = e.target.checked;
@@ -6142,22 +6191,24 @@ export class GraphCreator {
             const newLabelSize = parseInt(document.getElementById('editVertexLabelSize')?.value || this.vertexLabelSize);
             const newColor = document.getElementById('editVertexColor')?.value || this.vertexColor;
             const newBorderColor = document.getElementById('editVertexBorderColor')?.value || this.vertexBorderColor;
+            const newBorderThickness = parseInt(document.getElementById('editVertexBorderThickness')?.value || 2);
             const newShape = document.getElementById('editVertexShape')?.value || 'circle';
             
             if (checked) {
-                // Apply current size, colors, label size, and shape to all other vertices
+                // Apply current size, colors, label size, border thickness, and shape to all other vertices
                 this.vertices.forEach(vertex => {
                     if (vertex !== this.editModeElement) {
                         vertex.size = newSize;
                         vertex.labelSize = newLabelSize;
                         vertex.color = newColor;
                         vertex.borderColor = newBorderColor;
+                        vertex.borderThickness = newBorderThickness;
                         vertex.shape = newShape;
                     }
                 });
                 this.draw(); // Redraw to show the changes
             } else {
-                // Revert all other vertices to their original sizes, colors, label sizes, and shapes
+                // Revert all other vertices to their original sizes, colors, label sizes, border thickness, and shapes
                 this.vertices.forEach(vertex => {
                     if (vertex !== this.editModeElement) {
                         const originalIndex = this.vertices.findIndex(v => v === vertex);
@@ -6168,6 +6219,7 @@ export class GraphCreator {
                             if (this._originalAllVertexColors && this._originalAllVertexColors[originalIndex]) {
                                 vertex.color = this._originalAllVertexColors[originalIndex].color;
                                 vertex.borderColor = this._originalAllVertexColors[originalIndex].borderColor;
+                                vertex.borderThickness = this._originalAllVertexColors[originalIndex].borderThickness || 2;
                                 vertex.labelSize = this._originalAllVertexColors[originalIndex].labelSize;
                                 vertex.shape = this._originalAllVertexColors[originalIndex].shape || 'circle';
                             }
@@ -6209,11 +6261,12 @@ export class GraphCreator {
                     this.handleVertexDeletionInEditMode();
                     return;
                 }
-                // Apply label/size/color/labelSize/shape edits to current vertex
+                // Apply label/size/color/labelSize/borderThickness/shape edits to current vertex
                 this.editModeElement.label = this._editPreview.label;
                 this.editModeElement.size = this._editPreview.size;
                 this.editModeElement.color = this._editPreview.color;
                 this.editModeElement.borderColor = this._editPreview.borderColor;
+                this.editModeElement.borderThickness = this._editPreview.borderThickness;
                 this.editModeElement.labelSize = this._editPreview.labelSize;
                 this.editModeElement.shape = this._editPreview.shape || 'circle';
                 
@@ -6226,6 +6279,7 @@ export class GraphCreator {
                             v.labelSize = this._editPreview.labelSize;
                             v.color = this._editPreview.color;
                             v.borderColor = this._editPreview.borderColor;
+                            v.borderThickness = this._editPreview.borderThickness;
                             v.shape = document.getElementById('editVertexShape')?.value || 'circle';
                         }
                     });
