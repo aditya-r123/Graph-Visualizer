@@ -1,75 +1,47 @@
 <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <!-- Modern background with gradient -->
   <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#312e81;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#3730a3;stop-opacity:1" />
-    </linearGradient>
-    
-    <linearGradient id="nodeGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
     </linearGradient>
     
-    <linearGradient id="nodeGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
     </linearGradient>
     
-    <linearGradient id="nodeGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
     </linearGradient>
     
-    <linearGradient id="nodeGradient4" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
-    </linearGradient>
-    
-    <linearGradient id="nodeGradient5" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
-    </linearGradient>
-    
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="0.5" result="coloredBlur"/>
       <feMerge> 
         <feMergeNode in="coloredBlur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-    
-    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
-    </filter>
   </defs>
   
-  <!-- Main background circle with modern styling -->
-  <circle cx="16" cy="16" r="15" fill="url(#bgGradient)" stroke="url(#nodeGradient1)" stroke-width="1.5" filter="url(#shadow)"/>
+  <!-- Modern square nodes -->
+  <rect x="4" y="4" width="6" height="6" rx="1" fill="url(#primaryGradient)" filter="url(#glow)"/>
+  <rect x="22" y="4" width="6" height="6" rx="1" fill="url(#secondaryGradient)" filter="url(#glow)"/>
+  <rect x="4" y="22" width="6" height="6" rx="1" fill="url(#accentGradient)" filter="url(#glow)"/>
+  <rect x="22" y="22" width="6" height="6" rx="1" fill="url(#primaryGradient)" filter="url(#glow)"/>
+  <rect x="13" y="13" width="6" height="6" rx="1" fill="url(#secondaryGradient)" filter="url(#glow)"/>
   
-  <!-- Subtle inner glow -->
-  <circle cx="16" cy="16" r="13" fill="none" stroke="url(#nodeGradient1)" stroke-width="0.5" opacity="0.3"/>
+  <!-- Clean connecting lines -->
+  <line x1="10" y1="7" x2="22" y2="7" stroke="url(#primaryGradient)" stroke-width="1.5" opacity="0.8"/>
+  <line x1="7" y1="10" x2="7" y2="22" stroke="url(#secondaryGradient)" stroke-width="1.5" opacity="0.8"/>
+  <line x1="25" y1="10" x2="25" y2="22" stroke="url(#accentGradient)" stroke-width="1.5" opacity="0.8"/>
+  <line x1="10" y1="25" x2="22" y2="25" stroke="url(#primaryGradient)" stroke-width="1.5" opacity="0.8"/>
   
-  <!-- Modern graph nodes with gradients and glow -->
-  <circle cx="10" cy="10" r="2.5" fill="url(#nodeGradient1)" filter="url(#glow)"/>
-  <circle cx="22" cy="10" r="2.5" fill="url(#nodeGradient2)" filter="url(#glow)"/>
-  <circle cx="10" cy="22" r="2.5" fill="url(#nodeGradient3)" filter="url(#glow)"/>
-  <circle cx="22" cy="22" r="2.5" fill="url(#nodeGradient4)" filter="url(#glow)"/>
-  <circle cx="16" cy="16" r="3" fill="url(#nodeGradient5)" filter="url(#glow)"/>
-  
-  <!-- Modern graph edges with gradients and glow -->
-  <line x1="10" y1="10" x2="22" y2="10" stroke="url(#nodeGradient1)" stroke-width="2" opacity="0.9" filter="url(#glow)"/>
-  <line x1="10" y1="10" x2="10" y2="22" stroke="url(#nodeGradient2)" stroke-width="2" opacity="0.9" filter="url(#glow)"/>
-  <line x1="22" y1="10" x2="22" y2="22" stroke="url(#nodeGradient3)" stroke-width="2" opacity="0.9" filter="url(#glow)"/>
-  <line x1="10" y1="22" x2="22" y2="22" stroke="url(#nodeGradient4)" stroke-width="2" opacity="0.9" filter="url(#glow)"/>
-  
-  <!-- Central connections with enhanced styling -->
-  <line x1="10" y1="10" x2="16" y2="16" stroke="url(#nodeGradient5)" stroke-width="2.5" opacity="1" filter="url(#glow)"/>
-  <line x1="22" y1="10" x2="16" y2="16" stroke="url(#nodeGradient5)" stroke-width="2.5" opacity="1" filter="url(#glow)"/>
-  <line x1="10" y1="22" x2="16" y2="16" stroke="url(#nodeGradient5)" stroke-width="2.5" opacity="1" filter="url(#glow)"/>
-  <line x1="22" y1="22" x2="16" y2="16" stroke="url(#nodeGradient5)" stroke-width="2.5" opacity="1" filter="url(#glow)"/>
-  
-  <!-- Subtle outer ring for modern touch -->
-  <circle cx="16" cy="16" r="14.5" fill="none" stroke="url(#nodeGradient1)" stroke-width="0.5" opacity="0.2"/>
+  <!-- Central connections -->
+  <line x1="10" y1="7" x2="16" y2="13" stroke="url(#secondaryGradient)" stroke-width="2" opacity="0.9"/>
+  <line x1="22" y1="7" x2="16" y2="13" stroke="url(#secondaryGradient)" stroke-width="2" opacity="0.9"/>
+  <line x1="7" y1="10" x2="13" y2="16" stroke="url(#secondaryGradient)" stroke-width="2" opacity="0.9"/>
+  <line x1="25" y1="10" x2="19" y2="16" stroke="url(#secondaryGradient)" stroke-width="2" opacity="0.9"/>
+  <line x1="10" y1="25" x2="16" y2="19" stroke="url(#secondaryGradient)" stroke-width="2" opacity="0.9"/>
+  <line x1="22" y1="25" x2="16" y2="19" stroke="url(#secondaryGradient)" stroke-width="2" opacity="0.9"/>
 </svg> 
