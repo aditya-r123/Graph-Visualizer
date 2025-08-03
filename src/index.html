@@ -142,19 +142,15 @@
                         </div>
                     </div>
                     
-                    <!-- Delete Mode Controls -->
-                    <div class="button-group" id="deleteNodesControls">
-                        <button id="deleteNodesBtn" class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                            Delete Mode
-                        </button>
-                    </div>
-                    
-                    <!-- Edit Mode Button -->
-                    <div class="button-group">
-                        <button id="editModeBtn" class="btn btn-primary">
+                    <!-- Edit Mode and Delete Mode Controls -->
+                    <div class="button-group d-flex gap-2">
+                        <button id="editModeBtn" class="btn btn-primary flex-fill">
                             <i class="fas fa-edit"></i>
                             Edit Mode
+                        </button>
+                        <button id="deleteNodesBtn" class="btn btn-danger flex-fill">
+                            <i class="fas fa-trash"></i>
+                            Delete Mode
                         </button>
                     </div>
                     </div>
@@ -167,7 +163,7 @@
                         </div>
                         <h3>Edit Vertex</h3>
                         <div class="edit-mode-toggle">
-                            <button type="button" id="toggleEditMode" class="btn btn-outline-primary btn-sm">
+                            <button type="button" id="toggleEditMode" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-exchange-alt"></i> Switch to Edge Editing
                             </button>
                         </div>
@@ -275,7 +271,7 @@
                         </div>
                         <h3>Edge Editing</h3>
                         <div class="edit-mode-toggle">
-                            <button type="button" id="toggleEditModeEdge" class="btn btn-outline-primary btn-sm">
+                            <button type="button" id="toggleEditModeEdge" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-exchange-alt"></i> Switch to Vertex Editing
                             </button>
                         </div>
@@ -597,10 +593,10 @@
                             </button>
                         </div>
                         <div class="d-flex gap-2 mb-2">
-                            <button id="takeScreenshot" class="btn btn-info flex-fill">
-                                <i class="fas fa-camera"></i>
-                                Screenshot
-                            </button>
+                                                    <button id="takeScreenshot" class="btn btn-info flex-fill">
+                            <i class="fas fa-camera"></i>
+                            Download
+                        </button>
                             <button id="shareGraph" class="btn btn-warning flex-fill">
                                 <i class="fas fa-share-alt"></i>
                                 Share
