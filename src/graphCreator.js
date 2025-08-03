@@ -2022,6 +2022,22 @@ export class GraphCreator {
         // Check for vertex clicks first - vertices take priority over edges
         const clickedVertex = this.getVertexAt(pos.x, pos.y);
         if (clickedVertex) {
+            // In delete mode, handle vertex selection for deletion
+            if (this.isDeleteMode) {
+                if (this.verticesToDelete.has(clickedVertex.id)) {
+                    // Unselect vertex for deletion
+                    this.verticesToDelete.delete(clickedVertex.id);
+                    this.updateStatus(`Unselected vertex "${clickedVertex.label}" from deletion`);
+                } else {
+                    // Select vertex for deletion
+                    this.verticesToDelete.add(clickedVertex.id);
+                    this.updateStatus(`Marked vertex "${clickedVertex.label}" for deletion`);
+                }
+                this.updateDeleteModeInfo();
+                this.draw();
+                return;
+            }
+            
             // In edit mode, allow switching to edit different vertices
             if (this.editModeElement && this.editModeType === 'vertex') {
                 this.enterEditMode(clickedVertex);
@@ -7045,6 +7061,11 @@ export class GraphCreator {
 
             // --- Delete Mode ---
     enterDeleteMode() {
+        // Exit edit mode if active
+        if (this.editModeElement) {
+            this.exitEditMode();
+        }
+        
         // Clear any edge creation selection (purple highlight) when entering delete mode
         if (this.selectedVertices.length > 0) {
             this.selectedVertices = [];
@@ -7058,7 +7079,6 @@ export class GraphCreator {
         this.originalVertices = this.vertices.map(v => ({ ...v }));
         this.originalEdges = this.edges.map(e => ({ ...e }));
         document.body.classList.add('delete-mode-active');
-        document.getElementById('deleteNodesControls').style.display = 'none';
         
         // Hide theme toggle and mouse position display when in delete mode
         const themeToggle = document.getElementById('themeToggle');
@@ -7069,6 +7089,7 @@ export class GraphCreator {
         // Show delete mode panel
         this.showDeleteModePanel();
         this.draw();
+        this.updateStatus('Delete mode activated - click vertices to select for deletion');
     }
 
     saveDeleteChanges() {
@@ -7079,7 +7100,6 @@ export class GraphCreator {
         this.isDeleteMode = false;
         this.verticesToDelete = new Set();
         document.body.classList.remove('delete-mode-active');
-        document.getElementById('deleteNodesControls').style.display = 'flex';
         
         // Show theme toggle and mouse position display when exiting delete mode
         const themeToggle = document.getElementById('themeToggle');
@@ -7120,7 +7140,6 @@ export class GraphCreator {
         this.isDeleteMode = false;
         this.verticesToDelete = new Set();
         document.body.classList.remove('delete-mode-active');
-        document.getElementById('deleteNodesControls').style.display = 'flex';
         
         // Show theme toggle and mouse position display when exiting delete mode
         const themeToggle = document.getElementById('themeToggle');
@@ -7276,23 +7295,6 @@ export class GraphCreator {
                 this.draw();
                 return true;
             }
-        }
-        
-        // Check if a vertex was clicked (for delete mode)
-        const clickedVertex = this.getVertexAt(pos.x, pos.y);
-        if (clickedVertex) {
-            if (this.verticesToDelete.has(clickedVertex.id)) {
-                // Unselect vertex for deletion
-                this.verticesToDelete.delete(clickedVertex.id);
-                this.updateStatus(`Unselected vertex "${clickedVertex.label}" from deletion`);
-            } else {
-                // Select vertex for deletion
-                this.verticesToDelete.add(clickedVertex.id);
-                this.updateStatus(`Marked vertex "${clickedVertex.label}" for deletion`);
-            }
-            this.updateDeleteModeInfo();
-            this.draw();
-            return true;
         }
         
         return false;
