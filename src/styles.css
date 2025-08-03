@@ -2494,8 +2494,8 @@ body {
 }
 
 #contactModal textarea.form-control {
-    resize: vertical;
-    min-height: 100px;
+    resize: none;
+    height: 100px;
 }
 
 /* Responsive Status Bar */

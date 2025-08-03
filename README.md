@@ -54,11 +54,4 @@ Graph Creator Pro bridges this gap by offering:
 - **Researchers** visualizing data relationships
 - **Anyone** who needs to quickly sketch and share graph concepts
 
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Aditya Rao**
-- LinkedIn: [Aditya Rao](https://www.linkedin.com/in/-aditya-rao/) 
+ 
