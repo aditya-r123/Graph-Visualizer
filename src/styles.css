@@ -48,9 +48,9 @@ html, body {
     
     --transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 /* Light Theme */
 [data-theme="light"] {
+    /* Accent colors are kept the same as the dark theme */
     --primary-color: #6366f1;
     --primary-dark: #4f46e5;
     --secondary-color: #8b5cf6;
@@ -60,18 +60,22 @@ html, body {
     --warning-color: #f59e0b;
     --info-color: #3b82f6;
     
-    --bg-primary: #87ceeb;
-    --bg-secondary: #b0e0e6;
-    --bg-tertiary: #add8e6;
-    --bg-card: rgba(176, 224, 230, 0.9);
+    /* Modern, neutral background palette */
+    --bg-primary: #f8fafc;   /* A very light, clean off-white (was skyblue) */
+    --bg-secondary: #f1f5f9; /* A slightly darker gray for sidebars/panels (was powderblue) */
+    --bg-tertiary: #e2e8f0;  /* Used for hover states on list items, etc. */
+    --bg-card: #ffffff;      /* Pure white for cards to make them pop */
     
-    --text-primary: #1e293b;
-    --text-secondary: #475569;
-    --text-muted: #64748b;
+    /* High-contrast text colors (inverted from dark theme bg) */
+    --text-primary: #0f172a;   /* A strong, dark slate for headings and primary text */
+    --text-secondary: #334155; /* A softer slate for body copy */
+    --text-muted: #64748b;     /* Kept the same for consistency */
     
-    --border-color: #87cefa;
-    --border-light: #b0e0e6;
+    /* Subtle borders for a clean look */
+    --border-color: #cbd5e1;
+    --border-light: #e2e8f0;
     
+    /* Shadows can remain the same as they are defined by their opacity */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -103,8 +107,7 @@ body {
 }
 
 /* Fade out sidebars when instructions are active */
-.app-container.instructions-active .sidebar,
-.app-container.instructions-active .right-sidebar {
+.app-container.instructions-active .sidebar {
     opacity: 0.3;
     pointer-events: none;
     transition: opacity 0.3s ease;
@@ -122,6 +125,8 @@ body {
     margin-left: 0;
     padding-left: 0;
 }
+
+
 
 .sidebar::-webkit-scrollbar {
     width: 6px;
