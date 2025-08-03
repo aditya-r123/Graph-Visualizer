@@ -1,3 +1,5 @@
+import { EMAILJS_CONFIG, isProduction } from './config.js';
+
 export class GraphCreator {
     constructor() {
         // Initialize canvas
@@ -158,23 +160,19 @@ export class GraphCreator {
     
     async initializeEmailJS() {
         try {
-            // Fetch EmailJS configuration from server
-            const response = await fetch('/api/emailjs-config');
-            if (response.ok) {
-                const config = await response.json();
+            if (isProduction()) {
+                // For production, use configuration from config.js
+                window.EMAILJS_PUBLIC_KEY = EMAILJS_CONFIG.PUBLIC_KEY;
+                window.EMAILJS_SERVICE_ID = EMAILJS_CONFIG.SERVICE_ID;
+                window.EMAILJS_TEMPLATE_ID = EMAILJS_CONFIG.TEMPLATE_ID;
                 
-                // Store configuration globally for use in handleContactSubmit
-                window.EMAILJS_PUBLIC_KEY = config.publicKey;
-                window.EMAILJS_SERVICE_ID = config.serviceId;
-                window.EMAILJS_TEMPLATE_ID = config.templateId;
-                
-                console.log('EmailJS configuration loaded:', config);
+                console.log('EmailJS configuration loaded for production environment');
                 
                 // Initialize EmailJS if available
                 if (typeof emailjs !== 'undefined') {
                     try {
-                        emailjs.init(config.publicKey);
-                        console.log('EmailJS initialized with public key');
+                        emailjs.init(window.EMAILJS_PUBLIC_KEY);
+                        console.log('EmailJS initialized with public key for production');
                     } catch (initError) {
                         console.warn('EmailJS initialization failed:', initError);
                         console.log('Continuing without explicit initialization');
@@ -183,7 +181,33 @@ export class GraphCreator {
                     console.warn('EmailJS not loaded');
                 }
             } else {
-                console.warn('Failed to load EmailJS configuration from server');
+                // For development, fetch EmailJS configuration from server
+                const response = await fetch('/api/emailjs-config');
+                if (response.ok) {
+                    const config = await response.json();
+                    
+                    // Store configuration globally for use in handleContactSubmit
+                    window.EMAILJS_PUBLIC_KEY = config.publicKey;
+                    window.EMAILJS_SERVICE_ID = config.serviceId;
+                    window.EMAILJS_TEMPLATE_ID = config.templateId;
+                    
+                    console.log('EmailJS configuration loaded from server:', config);
+                    
+                    // Initialize EmailJS if available
+                    if (typeof emailjs !== 'undefined') {
+                        try {
+                            emailjs.init(config.publicKey);
+                            console.log('EmailJS initialized with public key');
+                        } catch (initError) {
+                            console.warn('EmailJS initialization failed:', initError);
+                            console.log('Continuing without explicit initialization');
+                        }
+                    } else {
+                        console.warn('EmailJS not loaded');
+                    }
+                } else {
+                    console.warn('Failed to load EmailJS configuration from server');
+                }
             }
         } catch (error) {
             console.warn('Error loading EmailJS configuration:', error);
@@ -7133,20 +7157,9 @@ export class GraphCreator {
                 console.log('Service ID:', serviceId);
                 console.log('Template ID:', templateId);
                 
-                try {
-                    console.log('Attempting to send email...');
-                    const result = await emailjs.send(serviceId, templateId, templateParams);
-                    console.log('Email sent successfully:', result);
-                } catch (sendError) {
-                    console.error('EmailJS send error details:', {
-                        error: sendError,
-                        message: sendError.message,
-                        status: sendError.status,
-                        text: sendError.text,
-                        stack: sendError.stack
-                    });
-                    throw sendError;
-                }
+                console.log('Attempting to send email...');
+                const result = await emailjs.send(serviceId, templateId, templateParams);
+                console.log('Email sent successfully:', result);
                 
                 // Show success message
                 this.updateStatus('Thank you for your message! I\'ll get back to you soon.');
