@@ -5809,6 +5809,7 @@ export class GraphCreator {
         if (this._applyToAllBorderColorListener) borderColorInput?.removeEventListener('input', this._applyToAllBorderColorListener);
         if (this._applyToAllColorTextListener) document.getElementById('editVertexColorText')?.removeEventListener('input', this._applyToAllColorTextListener);
         if (this._applyToAllBorderColorTextListener) document.getElementById('editVertexBorderColorText')?.removeEventListener('input', this._applyToAllBorderColorTextListener);
+        if (this._applyToAllShapeListener) document.getElementById('editVertexShape')?.removeEventListener('change', this._applyToAllShapeListener);
         if (this._applyToAllToggleListener) applyToAllToggle.removeEventListener('change', this._applyToAllToggleListener);
         
         // Listener for size slider
@@ -5884,9 +5885,9 @@ export class GraphCreator {
         }
         
         // Listener for shape selection
-        const shapeInputs = document.querySelectorAll('input[name="editVertexShape"]');
-        shapeInputs.forEach(input => {
-            input.addEventListener('change', (e) => {
+        const shapeSelect = document.getElementById('editVertexShape');
+        if (shapeSelect) {
+            this._applyToAllShapeListener = (e) => {
                 const newShape = e.target.value;
                 if (this.editModeElement && this._editPreview) {
                     this._editPreview.shape = newShape;
@@ -5898,8 +5899,9 @@ export class GraphCreator {
                     }
                     this.draw();
                 }
-            });
-        });
+            };
+            shapeSelect.addEventListener('change', this._applyToAllShapeListener);
+        }
         
         // Listener for color text input
         const colorTextInput = document.getElementById('editVertexColorText');
