@@ -595,8 +595,8 @@ export class GraphCreator {
         if (loadGraphBtn) {
             loadGraphBtn.addEventListener('click', () => {
                 console.log('Load Graph button clicked');
-            this.showLoadConfirmation();
-        });
+                this.showLoadDialog();
+            });
         } else {
             console.error('Load Graph button not found!');
         }
@@ -619,6 +619,17 @@ export class GraphCreator {
             });
         } else {
             console.error('Share Graph button not found!');
+        }
+        
+        // JSON Download button
+        const downloadJSONBtn = document.getElementById('downloadJSON');
+        if (downloadJSONBtn) {
+            downloadJSONBtn.addEventListener('click', () => {
+                console.log('JSON Download button clicked');
+                this.downloadJSON();
+            });
+        } else {
+            console.error('JSON Download button not found!');
         }
         
         // Delete all saved graphs button
@@ -1086,24 +1097,58 @@ export class GraphCreator {
     }
     
     loadGraph() {
-        document.getElementById('loadFileInput').click();
+        this.showLoadDialog();
     }
     
     handleFileLoad(event) {
+        console.log('handleFileLoad called', event);
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            console.log('No file selected');
+            return;
+        }
+        
+        console.log('File selected:', file.name, file.size, 'bytes');
+        
+        // Validate file type
+        if (!file.name.toLowerCase().endsWith('.json')) {
+            console.log('Invalid file type:', file.name);
+            this.updateStatus('Please select a JSON file');
+            event.target.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = (e) => {
+            console.log('File read successfully, content length:', e.target.result.length);
             try {
                 const graphData = JSON.parse(e.target.result);
+                console.log('JSON parsed successfully:', graphData);
+                
+                // Validate that the JSON has the expected structure
+                if (!graphData.vertices || !graphData.edges) {
+                    throw new Error('Invalid graph file format: missing vertices or edges');
+                }
+                
+                console.log('Graph data validated, importing...');
+                // Import the graph
                 this.importGraph(graphData);
                 this.currentGraphId = null; // New graph, not linked to savedGraphs
-                this.updateStatus(`Loaded graph from file: ${file.name}`);
+                
+                this.updateStatus(`Successfully loaded graph from: ${file.name}`);
+                console.log('Graph imported successfully');
             } catch (error) {
                 console.error('Failed to parse graph file:', error);
-                this.updateStatus('Invalid graph file format');
+                this.updateStatus('Invalid JSON file format. Please select a valid graph file.');
             }
         };
+        
+        reader.onerror = (error) => {
+            console.error('File read error:', error);
+            this.updateStatus('Failed to read file');
+        };
+        
+        console.log('Starting to read file...');
         reader.readAsText(file);
         // Reset file input
         event.target.value = '';
@@ -1262,6 +1307,40 @@ export class GraphCreator {
             console.error('Error sharing graph:', error);
             console.error('Error stack:', error.stack);
             this.updateStatus('Error sharing graph');
+        }
+    }
+    
+    downloadJSON() {
+        try {
+            // Get the current graph data
+            const graphData = this.exportGraph();
+            
+            // Create a timestamp for the filename
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const filename = `graph-${timestamp}.json`;
+            
+            // Create the JSON blob
+            const jsonString = JSON.stringify(graphData, null, 2); // Pretty print with 2 spaces
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up
+            URL.revokeObjectURL(url);
+            
+            this.updateStatus('Graph exported as JSON successfully!');
+        } catch (error) {
+            console.error('Failed to download JSON:', error);
+            this.updateStatus('Failed to export graph as JSON');
         }
     }
 
@@ -1847,6 +1926,7 @@ export class GraphCreator {
                 color: v.color,
                 borderColor: v.borderColor,
                 borderThickness: v.borderThickness || 2,
+                fontSize: v.fontSize,
                 labelSize: v.labelSize,
                 fontFamily: v.fontFamily,
                 fontColor: v.fontColor,
@@ -1858,13 +1938,15 @@ export class GraphCreator {
                 weight: e.weight,
                 type: e.type,
                 direction: e.direction,
+                edgeIndex: e.edgeIndex,
+                style: e.style,
                 controlPoint: e.controlPoint,
                 color: e.color,
                 width: e.width,
                 fontSize: e.fontSize,
                 fontFamily: e.fontFamily,
                 fontColor: e.fontColor,
-                lineStyle: e.lineStyle || 'solid' // Include lineStyle property
+                lineStyle: e.lineStyle || 'solid'
             })),
             nextVertexId: this.nextVertexId,
             vertexSize: this.vertexSize,
@@ -1888,6 +1970,8 @@ export class GraphCreator {
     
     importGraph(graphData) {
         console.log('importGraph called', graphData);
+        console.log('Vertices count:', graphData.vertices?.length);
+        console.log('Edges count:', graphData.edges?.length);
         this.vertices = [];
         this.edges = [];
         this.selectedVertices = [];
@@ -1904,6 +1988,7 @@ export class GraphCreator {
             color: v.color,
             borderColor: v.borderColor,
             borderThickness: v.borderThickness || 2,
+            fontSize: v.fontSize,
             labelSize: v.labelSize,
             fontFamily: v.fontFamily,
             fontColor: v.fontColor,
@@ -1918,13 +2003,15 @@ export class GraphCreator {
                 weight: e.weight,
                 type: e.type,
                 direction: e.direction || 'undirected',
+                edgeIndex: e.edgeIndex,
+                style: e.style,
                 controlPoint: e.controlPoint,
                 color: e.color,
                 width: e.width,
                 fontSize: e.fontSize,
                 fontFamily: e.fontFamily,
                 fontColor: e.fontColor,
-                lineStyle: e.lineStyle || 'solid' // Preserve actual line style or default to solid
+                lineStyle: e.lineStyle || 'solid'
             };
         });
         this.nextVertexId = graphData.nextVertexId || this.vertices.length + 1;
