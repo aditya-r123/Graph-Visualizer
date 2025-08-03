@@ -533,7 +533,47 @@
         <!-- Right Sidebar -->
         <aside class="right-sidebar">
             <div class="right-sidebar-content">
-                <div class="control-section" id="saveExportSection">
+                <div class="control-section" id="canvasManagementSection">
+                    <div class="panel-header-container">
+                        <div class="drag-handle-area">
+                            <span class="drag-handle-icon">⋮⋮</span>
+                        </div>
+                        <h3 class="expandable-header" data-target="canvasManagementContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                            Canvas Management
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </h3>
+                    </div>
+                    <div class="expandable-content show" id="canvasManagementContent">
+                    <div class="saved-graphs">
+                        <h4><i class="fas fa-history"></i> Recent Canvases</h4>
+                        <div id="savedGraphsList" class="saved-graphs-list">
+                            <!-- Saved graphs will be populated here -->
+                        </div>
+                                            <div class="d-flex gap-2 mt-3">
+                        <button id="deleteAllGraphs" class="btn btn-outline-danger flex-fill">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear Storage
+                        </button>
+                        <button id="clearGraph" class="btn btn-warning flex-fill">
+                            <i class="fas fa-trash"></i>
+                            Reset Canvas
+                        </button>
+                    </div>
+                    <!-- Shared confirmation buttons -->
+                    <div id="sharedConfirmation" class="d-flex gap-2 mt-3" style="display: none;">
+                        <button id="confirmAction" class="btn btn-success flex-fill">
+                            <i class="fas fa-check"></i>
+                            Confirm
+                        </button>
+                        <button id="cancelAction" class="btn btn-secondary flex-fill">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                    </div>
+                </div>
+                <div class="control-section" id="saveExportSection" style="margin-top: 1rem;">
                     <div class="panel-header-container">
                         <div class="drag-handle-area">
                             <span class="drag-handle-icon">⋮⋮</span>
@@ -604,47 +644,7 @@
                         </div>
                     </div>
                     </div>
-                </div>
-                <div class="control-section" id="canvasManagementSection" style="margin-top: 1rem;">
-                    <div class="panel-header-container">
-                        <div class="drag-handle-area">
-                            <span class="drag-handle-icon">⋮⋮</span>
-                        </div>
-                        <h3 class="expandable-header" data-target="canvasManagementContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                            Canvas Management
-                            <i class="fas fa-chevron-down expand-icon"></i>
-                        </h3>
-                    </div>
-                    <div class="expandable-content show" id="canvasManagementContent">
-                    <div class="saved-graphs">
-                        <h4><i class="fas fa-history"></i> Recent Canvases</h4>
-                        <div id="savedGraphsList" class="saved-graphs-list">
-                            <!-- Saved graphs will be populated here -->
-                        </div>
-                                            <div class="d-flex gap-2 mt-3">
-                        <button id="deleteAllGraphs" class="btn btn-outline-danger flex-fill">
-                            <i class="fas fa-trash-alt"></i>
-                            Clear Storage
-                        </button>
-                        <button id="clearGraph" class="btn btn-warning flex-fill">
-                            <i class="fas fa-trash"></i>
-                            Reset Canvas
-                        </button>
-                    </div>
-                    <!-- Shared confirmation buttons -->
-                    <div id="sharedConfirmation" class="d-flex gap-2 mt-3" style="display: none;">
-                        <button id="confirmAction" class="btn btn-success flex-fill">
-                            <i class="fas fa-check"></i>
-                            Confirm
-                        </button>
-                        <button id="cancelAction" class="btn btn-secondary flex-fill">
-                            <i class="fas fa-times"></i>
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-                    </div>
-                </div>
+
                 <!-- Clock and Contact Panel -->
                 <div class="control-section" id="utilitiesSection" style="margin-top: 1rem;">
                     <div class="panel-header-container">
