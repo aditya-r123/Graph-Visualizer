@@ -1310,13 +1310,13 @@ export class GraphCreator {
                     const blob = new Blob([jsonString], { type: 'application/json' });
                     const file = new File([blob], fileName, { type: 'application/json' });
                     
-                    // Check if Web Share API is supported
-                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({
-                            title: 'Graph Visualizer Pro - My Graph Data',
-                            text: 'Hey, check out this graph data I made with Graph Visualizer Pro',
-                            files: [file]
-                        }).then(() => {
+                                            // Check if Web Share API is supported
+                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({
+                                title: 'Graph Visualizer Pro - My Graph Data',
+                                text: 'Hey, check out this graph data I made with Graph Visualizer Pro! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
+                                files: [file]
+                            }).then(() => {
                             console.log('JSON share successful');
                             this.updateStatus('Graph data shared successfully!');
                         }).catch((error) => {
@@ -1367,7 +1367,7 @@ export class GraphCreator {
                         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                             navigator.share({
                                 title: 'Graph Visualizer Pro - My Graph',
-                                text: 'Hey, check out this cool graph I made with Graph Visualizer Pro',
+                                text: 'Hey, check out this cool graph I made with Graph Visualizer Pro! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
                                 files: [file]
                             }).then(() => {
                                 console.log('Share successful');
