@@ -5870,20 +5870,22 @@ export class GraphCreator {
         document.getElementById('applyToAllToggle').addEventListener('change', (e) => {
             const checked = e.target.checked;
             const newSize = parseInt(document.getElementById('editVertexSize').value);
+            const newLabelSize = parseInt(document.getElementById('editVertexLabelSize')?.value || this.vertexLabelSize);
             const newColor = document.getElementById('editVertexColor')?.value || this.vertexColor;
             const newBorderColor = document.getElementById('editVertexBorderColor')?.value || this.vertexBorderColor;
             
             if (checked) {
-                // Apply current size and colors to all other vertices
+                // Apply current size, colors, and label size to all other vertices
                 this.vertices.forEach(vertex => {
                     if (vertex !== this.editModeElement) {
                         vertex.size = newSize;
+                        vertex.labelSize = newLabelSize;
                         vertex.color = newColor;
                         vertex.borderColor = newBorderColor;
                     }
                 });
             } else {
-                // Revert all other vertices to their original sizes and colors
+                // Revert all other vertices to their original sizes, colors, and label sizes
                 this.vertices.forEach(vertex => {
                     if (vertex !== this.editModeElement) {
                         const originalIndex = this.vertices.findIndex(v => v === vertex);
@@ -5894,6 +5896,7 @@ export class GraphCreator {
                             if (this._originalAllVertexColors && this._originalAllVertexColors[originalIndex]) {
                                 vertex.color = this._originalAllVertexColors[originalIndex].color;
                                 vertex.borderColor = this._originalAllVertexColors[originalIndex].borderColor;
+                                vertex.labelSize = this._originalAllVertexColors[originalIndex].labelSize;
                             }
                         }
                     }
