@@ -2605,6 +2605,7 @@ export class GraphCreator {
             borderColor: vertex.borderColor || this.vertexBorderColor,
             borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
+            shape: vertex.shape || 'circle'  // Store the actual shape or default to circle
         };
         // Temporary edit state for preview
         this._editPreview = {
@@ -2614,6 +2615,7 @@ export class GraphCreator {
             borderColor: vertex.borderColor || this.vertexBorderColor,
             borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
+            shape: vertex.shape || 'circle',  // Store the actual shape or default to circle
             pendingDelete: false
         };
         // Store original sizes, colors, and label sizes for all vertices (for cancel/undo)
@@ -2623,7 +2625,7 @@ export class GraphCreator {
             borderColor: v.borderColor || this.vertexBorderColor,
             borderThickness: v.borderThickness || 2,
             labelSize: v.labelSize || this.vertexLabelSize,
-            shape: v.shape || 'circle'
+            shape: v.shape || 'circle'  // Store the actual shape or default to circle
         }));
         this._originalAllVertexLabelSizes = this.vertices.map(v => v.labelSize || this.vertexLabelSize);
         this.startShakeAnimation();
@@ -5344,7 +5346,8 @@ export class GraphCreator {
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
             borderThickness: vertex.borderThickness || 2,
-            labelSize: vertex.labelSize || this.vertexLabelSize
+            labelSize: vertex.labelSize || this.vertexLabelSize,
+            shape: vertex.shape || 'circle'
         };
         // Temporary edit state for preview
         this._editPreview = {
@@ -5354,6 +5357,7 @@ export class GraphCreator {
             borderColor: vertex.borderColor || this.vertexBorderColor,
             borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
+            shape: vertex.shape || 'circle',
             pendingDelete: false
         };
         // Store original sizes for all vertices (for cancel/undo)
@@ -5423,6 +5427,7 @@ export class GraphCreator {
             this.editModeElement.borderColor = this._editPreview.borderColor;
             this.editModeElement.borderThickness = this._editPreview.borderThickness;
             this.editModeElement.labelSize = this._editPreview.labelSize;
+            this.editModeElement.shape = this._editPreview.shape;
             
             // Track this modification in pending changes
             this._pendingChanges.modifiedVertices.set(this.editModeElement.id, {
@@ -5626,13 +5631,14 @@ export class GraphCreator {
             });
         }
         
-        // Restore original colors and label sizes for all vertices
+        // Restore original colors, label sizes, and shapes for all vertices
         if (this._originalAllVertexColors) {
             this.vertices.forEach((v, idx) => {
                 if (this._originalAllVertexColors[idx] !== undefined) {
                     v.color = this._originalAllVertexColors[idx].color;
                     v.borderColor = this._originalAllVertexColors[idx].borderColor;
                     v.labelSize = this._originalAllVertexColors[idx].labelSize;
+                    v.shape = this._originalAllVertexColors[idx].shape;
                 }
             });
         }
@@ -6337,6 +6343,11 @@ export class GraphCreator {
             if (this.editModeElement && this._editPreview) {
                 // Revert all pending changes
                 this.revertPendingChanges();
+                
+                // Also restore the current vertex's original shape
+                if (this._editOriginal && this.editModeElement) {
+                    this.editModeElement.shape = this._editOriginal.shape;
+                }
                 
                 const labelInput = document.getElementById('editVertexLabel');
                 if (labelInput) { labelInput.style.borderColor = ''; labelInput.style.boxShadow = ''; }
