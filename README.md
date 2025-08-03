@@ -1,4 +1,4 @@
-# Graph Creator Pro
+# Graph Visualizer
 
 A powerful, interactive web application for creating, visualizing, and analyzing graphs with an intuitive drag-and-drop interface.
 
@@ -12,7 +12,7 @@ A powerful, interactive web application for creating, visualizing, and analyzing
 - **Screenshots & Sharing** - Capture and share your graphs in multiple formats
 - **Modern UI** - Dark/light theme with responsive design and intuitive controls
 
-## 🌟 Why Graph Creator Pro Fills a Critical Gap
+## 🌟 Why Graph Visualizer Fills a Critical Gap
 
 ### **The Problem with Existing Tools**
 Most graph visualization tools fall into two categories:
@@ -20,7 +20,7 @@ Most graph visualization tools fall into two categories:
 - **Basic educational tools** that feel outdated and lack modern UX
 
 ### **Our Solution**
-Graph Creator Pro bridges this gap by offering:
+Graph Visualizer bridges this gap by offering:
 
 **🎯 Perfect for Students & Educators**
 - No installation required - works instantly in any browser
