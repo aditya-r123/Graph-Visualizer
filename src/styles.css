@@ -3462,23 +3462,23 @@ body {
 }
 
 .btn-magenta {
-    background: linear-gradient(135deg, #f27eec 0%, #e85de0 100%);
-    border: 1px solid #d94dd4;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    border: 1px solid #6d28d9;
     color: white;
-    box-shadow: 0 2px 4px rgba(242, 126, 236, 0.3);
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
 }
 
 .btn-magenta:hover:not(:disabled) {
-    background: linear-gradient(135deg, #e85de0 0%, #d94dd4 100%);
-    border-color: #c93dc8;
-    box-shadow: 0 4px 8px rgba(242, 126, 236, 0.4);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    border-color: #5b21b6;
+    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
     transform: translateY(-1px);
 }
 
 .btn-magenta:active:not(:disabled) {
-    background: linear-gradient(135deg, #d94dd4 0%, #c93dc8 100%);
+    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(242, 126, 236, 0.3);
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
 }
 
 .root-vertex-display {
