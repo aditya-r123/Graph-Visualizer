@@ -6570,9 +6570,13 @@ export class GraphCreator {
         input.addEventListener('blur', saveName);
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default form submission behavior
                 saveName();
+                input.blur(); // Remove focus from input
             } else if (e.key === 'Escape') {
+                e.preventDefault();
                 cancelEdit();
+                input.blur(); // Remove focus from input
             }
         });
     }
