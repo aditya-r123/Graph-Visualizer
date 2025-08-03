@@ -627,6 +627,8 @@ export class GraphCreator {
             console.error('Cancel Action button not found!');
         }
         
+
+        
         // Delete nodes mode controls
         const deleteNodesBtn = document.getElementById('deleteNodesBtn');
         const editModeBtn = document.getElementById('editModeBtn');
@@ -1483,9 +1485,11 @@ export class GraphCreator {
         const fontColor = vertex.fontColor || this.vertexFontColor;
         const size = vertex.size || this.vertexSize;
         
-        // Draw vertex circle
-        ctx.beginPath();
-        ctx.arc(vertex.x, vertex.y, size, 0, 2 * Math.PI);
+        // Get the shape for this vertex (default to circle)
+        const shape = vertex.shape || 'circle';
+        
+        // Draw vertex shape
+        this.drawVertexShape(ctx, vertex.x, vertex.y, size, shape);
         ctx.fillStyle = fillColor;
         ctx.fill();
         ctx.strokeStyle = borderColor;
@@ -1678,9 +1682,11 @@ export class GraphCreator {
         const fontColor = vertex.fontColor || this.vertexFontColor;
         const size = vertex.size || this.vertexSize;
         
-        // Draw vertex circle
-        ctx.beginPath();
-        ctx.arc(vertex.x, vertex.y, size, 0, 2 * Math.PI);
+        // Get the shape for this vertex (default to circle)
+        const shape = vertex.shape || 'circle';
+        
+        // Draw vertex shape
+        this.drawVertexShape(ctx, vertex.x, vertex.y, size, shape);
         ctx.fillStyle = fillColor;
         ctx.fill();
         ctx.strokeStyle = borderColor;
@@ -1722,7 +1728,8 @@ export class GraphCreator {
                 borderColor: v.borderColor,
                 labelSize: v.labelSize,
                 fontFamily: v.fontFamily,
-                fontColor: v.fontColor
+                fontColor: v.fontColor,
+                shape: v.shape || 'circle'
             })),
             edges: this.edges.map(e => ({
                 from: e.from.id,
@@ -1777,7 +1784,8 @@ export class GraphCreator {
             borderColor: v.borderColor,
             labelSize: v.labelSize,
             fontFamily: v.fontFamily,
-            fontColor: v.fontColor
+            fontColor: v.fontColor,
+            shape: v.shape || 'circle'
         }));
         this.edges = graphData.edges.map(e => {
             const fromVertex = this.vertices.find(v => v.id === e.from);
@@ -2484,7 +2492,9 @@ export class GraphCreator {
         this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
         this._originalAllVertexColors = this.vertices.map(v => ({
             color: v.color || this.vertexColor,
-            borderColor: v.borderColor || this.vertexBorderColor
+            borderColor: v.borderColor || this.vertexBorderColor,
+            labelSize: v.labelSize || this.vertexLabelSize,
+            shape: v.shape || 'circle'
         }));
         this._originalAllVertexLabelSizes = this.vertices.map(v => v.labelSize || this.vertexLabelSize);
         this.startShakeAnimation();
@@ -2793,6 +2803,13 @@ export class GraphCreator {
                 document.getElementById('editVertexFontColor').value = this.editModeElement.fontColor || this.vertexFontColor;
                 document.getElementById('editVertexLabel').value = this.editModeElement.label;
                 
+                // Set the correct shape in dropdown
+                const shape = this.editModeElement.shape || 'circle';
+                const shapeSelect = document.getElementById('editVertexShape');
+                if (shapeSelect) {
+                    shapeSelect.value = shape;
+                }
+                
             } else if (this.editModeType === 'edge') {
                 editModeInfo.innerHTML = `
                     <div class="edit-mode-item">
@@ -3023,7 +3040,8 @@ export class GraphCreator {
             fontSize: this.vertexFontSize,
             labelSize: this.vertexLabelSize,
             fontFamily: this.vertexFontFamily,
-            fontColor: this.vertexFontColor
+            fontColor: this.vertexFontColor,
+            shape: 'circle' // Default shape
         };
         
         this.vertices.push(vertex);
@@ -4507,6 +4525,100 @@ export class GraphCreator {
         this.ctx.setLineDash([]);
     }
     
+    drawVertexShape(ctx, x, y, size, shape) {
+        ctx.beginPath();
+        
+        switch (shape) {
+            case 'circle':
+                ctx.arc(x, y, size, 0, 2 * Math.PI);
+                break;
+            case 'square':
+                ctx.rect(x - size, y - size, size * 2, size * 2);
+                break;
+            case 'triangle':
+                ctx.moveTo(x, y - size);
+                ctx.lineTo(x - size, y + size);
+                ctx.lineTo(x + size, y + size);
+                ctx.closePath();
+                break;
+            case 'heart':
+                // Draw heart shape using bezier curves
+                const heartSize = size * 0.8;
+                ctx.moveTo(x, y + heartSize * 0.3);
+                ctx.bezierCurveTo(x, y, x - heartSize, y, x - heartSize, y + heartSize * 0.7);
+                ctx.bezierCurveTo(x - heartSize, y + heartSize * 1.2, x, y + heartSize * 1.5, x, y + heartSize * 1.5);
+                ctx.bezierCurveTo(x, y + heartSize * 1.5, x + heartSize, y + heartSize * 1.2, x + heartSize, y + heartSize * 0.7);
+                ctx.bezierCurveTo(x + heartSize, y, x, y, x, y + heartSize * 0.3);
+                break;
+            case 'star':
+                // Draw 5-pointed star
+                const starSize = size * 0.8;
+                const outerRadius = starSize;
+                const innerRadius = starSize * 0.4;
+                for (let i = 0; i < 10; i++) {
+                    const angle = (i * Math.PI) / 5;
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const px = x + Math.cos(angle - Math.PI / 2) * radius;
+                    const py = y + Math.sin(angle - Math.PI / 2) * radius;
+                    if (i === 0) {
+                        ctx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+                ctx.closePath();
+                break;
+            case 'pentagon':
+                // Draw regular pentagon
+                const pentagonSize = size * 0.8;
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+                    const px = x + Math.cos(angle) * pentagonSize;
+                    const py = y + Math.sin(angle) * pentagonSize;
+                    if (i === 0) {
+                        ctx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+                ctx.closePath();
+                break;
+            case 'hexagon':
+                // Draw regular hexagon
+                const hexagonSize = size * 0.8;
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i * 2 * Math.PI) / 6 - Math.PI / 2;
+                    const px = x + Math.cos(angle) * hexagonSize;
+                    const py = y + Math.sin(angle) * hexagonSize;
+                    if (i === 0) {
+                        ctx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+                ctx.closePath();
+                break;
+            case 'octagon':
+                // Draw regular octagon
+                const octagonSize = size * 0.8;
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * 2 * Math.PI) / 8 - Math.PI / 2;
+                    const px = x + Math.cos(angle) * octagonSize;
+                    const py = y + Math.sin(angle) * octagonSize;
+                    if (i === 0) {
+                        ctx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+                ctx.closePath();
+                break;
+            default:
+                ctx.arc(x, y, size, 0, 2 * Math.PI);
+                break;
+        }
+    }
+
     drawVertex(vertex) {
         const ctx = this.ctx;
         
@@ -4666,8 +4778,11 @@ export class GraphCreator {
             ctx.globalAlpha = vertex.fadeInOpacity;
         }
         
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, size, 0, 2 * Math.PI);
+        // Get the shape for this vertex (default to circle)
+        const shape = vertex.shape || 'circle';
+        
+        // Draw the vertex shape
+        this.drawVertexShape(ctx, drawX, drawY, size, shape);
         ctx.fillStyle = fillColor;
         ctx.fill();
         ctx.strokeStyle = borderColor;
@@ -5088,7 +5203,8 @@ export class GraphCreator {
         this._originalAllVertexColors = this.vertices.map(v => ({
             color: v.color || this.vertexColor,
             borderColor: v.borderColor || this.vertexBorderColor,
-            labelSize: v.labelSize || this.vertexLabelSize
+            labelSize: v.labelSize || this.vertexLabelSize,
+            shape: v.shape || 'circle'
         }));
         
         // Initialize pending changes tracking for this edit session
@@ -5163,7 +5279,8 @@ export class GraphCreator {
             size: vertex.size || this.vertexSize,
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
-            labelSize: vertex.labelSize || this.vertexLabelSize
+            labelSize: vertex.labelSize || this.vertexLabelSize,
+            shape: vertex.shape || 'circle'
         };
         this._editPreview = {
             label: vertex.label,
@@ -5171,6 +5288,7 @@ export class GraphCreator {
             color: vertex.color || this.vertexColor,
             borderColor: vertex.borderColor || this.vertexBorderColor,
             labelSize: vertex.labelSize || this.vertexLabelSize,
+            shape: vertex.shape || 'circle',
             pendingDelete: false
         };
         
@@ -5211,6 +5329,13 @@ export class GraphCreator {
         if (labelSizeInput && labelSizeValue) {
             labelSizeInput.value = vertex.labelSize || this.vertexLabelSize;
             labelSizeValue.textContent = vertex.labelSize || this.vertexLabelSize;
+        }
+        
+        // Update shape dropdown
+        const shape = vertex.shape || 'circle';
+        const shapeSelect = document.getElementById('editVertexShape');
+        if (shapeSelect) {
+            shapeSelect.value = shape;
         }
         
         // Clear any warnings
@@ -5436,6 +5561,24 @@ export class GraphCreator {
             };
             borderColorInput.addEventListener('input', this._applyToAllBorderColorListener);
         }
+        
+        // Listener for shape selection
+        const shapeInputs = document.querySelectorAll('input[name="editVertexShape"]');
+        shapeInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                const newShape = e.target.value;
+                if (this.editModeElement && this._editPreview) {
+                    this._editPreview.shape = newShape;
+                    this.editModeElement.shape = newShape;
+                    if (applyToAllToggle.checked) {
+                        this.vertices.forEach((v, idx) => {
+                            if (v !== this.editModeElement) v.shape = newShape;
+                        });
+                    }
+                    this.draw();
+                }
+            });
+        });
         
         // Listener for color text input
         const colorTextInput = document.getElementById('editVertexColorText');
@@ -5866,6 +6009,19 @@ export class GraphCreator {
             });
         }
         
+        // Shape selection: immediate update
+        const shapeSelect = document.getElementById('editVertexShape');
+        if (shapeSelect) {
+            shapeSelect.addEventListener('change', (e) => {
+                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
+                    const newShape = e.target.value;
+                    this._editPreview.shape = newShape;
+                    this.editModeElement.shape = newShape; // Also update the current vertex immediately
+                    this.draw();
+                }
+            });
+        }
+        
         // Apply-to-all toggle: immediate apply/revert
         document.getElementById('applyToAllToggle').addEventListener('change', (e) => {
             const checked = e.target.checked;
@@ -5873,19 +6029,22 @@ export class GraphCreator {
             const newLabelSize = parseInt(document.getElementById('editVertexLabelSize')?.value || this.vertexLabelSize);
             const newColor = document.getElementById('editVertexColor')?.value || this.vertexColor;
             const newBorderColor = document.getElementById('editVertexBorderColor')?.value || this.vertexBorderColor;
+            const newShape = document.getElementById('editVertexShape')?.value || 'circle';
             
             if (checked) {
-                // Apply current size, colors, and label size to all other vertices
+                // Apply current size, colors, label size, and shape to all other vertices
                 this.vertices.forEach(vertex => {
                     if (vertex !== this.editModeElement) {
                         vertex.size = newSize;
                         vertex.labelSize = newLabelSize;
                         vertex.color = newColor;
                         vertex.borderColor = newBorderColor;
+                        vertex.shape = newShape;
                     }
                 });
+                this.draw(); // Redraw to show the changes
             } else {
-                // Revert all other vertices to their original sizes, colors, and label sizes
+                // Revert all other vertices to their original sizes, colors, label sizes, and shapes
                 this.vertices.forEach(vertex => {
                     if (vertex !== this.editModeElement) {
                         const originalIndex = this.vertices.findIndex(v => v === vertex);
@@ -5897,6 +6056,7 @@ export class GraphCreator {
                                 vertex.color = this._originalAllVertexColors[originalIndex].color;
                                 vertex.borderColor = this._originalAllVertexColors[originalIndex].borderColor;
                                 vertex.labelSize = this._originalAllVertexColors[originalIndex].labelSize;
+                                vertex.shape = this._originalAllVertexColors[originalIndex].shape || 'circle';
                             }
                         }
                     }
@@ -5936,12 +6096,13 @@ export class GraphCreator {
                     this.handleVertexDeletionInEditMode();
                     return;
                 }
-                // Apply label/size/color/labelSize edits to current vertex
+                // Apply label/size/color/labelSize/shape edits to current vertex
                 this.editModeElement.label = this._editPreview.label;
                 this.editModeElement.size = this._editPreview.size;
                 this.editModeElement.color = this._editPreview.color;
                 this.editModeElement.borderColor = this._editPreview.borderColor;
                 this.editModeElement.labelSize = this._editPreview.labelSize;
+                this.editModeElement.shape = this._editPreview.shape || 'circle';
                 
                 // If "Apply to All" was checked, apply the final values to all other vertices
                 const applyToAllToggle = document.getElementById('applyToAllToggle');
@@ -5952,6 +6113,7 @@ export class GraphCreator {
                             v.labelSize = this._editPreview.labelSize;
                             v.color = this._editPreview.color;
                             v.borderColor = this._editPreview.borderColor;
+                            v.shape = document.getElementById('editVertexShape')?.value || 'circle';
                         }
                     });
                 }

@@ -221,6 +221,22 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="editVertexShape">
+                                <i class="fas fa-shapes"></i>
+                                Shape
+                            </label>
+                            <select id="editVertexShape" class="form-select">
+                                <option value="circle">Circle</option>
+                                <option value="square">Square</option>
+                                <option value="triangle">Triangle</option>
+                                <option value="heart">Heart</option>
+                                <option value="star">Star</option>
+                                <option value="pentagon">Pentagon</option>
+                                <option value="hexagon">Hexagon</option>
+                                <option value="octagon">Octagon</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
                             <label class="checkbox-label" for="applyToAllToggle">
                                 <i class="fas fa-copy"></i>
                                 Apply to All Vertices
@@ -560,6 +576,7 @@
                             <i class="fas fa-plus"></i>
                             New Canvas
                         </button>
+
                         <div class="d-flex gap-2 mb-2">
                             <button id="saveGraph" class="btn btn-success flex-fill">
                                 <i class="fas fa-save"></i>
