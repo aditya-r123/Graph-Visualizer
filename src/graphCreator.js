@@ -1226,6 +1226,15 @@ export class GraphCreator {
             }
         } else {
             // Handle image formats (PNG/JPG)
+            
+            // Calculate the bounding box of the graph content
+            const boundingBox = this.calculateGraphBoundingBox();
+            console.log('Graph bounding box:', boundingBox);
+            
+            // Set canvas size to the cropped dimensions
+            tempCanvas.width = boundingBox.width;
+            tempCanvas.height = boundingBox.height;
+            
             // Fill background - transparent for PNG, theme-based color for JPG
             if (format === 'png') {
                 // Clear the canvas for transparency (no fill)
@@ -1236,11 +1245,11 @@ export class GraphCreator {
                 tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             }
             
-            console.log('Filled background');
+            console.log('Filled background for cropped canvas');
             
-            // Draw the graph using the fixed coordinate system
-            console.log('Drawing graph on screenshot canvas...');
-            this.drawOnCanvas(tempCtx, this.whiteBoxWidth, this.whiteBoxHeight);
+            // Draw the graph using the cropped coordinate system
+            console.log('Drawing graph on cropped screenshot canvas...');
+            this.drawOnCroppedCanvas(tempCtx, boundingBox);
             
             console.log('Starting blob conversion...');
             
@@ -1332,6 +1341,15 @@ export class GraphCreator {
                 }
             } else {
                 // Handle image formats (PNG/JPG)
+                
+                // Calculate the bounding box of the graph content
+                const boundingBox = this.calculateGraphBoundingBox();
+                console.log('Graph bounding box for sharing:', boundingBox);
+                
+                // Set canvas size to the cropped dimensions
+                tempCanvas.width = boundingBox.width;
+                tempCanvas.height = boundingBox.height;
+                
                 // Fill background - transparent for PNG, theme-based color for JPG
                 if (format === 'png') {
                     // Clear the canvas for transparency (no fill)
@@ -1342,11 +1360,11 @@ export class GraphCreator {
                     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
                 }
                 
-                console.log('Filled background for sharing');
+                console.log('Filled background for cropped sharing canvas');
                 
-                // Draw the graph using the fixed coordinate system
-                console.log('Drawing graph on share canvas...');
-                this.drawOnCanvas(tempCtx, this.whiteBoxWidth, this.whiteBoxHeight);
+                // Draw the graph using the cropped coordinate system
+                console.log('Drawing graph on cropped share canvas...');
+                this.drawOnCroppedCanvas(tempCtx, boundingBox);
                 
                 console.log('Starting blob conversion for sharing...');
                 
@@ -1744,6 +1762,73 @@ export class GraphCreator {
         if (this.showVertices) {
             this.vertices.forEach(vertex => this.drawVertexOnCanvas(ctx, vertex));
         }
+    }
+
+    // Calculate the bounding box of all graph content (vertices and edges)
+    calculateGraphBoundingBox() {
+        if (this.vertices.length === 0) {
+            // If no vertices, return a default area
+            return {
+                minX: 0,
+                minY: 0,
+                maxX: this.whiteBoxWidth,
+                maxY: this.whiteBoxHeight,
+                width: this.whiteBoxWidth,
+                height: this.whiteBoxHeight
+            };
+        }
+
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+        // Calculate bounding box from vertices
+        this.vertices.forEach(vertex => {
+            const vertexSize = vertex.size || this.vertexSize;
+            const halfSize = vertexSize / 2;
+            
+            minX = Math.min(minX, vertex.x - halfSize);
+            minY = Math.min(minY, vertex.y - halfSize);
+            maxX = Math.max(maxX, vertex.x + halfSize);
+            maxY = Math.max(maxY, vertex.y + halfSize);
+        });
+
+        // Add padding around the content
+        const padding = 50;
+        minX = Math.max(0, minX - padding);
+        minY = Math.max(0, minY - padding);
+        maxX = Math.min(this.whiteBoxWidth, maxX + padding);
+        maxY = Math.min(this.whiteBoxHeight, maxY + padding);
+
+        return {
+            minX: Math.floor(minX),
+            minY: Math.floor(minY),
+            maxX: Math.ceil(maxX),
+            maxY: Math.ceil(maxY),
+            width: Math.ceil(maxX - minX),
+            height: Math.ceil(maxY - minY)
+        };
+    }
+
+    // Draw graph content to a cropped canvas
+    drawOnCroppedCanvas(ctx, boundingBox) {
+        // Clear the cropped area
+        ctx.clearRect(0, 0, boundingBox.width, boundingBox.height);
+        
+        // Save the current context state
+        ctx.save();
+        
+        // Translate the context to account for the crop offset
+        ctx.translate(-boundingBox.minX, -boundingBox.minY);
+        
+        // Draw edges
+        this.edges.forEach(edge => this.drawEdgeOnCanvas(ctx, edge));
+        
+        // Draw vertices (only if vertices are visible)
+        if (this.showVertices) {
+            this.vertices.forEach(vertex => this.drawVertexOnCanvas(ctx, vertex));
+        }
+        
+        // Restore the context state
+        ctx.restore();
     }
     
     drawEdgeOnCanvas(ctx, edge) {
