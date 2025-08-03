@@ -3979,13 +3979,23 @@ export class GraphCreator {
     }
     
     updateInfo() {
-        // Only update delete nodes button visibility
+        // Update delete nodes button visibility
         const deleteNodesBtn = document.getElementById('deleteNodesBtn');
         if (deleteNodesBtn) {
             if (this.vertices.length === 0) {
                 deleteNodesBtn.style.display = 'none';
             } else {
                 deleteNodesBtn.style.display = 'block';
+            }
+        }
+        
+        // Update edit mode button visibility
+        const editModeBtn = document.getElementById('editModeBtn');
+        if (editModeBtn) {
+            if (this.vertices.length === 0) {
+                editModeBtn.style.display = 'none';
+            } else {
+                editModeBtn.style.display = 'block';
             }
         }
     }
@@ -5059,15 +5069,27 @@ export class GraphCreator {
         this._editOriginal = {
             label: vertex.label,
             size: vertex.size || this.vertexSize,
+            color: vertex.color || this.vertexColor,
+            borderColor: vertex.borderColor || this.vertexBorderColor,
+            labelSize: vertex.labelSize || this.vertexLabelSize
         };
         // Temporary edit state for preview
         this._editPreview = {
             label: vertex.label,
             size: vertex.size || this.vertexSize,
+            color: vertex.color || this.vertexColor,
+            borderColor: vertex.borderColor || this.vertexBorderColor,
+            labelSize: vertex.labelSize || this.vertexLabelSize,
             pendingDelete: false
         };
         // Store original sizes for all vertices (for cancel/undo)
         this._originalAllVertexSizes = this.vertices.map(v => v.size || this.vertexSize);
+        // Store original colors for all vertices (for cancel/undo)
+        this._originalAllVertexColors = this.vertices.map(v => ({
+            color: v.color || this.vertexColor,
+            borderColor: v.borderColor || this.vertexBorderColor,
+            labelSize: v.labelSize || this.vertexLabelSize
+        }));
         
         // Initialize pending changes tracking for this edit session
         this._pendingChanges = {
@@ -5121,6 +5143,9 @@ export class GraphCreator {
         if (this.editModeElement && this._editPreview) {
             this.editModeElement.label = this._editPreview.label;
             this.editModeElement.size = this._editPreview.size;
+            this.editModeElement.color = this._editPreview.color;
+            this.editModeElement.borderColor = this._editPreview.borderColor;
+            this.editModeElement.labelSize = this._editPreview.labelSize;
             
             // Track this modification in pending changes
             this._pendingChanges.modifiedVertices.set(this.editModeElement.id, {
@@ -5288,6 +5313,9 @@ export class GraphCreator {
             if (vertex) {
                 vertex.label = modification.original.label;
                 vertex.size = modification.original.size;
+                vertex.color = modification.original.color;
+                vertex.borderColor = modification.original.borderColor;
+                vertex.labelSize = modification.original.labelSize;
                 console.log(`[EditMode] Reverted modification for vertex: ${vertex.label}`);
             }
         });
@@ -5297,6 +5325,17 @@ export class GraphCreator {
             this.vertices.forEach((v, idx) => {
                 if (this._originalAllVertexSizes[idx] !== undefined) {
                     v.size = this._originalAllVertexSizes[idx];
+                }
+            });
+        }
+        
+        // Restore original colors and label sizes for all vertices
+        if (this._originalAllVertexColors) {
+            this.vertices.forEach((v, idx) => {
+                if (this._originalAllVertexColors[idx] !== undefined) {
+                    v.color = this._originalAllVertexColors[idx].color;
+                    v.borderColor = this._originalAllVertexColors[idx].borderColor;
+                    v.labelSize = this._originalAllVertexColors[idx].labelSize;
                 }
             });
         }
