@@ -1232,14 +1232,16 @@ body {
     min-width: 0;
     width: auto;
     min-height: 0; /* Allow content to shrink */
+    /* Ensure proper positioning */
+    position: relative;
 }
 
 /* Right Sidebar */
 .right-sidebar {
-    position: fixed;
+    position: absolute;
     top: 0;
     right: 0;
-    bottom: 0; /* Remove bottom: 60px; so it goes to the bottom */
+    bottom: 0;
     width: 280px;
     background: var(--bg-secondary);
     display: flex;
@@ -1247,7 +1249,6 @@ body {
     z-index: 100;
     transition: var(--transition);
     overflow: hidden;
-    /* Remove margin-bottom: 60px; */
 }
 
 .right-sidebar-header {
@@ -1299,6 +1300,8 @@ body {
     /* Ensure proper canvas rendering */
     overflow: hidden;
     margin: 0 auto;
+    /* Ensure canvas is properly positioned */
+    display: block;
 }
 
 /* Scrollable wrapper for the canvas */

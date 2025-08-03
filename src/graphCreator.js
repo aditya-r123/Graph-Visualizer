@@ -104,6 +104,8 @@ export class GraphCreator {
         this.showMouseCoordinates = true;
         this.mouseX = 0;
         this.mouseY = 0;
+        this.mouseCoordinates = null;
+        this.mouseOverCanvas = false;
         
         // Coordinate grid
         this.showCoordinateGrid = false;
@@ -6895,7 +6897,7 @@ export class GraphCreator {
         if (coordDisplay) {
             if (!this.showMouseCoordinates || isDragging) {
                 coordDisplay.textContent = '';
-            } else if (!this.mouseOverCanvas) {
+            } else if (!this.mouseOverCanvas || !this.mouseCoordinates) {
                 coordDisplay.textContent = '';
             } else {
                 // Display coordinates in bottom-left origin system
@@ -6907,7 +6909,7 @@ export class GraphCreator {
         
         // Update utilities section display
         if (mousePositionDisplay && topDisplay) {
-            if (!this.showMouseCoordinates || !this.mouseOverCanvas || isDragging) {
+            if (!this.showMouseCoordinates || !this.mouseOverCanvas || isDragging || !this.mouseCoordinates) {
                 mousePositionDisplay.style.display = 'none';
             } else {
                 mousePositionDisplay.style.display = 'block';
