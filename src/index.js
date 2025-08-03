@@ -157,6 +157,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     dragHandleArea.style.cursor = 'grab';
                 }
                 
+                // Force a reflow to ensure proper positioning
+                element.offsetHeight;
+                
                 // Store original position
                 originalPositions.set(panel.id, {
                     element: element,
@@ -563,10 +566,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Initialize draggable panels after DOM is ready
-    setTimeout(() => {
+    function initializeApp() {
         initializeDraggablePanels();
         loadPanelOrder();
-    }, 100);
+        
+        // Force a reflow after initialization to ensure proper positioning
+        setTimeout(() => {
+            const panels = document.querySelectorAll('.draggable-panel');
+            panels.forEach(panel => {
+                panel.offsetHeight; // Force reflow
+            });
+        }, 50);
+    }
+    
+    // Wait for DOM to be fully ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+        // DOM is already ready
+        setTimeout(initializeApp, 100);
+    }
 
     // Now initialize the app
     new GraphCreator();

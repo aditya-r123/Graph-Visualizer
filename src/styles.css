@@ -3153,6 +3153,10 @@ body {
 .draggable-panel {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
+    /* Ensure proper initial positioning */
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .draggable-panel:hover {
