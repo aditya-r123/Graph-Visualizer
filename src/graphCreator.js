@@ -629,7 +629,7 @@ export class GraphCreator {
         
 
         
-        // Delete nodes mode controls
+        // Delete mode controls
         const deleteNodesBtn = document.getElementById('deleteNodesBtn');
         const editModeBtn = document.getElementById('editModeBtn');
         const saveDeleteChangesBtn = document.getElementById('saveDeleteChanges');
@@ -640,7 +640,7 @@ export class GraphCreator {
                 this.enterDeleteMode();
             });
         } else {
-            console.error('Delete Nodes button not found!');
+            console.error('Delete Mode button not found!');
         }
         
         if (editModeBtn) {
@@ -1252,13 +1252,17 @@ export class GraphCreator {
             const midX = (edge.from.x + edge.to.x) / 2;
             const midY = (edge.from.y + edge.to.y) / 2;
             
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(midX - 15, midY - 8, 30, 16);
-            
-            ctx.fillStyle = '#000000';
-            ctx.font = '12px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            
+            // Draw stroke outline first
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.strokeText(edge.weight.toString(), midX, midY);
+            
+            // Then draw the fill
+            ctx.fillStyle = '#000000';
             ctx.fillText(edge.weight.toString(), midX, midY);
         }
     }
@@ -1382,22 +1386,59 @@ export class GraphCreator {
         if (edge.weight !== null && edge.weight !== '') {
             let midX, midY;
             if (edge.type === 'curved') {
-                midX = (edge.from.x + edge.to.x) / 2;
-                midY = (edge.from.y + edge.to.y) / 2 - 60;
+                // For curved edges, calculate the exact point on the curve at t=0.5 (middle)
+                let controlPoint;
+                if (edge.controlPoint) {
+                    // Use the actual control point if present
+                    controlPoint = edge.controlPoint;
+                } else {
+                    // Fallback to automatic calculation
+                    const edgeIndex = edge.edgeIndex || 0;
+                    const baseCurve = 40;
+                    const curveIncrement = 50;
+                    const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                    const xDiff = Math.abs(edge.from.x - edge.to.x);
+                    const yDiff = Math.abs(edge.from.y - edge.to.y);
+                    const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                    
+                    if (isVerticalEdge) {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (edge.from.x + edge.to.x) / 2 + (curveAmount * curveDirection),
+                            y: (edge.from.y + edge.to.y) / 2
+                        };
+                    } else {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (edge.from.x + edge.to.x) / 2,
+                            y: (edge.from.y + edge.to.y) / 2 - (curveAmount * curveDirection)
+                        };
+                    }
+                }
+                
+                // Calculate point on quadratic curve at t=0.5 (middle of curve)
+                // Formula: P(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+                // For t=0.5: P(0.5) = 0.25P₀ + 0.5P₁ + 0.25P₂
+                const t = 0.5;
+                midX = Math.pow(1 - t, 2) * edge.from.x + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * edge.to.x;
+                midY = Math.pow(1 - t, 2) * edge.from.y + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * edge.to.y;
             } else {
                 midX = (edge.from.x + edge.to.x) / 2;
                 midY = (edge.from.y + edge.to.y) / 2;
             }
             
-            // Background for weight text
-            ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
-            ctx.fillRect(midX - 20, midY - 12, 40, 24);
-            
-            // Weight text
-            ctx.fillStyle = edgeFontColor;
+            // Weight text with stroke for better visibility
             ctx.font = `bold ${edgeFontSize}px ${edgeFontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            
+            // Draw stroke outline first
+            ctx.strokeStyle = this.currentTheme === 'dark' ? '#ffffff' : '#000000';
+            ctx.lineWidth = 3;
+            ctx.strokeText(edge.weight.toString(), midX, midY);
+            
+            // Then draw the fill
+            ctx.fillStyle = edgeFontColor;
             ctx.fillText(edge.weight.toString(), midX, midY);
         }
     }
@@ -1578,24 +1619,60 @@ export class GraphCreator {
         if (edge.weight !== null && edge.weight !== '') {
             let midX, midY;
             if (edge.type === 'curved') {
-                // For curved edges, position weight near the fixed control point
-                midX = (edge.from.x + edge.to.x) / 2;
-                midY = (edge.from.y + edge.to.y) / 2 - 60;
+                // For curved edges, calculate the exact point on the curve at t=0.5 (middle)
+                let controlPoint;
+                if (edge.controlPoint) {
+                    // Use the actual control point if present
+                    controlPoint = edge.controlPoint;
+                } else {
+                    // Fallback to automatic calculation
+                    const edgeIndex = edge.edgeIndex || 0;
+                    const baseCurve = 40;
+                    const curveIncrement = 50;
+                    const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                    const xDiff = Math.abs(edge.from.x - edge.to.x);
+                    const yDiff = Math.abs(edge.from.y - edge.to.y);
+                    const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                    
+                    if (isVerticalEdge) {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (edge.from.x + edge.to.x) / 2 + (curveAmount * curveDirection),
+                            y: (edge.from.y + edge.to.y) / 2
+                        };
+                    } else {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (edge.from.x + edge.to.x) / 2,
+                            y: (edge.from.y + edge.to.y) / 2 - (curveAmount * curveDirection)
+                        };
+                    }
+                }
+                
+                // Calculate point on quadratic curve at t=0.5 (middle of curve)
+                // Formula: P(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+                // For t=0.5: P(0.5) = 0.25P₀ + 0.5P₁ + 0.25P₂
+                const t = 0.5;
+                midX = Math.pow(1 - t, 2) * edge.from.x + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * edge.to.x;
+                midY = Math.pow(1 - t, 2) * edge.from.y + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * edge.to.y;
             } else {
                 // For straight edges, position weight at midpoint
                 midX = (edge.from.x + edge.to.x) / 2;
                 midY = (edge.from.y + edge.to.y) / 2;
             }
             
-            // Background for weight text
-            ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
-            ctx.fillRect(midX - 20, midY - 12, 40, 24);
-            
-            // Weight text
-            ctx.fillStyle = edgeFontColor;
+            // Weight text with stroke for better visibility
             ctx.font = `bold ${edgeFontSize}px ${edgeFontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            
+            // Draw stroke outline first
+            ctx.strokeStyle = this.currentTheme === 'dark' ? '#ffffff' : '#000000';
+            ctx.lineWidth = 3;
+            ctx.strokeText(edge.weight.toString(), midX, midY);
+            
+            // Then draw the fill
+            ctx.fillStyle = edgeFontColor;
             ctx.fillText(edge.weight.toString(), midX, midY);
         }
     }
@@ -1984,10 +2061,7 @@ export class GraphCreator {
             const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
             this.addSelfLoop(vertex, weight);
             
-            // Clear the edge weight input after creating the edge
-            if (weightInput) {
-                weightInput.value = '';
-            }
+            // Keep the edge weight input value for creating multiple edges with the same weight
             
             this.selectedVertices = [];
             this.flashVertices(vertex, vertex);
@@ -2024,10 +2098,7 @@ export class GraphCreator {
             const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
             this.addEdge(vertex1, vertex2, weight);
             
-            // Clear the edge weight input after creating the edge
-            if (weightInput) {
-                weightInput.value = '';
-            }
+            // Keep the edge weight input value for creating multiple edges with the same weight
             
             this.selectedVertices = [];
             // Flash both vertices when edge is created
@@ -2083,10 +2154,7 @@ export class GraphCreator {
                 // Create the self-loop edge
                 this.addSelfLoop(vertex1, weight);
                 
-                // Clear the edge weight input after creating the edge
-                if (weightInput) {
-                    weightInput.value = '';
-                }
+                // Keep the edge weight input value for creating multiple edges with the same weight
                 
                 this.selectedVertices = [];
                 
@@ -2122,10 +2190,7 @@ export class GraphCreator {
             // Create the edge
             this.addEdge(vertex1, vertex2, weight);
             
-            // Clear the edge weight input after creating the edge
-            if (weightInput) {
-                weightInput.value = '';
-            }
+            // Keep the edge weight input value for creating multiple edges with the same weight
             
             this.selectedVertices = [];
             
@@ -3997,7 +4062,7 @@ export class GraphCreator {
     }
     
     updateInfo() {
-        // Update delete nodes button visibility
+        // Update delete mode button visibility
         const deleteNodesBtn = document.getElementById('deleteNodesBtn');
         if (deleteNodesBtn) {
             if (this.vertices.length === 0) {
@@ -4464,41 +4529,60 @@ export class GraphCreator {
                 midX = drawFromX + radius + 20;
                 midY = drawFromY;
             } else if (edge.type === 'curved') {
-                // For curved edges, position weight near the control point with offset for multiple edges
-                const edgeIndex = edge.edgeIndex || 0;
-                const baseCurve = 40;
-                const curveIncrement = 50;
-                const curveAmount = baseCurve + (edgeIndex * curveIncrement);
-                
-                // Check if vertices are mostly vertically aligned (using ratio-based detection)
-                const xDiff = Math.abs(drawFromX - drawToX);
-                const yDiff = Math.abs(drawFromY - drawToY);
-                const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20; // More flexible: x-diff less than 30% of y-diff
-                
-                if (isVerticalEdge) {
-                    // For vertical edges, position weight horizontally offset
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    midX = (drawFromX + drawToX) / 2 + (curveAmount * curveDirection) + 20;
-                    midY = (drawFromY + drawToY) / 2;
+                // For curved edges, calculate the exact point on the curve at t=0.5 (middle)
+                let controlPoint;
+                if (edge.controlPoint) {
+                    // Use the actual control point if present
+                    controlPoint = edge.controlPoint;
                 } else {
-                    // For non-vertical edges, position weight vertically offset
-                    const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
-                    midX = (drawFromX + drawToX) / 2;
-                    midY = (drawFromY + drawToY) / 2 - (curveAmount * curveDirection) - 20;
+                    // Fallback to automatic calculation
+                    const edgeIndex = edge.edgeIndex || 0;
+                    const baseCurve = 40;
+                    const curveIncrement = 50;
+                    const curveAmount = baseCurve + (edgeIndex * curveIncrement);
+                    const xDiff = Math.abs(drawFromX - drawToX);
+                    const yDiff = Math.abs(drawFromY - drawToY);
+                    const isVerticalEdge = xDiff < (yDiff * 0.3) && yDiff > 20;
+                    
+                    if (isVerticalEdge) {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2 + (curveAmount * curveDirection),
+                            y: (drawFromY + drawToY) / 2
+                        };
+                    } else {
+                        const curveDirection = edgeIndex % 2 === 0 ? 1 : -1;
+                        controlPoint = {
+                            x: (drawFromX + drawToX) / 2,
+                            y: (drawFromY + drawToY) / 2 - (curveAmount * curveDirection)
+                        };
+                    }
                 }
+                
+                // Calculate point on quadratic curve at t=0.5 (middle of curve)
+                // Formula: P(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+                // For t=0.5: P(0.5) = 0.25P₀ + 0.5P₁ + 0.25P₂
+                const t = 0.5;
+                midX = Math.pow(1 - t, 2) * drawFromX + 2 * (1 - t) * t * controlPoint.x + Math.pow(t, 2) * drawToX;
+                midY = Math.pow(1 - t, 2) * drawFromY + 2 * (1 - t) * t * controlPoint.y + Math.pow(t, 2) * drawToY;
             } else {
                 // For straight edges, position weight at midpoint
                 midX = (drawFromX + drawToX) / 2;
                 midY = (drawFromY + drawToY) / 2;
             }
-            // Background for weight text
-            this.ctx.fillStyle = this.currentTheme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
-            this.ctx.fillRect(midX - 20, midY - 12, 40, 24);
-            // Weight text
-            this.ctx.fillStyle = edgeFontColor;
+
+            // Weight text with stroke for better visibility
             this.ctx.font = `bold ${edgeFontSize}px ${edgeFontFamily}`;
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
+            
+            // Draw stroke outline first
+            this.ctx.strokeStyle = this.currentTheme === 'dark' ? '#ffffff' : '#000000';
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeText(edge.weight.toString(), midX, midY);
+            
+            // Then draw the fill
+            this.ctx.fillStyle = edgeFontColor;
             this.ctx.fillText(edge.weight.toString(), midX, midY);
         }
         
@@ -6766,7 +6850,7 @@ export class GraphCreator {
         document.getElementById('contactForm').reset();
     }
 
-    // --- Delete Nodes Mode ---
+            // --- Delete Mode ---
     enterDeleteMode() {
         // Clear any edge creation selection (purple highlight) when entering delete mode
         if (this.selectedVertices.length > 0) {
