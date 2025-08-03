@@ -1,6 +1,6 @@
 import './styles.css';
 import { GraphCreator } from './graphCreator.js';
-import './logo.svg';
+import './assets/logo.png';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Instructions overlay logic
