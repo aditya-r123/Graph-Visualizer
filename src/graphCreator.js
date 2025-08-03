@@ -4536,20 +4536,14 @@ export class GraphCreator {
                 ctx.rect(x - size, y - size, size * 2, size * 2);
                 break;
             case 'triangle':
-                ctx.moveTo(x, y - size);
-                ctx.lineTo(x - size, y + size);
-                ctx.lineTo(x + size, y + size);
+                // Draw equilateral triangle
+                const height = size * Math.sqrt(3);
+                ctx.moveTo(x, y - height / 2);
+                ctx.lineTo(x - size, y + height / 2);
+                ctx.lineTo(x + size, y + height / 2);
                 ctx.closePath();
                 break;
-            case 'heart':
-                // Draw heart shape using bezier curves
-                const heartSize = size * 0.8;
-                ctx.moveTo(x, y + heartSize * 0.3);
-                ctx.bezierCurveTo(x, y, x - heartSize, y, x - heartSize, y + heartSize * 0.7);
-                ctx.bezierCurveTo(x - heartSize, y + heartSize * 1.2, x, y + heartSize * 1.5, x, y + heartSize * 1.5);
-                ctx.bezierCurveTo(x, y + heartSize * 1.5, x + heartSize, y + heartSize * 1.2, x + heartSize, y + heartSize * 0.7);
-                ctx.bezierCurveTo(x + heartSize, y, x, y, x, y + heartSize * 0.3);
-                break;
+
             case 'star':
                 // Draw 5-pointed star
                 const starSize = size * 0.8;
