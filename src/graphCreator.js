@@ -1395,6 +1395,14 @@ export class GraphCreator {
         ctx.lineWidth = edgeWidth;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+        
+        // Set line dash pattern for dashed edges
+        if (edge.lineStyle === 'dashed') {
+            ctx.setLineDash([8, 4]); // 8px dash, 4px gap
+        } else {
+            ctx.setLineDash([]); // Solid line
+        }
+        
         ctx.beginPath();
         
         if (edge.type === 'curved') {
@@ -4486,9 +4494,9 @@ export class GraphCreator {
         this.ctx.lineCap = 'round';
         
         // Set line dash pattern for dashed edges
-        let lineStyle = edge.style;
+        let lineStyle = edge.lineStyle;
         if (this.editModeElement === edge && this.editModeType === 'edge' && this._editPreview) {
-            lineStyle = this._editPreview.style;
+            lineStyle = this._editPreview.lineStyle;
         }
         
         if (lineStyle === 'dashed') {
@@ -5867,17 +5875,17 @@ export class GraphCreator {
         
         // Store original values for cancellation
         this._editOriginal = {
-            style: edge.style || 'straight'
+            lineStyle: edge.lineStyle || 'solid'
         };
         
         // Temporary edit state for preview
         this._editPreview = {
-            style: edge.style || 'straight',
+            lineStyle: edge.lineStyle || 'solid',
             pendingDelete: false
         };
         
         // Store original styles for all edges (for cancel/undo)
-        this._originalAllEdgeStyles = this.edges.map(e => e.style || 'straight');
+        this._originalAllEdgeStyles = this.edges.map(e => e.lineStyle || 'solid');
         
         this.startShakeAnimation();
         const editSection = document.getElementById('edgeEditControlsSection');
@@ -5890,7 +5898,7 @@ export class GraphCreator {
         const straightRadio = document.getElementById('editEdgeStyleStraight');
         const dashedRadio = document.getElementById('editEdgeStyleDashed');
         if (straightRadio && dashedRadio) {
-            if (this._editPreview.style === 'straight') {
+            if (this._editPreview.lineStyle === 'solid') {
                 straightRadio.checked = true;
             } else {
                 dashedRadio.checked = true;
@@ -5911,10 +5919,10 @@ export class GraphCreator {
         
         // Update edit state for the new edge
         this._editOriginal = {
-            style: edge.style || 'straight'
+            lineStyle: edge.lineStyle || 'solid'
         };
         this._editPreview = {
-            style: edge.style || 'straight',
+            lineStyle: edge.lineStyle || 'solid',
             pendingDelete: false
         };
         
@@ -5922,7 +5930,7 @@ export class GraphCreator {
         const straightRadio = document.getElementById('editEdgeStyleStraight');
         const dashedRadio = document.getElementById('editEdgeStyleDashed');
         if (straightRadio && dashedRadio) {
-            if (this._editPreview.style === 'straight') {
+            if (this._editPreview.lineStyle === 'solid') {
                 straightRadio.checked = true;
             } else {
                 dashedRadio.checked = true;
@@ -5941,7 +5949,7 @@ export class GraphCreator {
         if (straightRadio) {
             straightRadio.addEventListener('change', (e) => {
                 if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
-                    this._editPreview.style = 'straight';
+                    this._editPreview.lineStyle = 'solid';
                     this.draw();
                 }
             });
@@ -5950,7 +5958,7 @@ export class GraphCreator {
         if (dashedRadio) {
             dashedRadio.addEventListener('change', (e) => {
                 if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
-                    this._editPreview.style = 'dashed';
+                    this._editPreview.lineStyle = 'dashed';
                     this.draw();
                 }
             });
@@ -5964,14 +5972,14 @@ export class GraphCreator {
                         // Apply current style to all edges
                         this.edges.forEach(edge => {
                             if (edge !== this.editModeElement) {
-                                edge.style = this._editPreview.style;
+                                edge.lineStyle = this._editPreview.lineStyle;
                             }
                         });
                     } else {
                         // Revert all edges to original styles
                         this.edges.forEach((edge, index) => {
                             if (edge !== this.editModeElement) {
-                                edge.style = this._originalAllEdgeStyles[index];
+                                edge.lineStyle = this._originalAllEdgeStyles[index];
                             }
                         });
                     }
@@ -6011,14 +6019,14 @@ export class GraphCreator {
     saveAndExitEdgeEditMode() {
         if (this.editModeElement && this._editPreview) {
             // Apply style edits to current edge
-            this.editModeElement.style = this._editPreview.style;
+            this.editModeElement.lineStyle = this._editPreview.lineStyle;
             
             // If "Apply to All" was checked, apply final values to all other edges
             const applyToAllToggle = document.getElementById('applyToAllEdgesToggle');
             if (applyToAllToggle && applyToAllToggle.checked) {
                 this.edges.forEach(edge => {
                     if (edge !== this.editModeElement) {
-                        edge.style = this._editPreview.style;
+                        edge.lineStyle = this._editPreview.lineStyle;
                     }
                 });
             }
