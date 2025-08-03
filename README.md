@@ -37,12 +37,23 @@ Being a public website with no download required is key. It lowers the barrier t
    npm install
    ```
 
-2. **Start the server**
+2. **Set up environment variables** (optional - for EmailJS contact form)
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` with your EmailJS configuration:
+   ```
+   EMAILJS_PUBLIC_KEY=your_public_key_here
+   EMAILJS_SERVICE_ID=your_service_id_here
+   EMAILJS_TEMPLATE_ID=your_template_id_here
+   ```
+
+3. **Start the server**
    ```bash
    npm start
    ```
 
-3. **Open your browser**
+4. **Open your browser**
    Navigate to `http://localhost:3002`
 
 ## 🎯 How to Use
@@ -59,6 +70,7 @@ Being a public website with no download required is key. It lowers the barrier t
 - **Screenshots**: Capture your graphs in JPG or PNG format
 - **Theme Toggle**: Switch between dark and light themes
 - **Panel Dragging**: Reorder control panels by dragging them
+- **Contact Form**: Integrated EmailJS contact form (requires environment variables)
 
 ## 🛠️ Build for Production
 

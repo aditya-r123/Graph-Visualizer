@@ -1,3 +1,6 @@
+// Load environment variables
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -19,6 +22,15 @@ app.get('/', (req, res) => {
 // API routes for future graph operations
 app.get('/api/graph', (req, res) => {
     res.json({ message: 'Graph API endpoint' });
+});
+
+// EmailJS configuration endpoint
+app.get('/api/emailjs-config', (req, res) => {
+    res.json({
+        publicKey: process.env.EMAILJS_PUBLIC_KEY,
+        serviceId: process.env.EMAILJS_SERVICE_ID,
+        templateId: process.env.EMAILJS_TEMPLATE_ID
+    });
 });
 
 app.listen(PORT, () => {

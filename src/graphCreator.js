@@ -151,9 +151,44 @@ export class GraphCreator {
         if (confirmationDiv) {
             confirmationDiv.style.setProperty('display', 'none', 'important');
         }
+        
+        // Initialize EmailJS configuration
+        this.initializeEmailJS();
     }
     
-
+    async initializeEmailJS() {
+        try {
+            // Fetch EmailJS configuration from server
+            const response = await fetch('/api/emailjs-config');
+            if (response.ok) {
+                const config = await response.json();
+                
+                // Store configuration globally for use in handleContactSubmit
+                window.EMAILJS_PUBLIC_KEY = config.publicKey;
+                window.EMAILJS_SERVICE_ID = config.serviceId;
+                window.EMAILJS_TEMPLATE_ID = config.templateId;
+                
+                console.log('EmailJS configuration loaded:', config);
+                
+                // Initialize EmailJS if available
+                if (typeof emailjs !== 'undefined') {
+                    try {
+                        emailjs.init(config.publicKey);
+                        console.log('EmailJS initialized with public key');
+                    } catch (initError) {
+                        console.warn('EmailJS initialization failed:', initError);
+                        console.log('Continuing without explicit initialization');
+                    }
+                } else {
+                    console.warn('EmailJS not loaded');
+                }
+            } else {
+                console.warn('Failed to load EmailJS configuration from server');
+            }
+        } catch (error) {
+            console.warn('Error loading EmailJS configuration:', error);
+        }
+    }
     
     startEditModeTimer(vertex) {
         // Clear any existing timer and animation
@@ -6828,7 +6863,7 @@ export class GraphCreator {
         contactModal.show();
     }
     
-    handleContactSubmit() {
+    async handleContactSubmit() {
         const formData = {
             name: document.getElementById('contactName').value,
             email: document.getElementById('contactEmail').value,
@@ -6836,18 +6871,110 @@ export class GraphCreator {
             message: document.getElementById('contactMessage').value
         };
         
-        // For now, just log the data and show a success message
-        console.log('Contact form submitted:', formData);
+        // Validate form data
+        if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+            this.updateStatus('Please fill in all fields before sending.');
+            return;
+        }
         
-        // Show success message
-        this.updateStatus('Thank you for your message! I\'ll get back to you soon.');
+        // Show loading state
+        let submitBtn = document.querySelector('#contactForm button[type="submit"]');
+        if (!submitBtn) {
+            // Try alternative selectors since the button might be outside the form
+            submitBtn = document.querySelector('button[form="contactForm"]');
+        }
+        if (!submitBtn) {
+            // Try finding by text content
+            submitBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Send Message')
+            );
+        }
+        if (!submitBtn) {
+            console.error('Submit button not found');
+            this.updateStatus('Error: Submit button not found');
+            return;
+        }
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        submitBtn.disabled = true;
         
-        // Close modal
-        const contactModal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
-        contactModal.hide();
-        
-        // Reset form
-        document.getElementById('contactForm').reset();
+        try {
+            // Send email using EmailJS
+            if (typeof emailjs !== 'undefined') {
+                console.log('EmailJS is available, attempting to send email...');
+                console.log('EmailJS object:', emailjs);
+                
+                const templateParams = {
+                    name: formData.name,
+                    email: formData.email,
+                    title: formData.subject,
+                    message: formData.message,
+                    time: new Date().toLocaleString()
+                };
+                
+                console.log('Template parameters:', templateParams);
+                
+                // Get EmailJS configuration from environment variables or use defaults
+                const serviceId = window.EMAILJS_SERVICE_ID || 'service_i267ter';
+                const templateId = window.EMAILJS_TEMPLATE_ID || 'template_df3rw2f';
+                
+                console.log('Service ID:', serviceId);
+                console.log('Template ID:', templateId);
+                
+                try {
+                    console.log('Attempting to send email...');
+                    const result = await emailjs.send(serviceId, templateId, templateParams);
+                    console.log('Email sent successfully:', result);
+                } catch (sendError) {
+                    console.error('EmailJS send error details:', {
+                        error: sendError,
+                        message: sendError.message,
+                        status: sendError.status,
+                        text: sendError.text,
+                        stack: sendError.stack
+                    });
+                    throw sendError;
+                }
+                
+                // Show success message
+                this.updateStatus('Thank you for your message! I\'ll get back to you soon.');
+                
+                // Close modal
+                const contactModal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
+                contactModal.hide();
+                
+                // Reset form
+                document.getElementById('contactForm').reset();
+            } else {
+                throw new Error('EmailJS not loaded');
+            }
+        } catch (error) {
+            console.error('Email sending failed:', error);
+            console.error('Error details:', {
+                message: error.message,
+                status: error.status,
+                text: error.text
+            });
+            
+            let errorMessage = 'Failed to send message. ';
+            if (error.status === 400) {
+                errorMessage += 'Invalid template or service configuration.';
+            } else if (error.status === 401) {
+                errorMessage += 'Authentication failed. Please check EmailJS configuration.';
+            } else if (error.status === 403) {
+                errorMessage += 'Access denied. Please check EmailJS permissions.';
+            } else {
+                errorMessage += 'Please try again or contact me directly at adityasr2018@gmail.com';
+            }
+            
+            this.updateStatus(errorMessage);
+        } finally {
+            // Restore button state
+            if (submitBtn) {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
     }
 
             // --- Delete Mode ---
