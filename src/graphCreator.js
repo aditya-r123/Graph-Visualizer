@@ -621,16 +621,7 @@ export class GraphCreator {
             console.error('Share Graph button not found!');
         }
         
-        // JSON Download button
-        const downloadJSONBtn = document.getElementById('downloadJSON');
-        if (downloadJSONBtn) {
-            downloadJSONBtn.addEventListener('click', () => {
-                console.log('JSON Download button clicked');
-                this.downloadJSON();
-            });
-        } else {
-            console.error('JSON Download button not found!');
-        }
+
         
         // Delete all saved graphs button
         const deleteAllGraphsBtn = document.getElementById('deleteAllGraphs');
@@ -1173,45 +1164,78 @@ export class GraphCreator {
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
         
-        // Get the selected format from radio buttons
-        const formatJpg = document.getElementById('formatJpg');
-        const formatPng = document.getElementById('formatPng');
-        const format = formatPng && formatPng.checked ? 'png' : 'jpg';
+        // Get the selected format from dropdown
+        const fileFormatSelect = document.getElementById('fileFormatSelect');
+        const format = fileFormatSelect ? fileFormatSelect.value : 'jpg';
         
-        // Fill background - transparent for PNG, theme-based color for JPG
-        if (format === 'png') {
-            // Clear the canvas for transparency (no fill)
-            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        // Handle different formats
+        if (format === 'json') {
+            // Handle JSON format - export graph data
+            try {
+                const graphData = this.exportGraph();
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                const filename = `graph-${timestamp}.json`;
+                
+                // Create the JSON blob
+                const jsonString = JSON.stringify(graphData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                
+                // Create download link
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up
+                URL.revokeObjectURL(url);
+                
+                this.updateStatus('Graph exported as JSON successfully!');
+                console.log('JSON export completed successfully');
+            } catch (error) {
+                console.error('Failed to export JSON:', error);
+                this.updateStatus('Failed to export graph as JSON');
+            }
         } else {
-            // Fill with theme-based background for JPG
-            tempCtx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe';
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        }
-        
+            // Handle image formats (PNG/JPG)
+            // Fill background - transparent for PNG, theme-based color for JPG
+            if (format === 'png') {
+                // Clear the canvas for transparency (no fill)
+                tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+            } else {
+                // Fill with theme-based background for JPG
+                tempCtx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            }
+            
             console.log('Filled background');
             
-            // Draw the graph using the fixed 2000x2000 coordinate system
+            // Draw the graph using the fixed coordinate system
             console.log('Drawing graph on screenshot canvas...');
             this.drawOnCanvas(tempCtx, this.whiteBoxWidth, this.whiteBoxHeight);
             
             console.log('Starting blob conversion...');
             
             // Convert to blob and download
-        tempCanvas.toBlob((blob) => {
+            tempCanvas.toBlob((blob) => {
                 console.log('Blob callback executed, blob:', blob);
                 if (blob) {
                     console.log('Blob size:', blob.size, 'bytes');
-            const url = URL.createObjectURL(blob);
+                    const url = URL.createObjectURL(blob);
                     console.log('Created object URL:', url);
-            const a = document.createElement('a');
-            a.href = url;
+                    const a = document.createElement('a');
+                    a.href = url;
                     a.download = `graph-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`;
                     a.style.display = 'none';
-            document.body.appendChild(a);
+                    document.body.appendChild(a);
                     console.log('Triggering download...');
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
                     this.updateStatus(`Screenshot saved as ${format.toUpperCase()}!`);
                     console.log('Screenshot downloaded successfully');
                 } else {
@@ -1219,6 +1243,7 @@ export class GraphCreator {
                     this.updateStatus('Failed to create screenshot');
                 }
             }, format === 'png' ? 'image/png' : 'image/jpeg', format === 'png' ? 1.0 : 0.9);
+        }
             
             console.log('toBlob called, waiting for callback...');
         } catch (error) {
@@ -1244,65 +1269,101 @@ export class GraphCreator {
             
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
             
-            // Get the selected format from radio buttons
-            const formatJpg = document.getElementById('formatJpg');
-            const formatPng = document.getElementById('formatPng');
-            const format = formatPng && formatPng.checked ? 'png' : 'jpg';
+            // Get the selected format from dropdown
+            const fileFormatSelect = document.getElementById('fileFormatSelect');
+            const format = fileFormatSelect ? fileFormatSelect.value : 'jpg';
             
-            // Fill background - transparent for PNG, theme-based color for JPG
-            if (format === 'png') {
-                // Clear the canvas for transparency (no fill)
-                tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-            } else {
-                // Fill with theme-based background for JPG
-                tempCtx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe';
-                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            }
-            
-            console.log('Filled background for sharing');
-            
-            // Draw the graph using the fixed coordinate system
-            console.log('Drawing graph on share canvas...');
-            this.drawOnCanvas(tempCtx, this.whiteBoxWidth, this.whiteBoxHeight);
-            
-            console.log('Starting blob conversion for sharing...');
-            
-            // Convert to blob and share
-            tempCanvas.toBlob((blob) => {
-                console.log('Share blob callback executed, blob:', blob);
-                if (blob) {
-                    console.log('Share blob size:', blob.size, 'bytes');
+            // Handle different formats
+            if (format === 'json') {
+                // Handle JSON format - export graph data
+                try {
+                    const graphData = this.exportGraph();
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                    const fileName = `graph-${timestamp}.json`;
                     
-                    // Create file with appropriate name
-                    const fileName = `graph-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`;
-                    const file = new File([blob], fileName, { 
-                        type: format === 'png' ? 'image/png' : 'image/jpeg' 
-                    });
+                    // Create the JSON blob
+                    const jsonString = JSON.stringify(graphData, null, 2);
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const file = new File([blob], fileName, { type: 'application/json' });
                     
                     // Check if Web Share API is supported
                     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                         navigator.share({
-                            title: 'Graph Visualizer Pro - My Graph',
-                            text: 'Hey, check out this cool graph I made with Graph Visualizer Pro',
+                            title: 'Graph Visualizer Pro - My Graph Data',
+                            text: 'Hey, check out this graph data I made with Graph Visualizer Pro',
                             files: [file]
                         }).then(() => {
-                            console.log('Share successful');
-                            this.updateStatus('Graph shared successfully!');
+                            console.log('JSON share successful');
+                            this.updateStatus('Graph data shared successfully!');
                         }).catch((error) => {
                             // console.error('Share failed:', error);
                             // this.updateStatus('Share cancelled or failed');
                         });
                     } else {
-                        console.log('Web Share API not supported');
+                        console.log('Web Share API not supported for JSON');
                         this.updateStatus('Sharing not supported on this device');
                     }
-                } else {
-                    console.error('Failed to create blob for sharing');
-                    this.updateStatus('Failed to create share image');
+                } catch (error) {
+                    console.error('Failed to share JSON:', error);
+                    this.updateStatus('Failed to share graph data');
                 }
-            }, format === 'png' ? 'image/png' : 'image/jpeg', format === 'png' ? 1.0 : 0.9);
-            
-            console.log('toBlob called for sharing, waiting for callback...');
+            } else {
+                // Handle image formats (PNG/JPG)
+                // Fill background - transparent for PNG, theme-based color for JPG
+                if (format === 'png') {
+                    // Clear the canvas for transparency (no fill)
+                    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+                } else {
+                    // Fill with theme-based background for JPG
+                    tempCtx.fillStyle = this.currentTheme === 'dark' ? '#374151' : '#e0f2fe';
+                    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                }
+                
+                console.log('Filled background for sharing');
+                
+                // Draw the graph using the fixed coordinate system
+                console.log('Drawing graph on share canvas...');
+                this.drawOnCanvas(tempCtx, this.whiteBoxWidth, this.whiteBoxHeight);
+                
+                console.log('Starting blob conversion for sharing...');
+                
+                // Convert to blob and share
+                tempCanvas.toBlob((blob) => {
+                    console.log('Share blob callback executed, blob:', blob);
+                    if (blob) {
+                        console.log('Share blob size:', blob.size, 'bytes');
+                        
+                        // Create file with appropriate name
+                        const fileName = `graph-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`;
+                        const file = new File([blob], fileName, { 
+                            type: format === 'png' ? 'image/png' : 'image/jpeg' 
+                        });
+                        
+                        // Check if Web Share API is supported
+                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({
+                                title: 'Graph Visualizer Pro - My Graph',
+                                text: 'Hey, check out this cool graph I made with Graph Visualizer Pro',
+                                files: [file]
+                            }).then(() => {
+                                console.log('Share successful');
+                                this.updateStatus('Graph shared successfully!');
+                            }).catch((error) => {
+                                // console.error('Share failed:', error);
+                                // this.updateStatus('Share cancelled or failed');
+                            });
+                        } else {
+                            console.log('Web Share API not supported');
+                            this.updateStatus('Sharing not supported on this device');
+                        }
+                    } else {
+                        console.error('Failed to create blob for sharing');
+                        this.updateStatus('Failed to create share image');
+                    }
+                }, format === 'png' ? 'image/png' : 'image/jpeg', format === 'png' ? 1.0 : 0.9);
+                
+                console.log('toBlob called for sharing, waiting for callback...');
+            }
         } catch (error) {
             console.error('Error sharing graph:', error);
             console.error('Error stack:', error.stack);
@@ -1310,39 +1371,7 @@ export class GraphCreator {
         }
     }
     
-    downloadJSON() {
-        try {
-            // Get the current graph data
-            const graphData = this.exportGraph();
-            
-            // Create a timestamp for the filename
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const filename = `graph-${timestamp}.json`;
-            
-            // Create the JSON blob
-            const jsonString = JSON.stringify(graphData, null, 2); // Pretty print with 2 spaces
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            
-            // Create download link
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            
-            // Trigger download
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Clean up
-            URL.revokeObjectURL(url);
-            
-            this.updateStatus('Graph exported as JSON successfully!');
-        } catch (error) {
-            console.error('Failed to download JSON:', error);
-            this.updateStatus('Failed to export graph as JSON');
-        }
-    }
+
 
 
     
@@ -4006,7 +4035,10 @@ export class GraphCreator {
                         </div>
                     </div>
                     <div class="load-section">
-                        <h4><i class="fas fa-upload"></i> Import from File</h4>
+                        <h4><i class="fas fa-upload"></i> Import File</h4>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                            <i class="fas fa-info-circle"></i> Only JSON files can be imported
+                        </div>
                         <input type="file" id="loadFileInputModal" accept=".json" style="display: none;">
                         <button class="btn btn-secondary" id="browseFileBtn">
                             <i class="fas fa-folder"></i> Browse Files
@@ -4081,7 +4113,7 @@ export class GraphCreator {
                         <i class="fas fa-${savedGraph.pendingDelete ? 'undo' : 'trash'}"></i>
                     </button>
                     <button class="btn btn-primary load-graph-btn" data-index="${index}" ${savedGraph.pendingDelete ? 'disabled' : ''}>
-                        <i class="fas fa-download"></i> Load
+                        <i class="fas fa-download"></i> Import
                     </button>
                 </div>
             `;
@@ -7526,6 +7558,7 @@ export class GraphCreator {
 
     updateRootVertexDisplay() {
         const display = document.getElementById('rootVertexDisplay');
+        const dropdownContainer = document.getElementById('rootDropdownContainer');
         const dropdown = document.getElementById('searchRoot');
         
         if (this.vertices.length === 0) {
@@ -7533,10 +7566,10 @@ export class GraphCreator {
             display.innerHTML = '<span class="root-placeholder">Unselected</span>';
             display.classList.remove('has-root');
             display.style.display = 'flex'; // Make sure display is visible
-            dropdown.style.display = 'none';
+            dropdownContainer.style.display = 'none';
         } else {
             // Has vertices - show dropdown
-            dropdown.style.display = 'block';
+            dropdownContainer.style.display = 'block';
             display.style.display = 'none';
             
             // Update dropdown options
