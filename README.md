@@ -2,81 +2,57 @@
 
 A powerful, interactive web application for creating, visualizing, and analyzing graphs with an intuitive drag-and-drop interface.
 
-## ✨ Features
+## ✨ Key Features
 
 - **Interactive Graph Creation** - Click to add vertices, drag to move them
-- **Smart Edge Creation** - Click two vertices to connect them
+- **Smart Edge Creation** - Click two vertices to connect them with customizable weights
 - **Search Algorithms** - BFS and DFS with animated visualizations
-- **Edit Mode** - Hold vertices to edit labels and sizes
-- **Save & Load** - Auto-save and manual save/load functionality
-- **Screenshots** - Capture and share your graphs
-- **Modern UI** - Dark/light theme with responsive design
+- **Advanced Edit Mode** - Edit vertex labels, sizes, colors, and shapes (circle, square, triangle, star, pentagon, hexagon, octagon)
+- **Comprehensive Save & Load** - Auto-save and manual save/load functionality with session management
+- **Screenshots & Sharing** - Capture and share your graphs in multiple formats
+- **Modern UI** - Dark/light theme with responsive design and intuitive controls
 
-## 🌟 What Makes Graph Creator Pro Stand Out
+## 🌟 Why Graph Creator Pro Fills a Critical Gap
 
-Graph Creator Pro hits a sweet spot that many other graph tools miss by successfully combining:
+### **The Problem with Existing Tools**
+Most graph visualization tools fall into two categories:
+- **Complex professional tools** (like Gephi) that are overkill for simple use cases
+- **Basic educational tools** that feel outdated and lack modern UX
 
-### **Modern, Intuitive UI**
-Our tool looks and feels like a modern web app, making users feel they're using a professional-grade product. Unlike many educational tools that feel outdated, Graph Creator Pro provides an engaging, contemporary experience.
+### **Our Solution**
+Graph Creator Pro bridges this gap by offering:
 
-### **Integrated Creation and Visualization**
-You don't have to switch between a "creator" and a "visualizer." The canvas is live, and the controls are contextual. This seamless workflow is rare in graph tools and makes the experience much more fluid.
+**🎯 Perfect for Students & Educators**
+- No installation required - works instantly in any browser
+- Intuitive interface that doesn't require training
+- Built-in algorithm visualizations for learning BFS/DFS
+- Easy sharing for assignments and presentations
 
-### **Comprehensive Session Management**
-The Canvas Management panel, with its clear timestamps, vertex/edge counts, and easy deletion, is a standout feature. Combined with robust Save/Load/Share functionality, we treat user creations as valuable data, which many simpler tools neglect.
+**💼 Ideal for Professionals**
+- Quick prototyping and brainstorming
+- Professional-grade UI that feels modern
+- Export capabilities for documentation
+- Session management for multiple projects
 
-### **Accessibility**
-Being a public website with no download required is key. It lowers the barrier to entry for students, hobbyists, and professionals who just want to quickly sketch out an idea.
+**🔧 Developer-Friendly**
+- Clean, responsive design
+- Keyboard shortcuts and efficient workflows
+- Customizable vertex shapes and edge styles
+- Real-time auto-save prevents data loss
 
-**In conclusion**, while tools that perform similar functions exist, Graph Creator Pro unifies the best aspects of them into a single, cohesive, and modern package. We've taken the educational power of an algorithm visualizer, the creative freedom of a graph editor, and the user experience of a modern SaaS application and blended them together.
+### **What Sets Us Apart**
+- **Seamless Workflow**: No switching between creation and visualization modes
+- **Modern UX**: Contemporary design that feels professional, not academic
+- **Accessibility**: Zero barrier to entry - just open and start creating
+- **Comprehensive Features**: Everything you need without the complexity you don't
 
-## 🚀 Quick Start
+## 🎯 Perfect For
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Set up environment variables** (optional - for EmailJS contact form)
-   ```bash
-   cp .env.example .env
-   ```
-   Then edit `.env` with your EmailJS configuration:
-   ```
-   EMAILJS_PUBLIC_KEY=your_public_key_here
-   EMAILJS_SERVICE_ID=your_service_id_here
-   EMAILJS_TEMPLATE_ID=your_template_id_here
-   ```
-
-3. **Start the server**
-   ```bash
-   npm start
-   ```
-
-4. **Open your browser**
-   Navigate to `http://localhost:3002`
-
-## 🎯 How to Use
-
-### Basic Operations
-- **Add Vertex**: Click anywhere on the canvas
-- **Move Vertex**: Drag vertices to reposition them
-- **Create Edge**: Click two different vertices to connect them
-- **Edit Vertex**: Hold a vertex for 2.5 seconds to enter edit mode
-- **Search**: Use BFS/DFS buttons to visualize graph traversal
-
-### Advanced Features
-- **Auto-save**: Graphs are automatically saved as you work
-- **Screenshots**: Capture your graphs in JPG or PNG format
-- **Theme Toggle**: Switch between dark and light themes
-- **Panel Dragging**: Reorder control panels by dragging them
-- **Contact Form**: Integrated EmailJS contact form (requires environment variables)
-
-## 🛠️ Build for Production
-
-```bash
-npm run build
-```
+- **Computer Science Students** learning graph algorithms
+- **Educators** creating visual aids for lectures
+- **Software Engineers** prototyping system architectures
+- **Researchers** visualizing data relationships
+- **Anyone** who needs to quickly sketch and share graph concepts
 
 ## 📝 License
 
