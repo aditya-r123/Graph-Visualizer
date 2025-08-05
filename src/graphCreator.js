@@ -432,31 +432,11 @@ export class GraphCreator {
             this.updateStatus(`Auto-save ${this.autosaveEnabled ? 'enabled' : 'disabled'}`);
         });
         
-        // Mouse coordinate toggle (simple checkbox)
-        const mouseCoordinateToggle = document.getElementById('mouseCoordinateToggle');
-        if (mouseCoordinateToggle) {
-            // Initialize the checkbox state
-            mouseCoordinateToggle.checked = this.showMouseCoordinates;
-            console.log('Mouse coordinate checkbox found and initialized:', this.showMouseCoordinates);
-            // Hide or show the mouse position display on load
-            const mousePositionDisplay = document.getElementById('mousePositionDisplay');
-            if (mousePositionDisplay) {
-                mousePositionDisplay.style.display = this.showMouseCoordinates ? 'block' : 'none';
-            }
-            // Add both change and click event listeners for maximum compatibility
-            mouseCoordinateToggle.addEventListener('change', (e) => {
-                this.showMouseCoordinates = e.target.checked;
-                this.updateMouseCoordinateDisplay();
-                this.updateStatus(`Mouse coordinates ${this.showMouseCoordinates ? 'enabled' : 'disabled'}`);
-                console.log('Mouse coordinate checkbox changed to:', this.showMouseCoordinates);
-            });
-            mouseCoordinateToggle.addEventListener('click', (e) => {
-                // Prevent event bubbling
-                e.stopPropagation();
-                console.log('Mouse coordinate checkbox clicked');
-            });
-        } else {
-            console.error('Mouse coordinate checkbox not found!');
+        // Mouse position display is always visible (no toggle needed)
+        const mousePositionDisplay = document.getElementById('mousePositionDisplay');
+        if (mousePositionDisplay) {
+            mousePositionDisplay.style.display = 'block';
+            this.showMouseCoordinates = true;
         }
         
         // Coordinate grid toggle
@@ -6505,12 +6485,9 @@ export class GraphCreator {
         const themeToggle = document.getElementById('themeToggle');
         const mousePositionDisplay = document.getElementById('mousePositionDisplay');
         if (themeToggle) themeToggle.style.display = 'block';
-        // Only show mouse position display if it was previously visible (controlled by toggle)
+        // Mouse position display is always visible
         if (mousePositionDisplay) {
-            const mouseToggle = document.getElementById('mouseCoordinateToggle');
-            if (mouseToggle && mouseToggle.checked) {
-                mousePositionDisplay.style.display = 'block';
-            }
+            mousePositionDisplay.style.display = 'block';
         }
         
         // Hide edit controls
@@ -7321,9 +7298,9 @@ export class GraphCreator {
             }
         }
         
-        // Update utilities section display
+        // Update utilities section display (always visible)
         if (mousePositionDisplay && topDisplay) {
-            if (!this.showMouseCoordinates || !this.mouseOverCanvas || isDragging || !this.mouseCoordinates) {
+            if (!this.mouseOverCanvas || isDragging || !this.mouseCoordinates) {
                 mousePositionDisplay.style.display = 'none';
             } else {
                 mousePositionDisplay.style.display = 'block';
@@ -7789,12 +7766,9 @@ export class GraphCreator {
         const themeToggle = document.getElementById('themeToggle');
         const mousePositionDisplay = document.getElementById('mousePositionDisplay');
         if (themeToggle) themeToggle.style.display = 'block';
-        // Only show mouse position display if it was previously visible (controlled by toggle)
+        // Mouse position display is always visible
         if (mousePositionDisplay) {
-            const mouseToggle = document.getElementById('mouseCoordinateToggle');
-            if (mouseToggle && mouseToggle.checked) {
-                mousePositionDisplay.style.display = 'block';
-            }
+            mousePositionDisplay.style.display = 'block';
         }
         
         // Hide delete mode panel

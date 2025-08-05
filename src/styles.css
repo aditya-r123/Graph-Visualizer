@@ -851,12 +851,12 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #818cf8, #6366f1);
+    background: linear-gradient(90deg, #818cf8, #6366f1);
     color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
     color: white;
@@ -868,47 +868,50 @@ body {
 }
 
 .btn-secondary {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    border: 1px solid #1d4ed8;
+    color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: var(--border-color);
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    border-color: #1e40af;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
     transform: translateY(-1px);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #34d399, #10b981);
+    background: linear-gradient(90deg, #10b981, #059669);
     color: white;
 }
 
 .btn-success:hover:not(:disabled) {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(90deg, #059669, #047857);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
     color: white;
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #f87171, #ef4444);
+    background: linear-gradient(90deg, #fbbf24, #d97706);
     color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+    background: linear-gradient(90deg, #f59e0b, #b45309);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
     color: white;
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #fbbf24, #d97706);
+    background: linear-gradient(90deg, #fbbf24, #d97706);
     color: white !important;
 }
 
 .btn-warning:hover:not(:disabled) {
-    background: linear-gradient(135deg, #f59e0b, #b45309);
+    background: linear-gradient(90deg, #f59e0b, #b45309);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
     color: white !important;
@@ -916,20 +919,22 @@ body {
 
 /* Ensure stop search button text is always white */
 #stopSearch {
+    background: linear-gradient(90deg, #fbbf24, #d97706) !important;
     color: white !important;
 }
 
 #stopSearch:hover {
+    background: linear-gradient(90deg, #f59e0b, #b45309) !important;
     color: white !important;
 }
 
 .btn-info {
-    background: linear-gradient(135deg, #60a5fa, #2563eb);
+    background: linear-gradient(90deg, #fbbf24, #d97706);
     color: white;
 }
 
 .btn-info:hover:not(:disabled) {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    background: linear-gradient(90deg, #f59e0b, #b45309);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
     color: white;
@@ -2759,7 +2764,7 @@ body {
 }
 
 #deleteAllGraphs {
-    background: linear-gradient(135deg, #8b0000, #a52a2a) !important;
+    background: linear-gradient(90deg, #f87171, #ef4444) !important;
     color: white !important;
     border: none !important;
     font-size: 0.75rem !important;
@@ -2772,14 +2777,23 @@ body {
 }
 
 #deleteAllGraphs:hover:not(:disabled) {
-    background: linear-gradient(135deg, #a52a2a, #b22222) !important;
+    background: linear-gradient(90deg, #ef4444, #dc2626) !important;
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
 
 #clearGraph {
+    background: linear-gradient(90deg, #fbbf24, #d97706) !important;
+    color: white !important;
+    border: none !important;
     font-size: 0.75rem !important;
     padding: 0.4rem 0.6rem !important;
+}
+
+#clearGraph:hover:not(:disabled) {
+    background: linear-gradient(90deg, #f59e0b, #b45309) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 /* Consistent hover effects for all sidebar buttons */
@@ -3291,10 +3305,10 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: 1px solid #4f46e5;
     border-radius: 0;
-    color: var(--text-secondary);
+    color: white;
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -3303,6 +3317,20 @@ body {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.edge-type-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
 }
 
 .edge-type-option:first-child .edge-type-button {
@@ -3324,10 +3352,10 @@ body {
 }
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button {
-    background: var(--primary-color);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
     color: white;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
 }
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button i {
@@ -3335,15 +3363,19 @@ body {
 }
 
 .edge-type-button:hover {
-    background: var(--bg-tertiary);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+}
+
+.edge-type-button:hover::before {
+    left: 100%;
 }
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button:hover {
-    background: var(--primary-dark);
+    background: linear-gradient(90deg, #4f46e5, #4338ca);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.5);
 }
 
 /* Edge Style Buttons - Adjacent Style */
@@ -3451,10 +3483,10 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: 1px solid #4f46e5;
     border-radius: 0;
-    color: var(--text-secondary);
+    color: white;
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -3463,6 +3495,20 @@ body {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.edge-direction-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
 }
 
 .edge-direction-option:first-child .edge-direction-button {
@@ -3484,10 +3530,10 @@ body {
 }
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button {
-    background: var(--primary-color);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
     color: white;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
 }
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button i {
@@ -3495,15 +3541,19 @@ body {
 }
 
 .edge-direction-button:hover {
-    background: var(--bg-tertiary);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+}
+
+.edge-direction-button:hover::before {
+    left: 100%;
 }
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button:hover {
-    background: var(--primary-dark);
+    background: linear-gradient(90deg, #4f46e5, #4338ca);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.5);
 }
 
 
@@ -3843,23 +3893,23 @@ body {
 }
 
 .btn-magenta {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    border: 1px solid #6d28d9;
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: 1px solid #4f46e5;
     color: white;
-    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
 }
 
 .btn-magenta:hover:not(:disabled) {
-    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-    border-color: #5b21b6;
-    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    border-color: #4338ca;
+    box-shadow: 0 4px 8px rgba(129, 140, 248, 0.4);
     transform: translateY(-1px);
 }
 
 .btn-magenta:active:not(:disabled) {
-    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+    background: linear-gradient(90deg, #4f46e5, #4338ca);
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
 }
 
 .root-vertex-display {
@@ -3901,4 +3951,20 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+}
+
+/* Cancel button styling for edit and delete modes */
+#cancelVertexEdit,
+#cancelDeleteChanges {
+    background: linear-gradient(90deg, #f87171, #ef4444) !important;
+    color: white !important;
+    border: none !important;
+}
+
+#cancelVertexEdit:hover:not(:disabled),
+#cancelDeleteChanges:hover:not(:disabled) {
+    background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white !important;
 }
