@@ -96,6 +96,9 @@ export class GraphCreator {
         this.savedGraphs = [];
         this.lastSavedState = null;
         
+        // Loading animation
+        this.progressInterval = null;
+        
         // Shared confirmation system
         this.pendingAction = null; // 'clearGraph' or 'deleteAllGraphs'
         this.rootUserSelected = false; // Track if user has manually selected a root vertex
@@ -1334,14 +1337,17 @@ export class GraphCreator {
     
     hideLoadingAnimation() {
         console.log('hideLoadingAnimation called');
+        
+        // Clear any progress interval first
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+            console.log('Progress interval cleared');
+        }
+        
         if (this.loadingOverlay && this.loadingOverlay.parentNode) {
             console.log('Hiding loading overlay');
             this.loadingOverlay.style.opacity = '0';
-            // Clear any progress interval
-            if (this.progressInterval) {
-                clearInterval(this.progressInterval);
-                this.progressInterval = null;
-            }
             setTimeout(() => {
                 if (this.loadingOverlay && this.loadingOverlay.parentNode) {
                     this.loadingOverlay.remove();
@@ -1359,15 +1365,17 @@ export class GraphCreator {
         
         let progress = 0;
         const interval = setInterval(() => {
+            // Check if overlay still exists before updating progress
+            if (!this.loadingOverlay || !this.loadingOverlay.parentNode || !progressFill.parentNode) {
+                clearInterval(interval);
+                this.progressInterval = null;
+                return;
+            }
+            
             progress += Math.random() * 15; // Random progress increments
             if (progress > 90) progress = 90; // Don't go to 100% until actually done
             
             progressFill.style.width = `${progress}%`;
-            
-            // Stop animation when overlay is removed
-            if (!this.loadingOverlay || !this.loadingOverlay.parentNode) {
-                clearInterval(interval);
-            }
         }, 100);
         
         // Store interval for cleanup
@@ -1414,7 +1422,7 @@ export class GraphCreator {
     processFile(file, isFromModal = false) {
         console.log('Processing file:', file.name, file.size, 'bytes', 'isFromModal:', isFromModal);
         
-        // Validate file type
+        // Validate file type first before showing loading animation
         if (!file.name.toLowerCase().endsWith('.json')) {
             console.log('Invalid file type:', file.name);
             if (isFromModal) {
@@ -1425,24 +1433,34 @@ export class GraphCreator {
             return;
         }
         
-        // Show loading animation
+        // Show loading animation only for valid JSON files
         this.showLoadingAnimation(file.name);
         
-        // Set up timeout for file processing
+        // Track if operation has been cancelled
+        let operationCancelled = false;
+        
+        // Set up timeout for file processing (1.5 seconds as requested)
         const processingTimeout = setTimeout(() => {
-            console.log('File processing timeout - stopping loading animation');
+            console.log('File processing timeout (1.5s) - stopping loading animation');
+            operationCancelled = true;
             this.hideLoadingAnimation();
             if (isFromModal) {
                 this.showModalWarning('File processing timeout. The file must be an unedited, previously exported JSON from this website using the Export button with JSON format. Large or corrupted files may cause this issue.');
             } else {
                 this.updateStatus('File processing timeout. Please try a smaller file or ensure it is a valid exported JSON.');
             }
-        }, 1100);
+        }, 1500);
         
         const reader = new FileReader();
         reader.onload = (e) => {
             // Clear the timeout since file was read successfully
             clearTimeout(processingTimeout);
+            
+            // Check if operation was cancelled by timeout
+            if (operationCancelled) {
+                console.log('File read completed but operation was already cancelled by timeout');
+                return;
+            }
             
             console.log('File read successfully, content length:', e.target.result.length);
             try {
@@ -1458,6 +1476,15 @@ export class GraphCreator {
                 
                 // Add a minimum delay of 1 second for the loading animation
                 setTimeout(() => {
+                    // Clear the timeout since we're about to complete successfully
+                    clearTimeout(processingTimeout);
+                    
+                    // Check if operation was cancelled by timeout
+                    if (operationCancelled) {
+                        console.log('Import operation cancelled by timeout');
+                        return;
+                    }
+                    
                     // Import the graph
                     this.importGraph(graphData);
                     this.currentGraphId = null; // New graph, not linked to savedGraphs
@@ -1481,6 +1508,16 @@ export class GraphCreator {
                 
             } catch (error) {
                 console.error('Failed to parse graph file:', error);
+                
+                // Clear the timeout since parsing failed
+                clearTimeout(processingTimeout);
+                
+                // Check if operation was cancelled by timeout
+                if (operationCancelled) {
+                    console.log('JSON parsing error occurred but operation was already cancelled by timeout');
+                    return;
+                }
+                
                 // Stop loading animation immediately on error
                 this.hideLoadingAnimation();
                 console.log('Loading animation hidden due to parsing error');
@@ -1497,6 +1534,12 @@ export class GraphCreator {
         reader.onerror = (error) => {
             // Clear the timeout since error occurred
             clearTimeout(processingTimeout);
+            
+            // Check if operation was cancelled by timeout
+            if (operationCancelled) {
+                console.log('File read error occurred but operation was already cancelled by timeout');
+                return;
+            }
             
             console.error('File read error:', error);
             this.hideLoadingAnimation();
@@ -4478,7 +4521,7 @@ export class GraphCreator {
                 <h3><i class="fas fa-folder-open"></i> Load</h3>
                 <div class="load-options">
                     <div class="load-section">
-                        <h4><i class="fas fa-history"></i> Recent Graphs</h4>
+                        <h4><i class="fas fa-history"></i> All Saved Canvases</h4>
                         <div id="loadRecentGraphs" class="load-graphs-list">
                             ${this.savedGraphs.length === 0 ? '<p class="no-graphs">No saved graphs found</p>' : ''}
                         </div>
