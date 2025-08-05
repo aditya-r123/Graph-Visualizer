@@ -448,7 +448,7 @@
         </main>
 
         <!-- Instructions Overlay as Bootstrap Modal -->
-        <div class="modal fade show" id="instructionsOverlay" tabindex="-1" aria-modal="true" role="dialog" style="display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.95);" data-autodismiss="10">
+        <div class="modal fade" id="instructionsOverlay" tabindex="-1" aria-modal="true" role="dialog" style="display: none; align-items: center; justify-content: center; background: rgba(15,23,42,0.95);" data-autodismiss="10">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content instructions-content p-3" style="max-width: 1400px; max-height: 90vh; overflow-y: auto; position: relative;">
                     <button type="button" class="btn-close position-absolute end-0 top-0 m-2" id="closeInstructionsX" aria-label="Close" style="background-color: white; color: #8b5cf6; border: 2px solid #8b5cf6; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;"></button>
@@ -628,9 +628,10 @@
                                 <i class="fas fa-save"></i>
                                 Save
                             </button>
-                            <button id="loadGraph" class="btn btn-secondary flex-fill">
+                            <button id="loadGraph" class="btn btn-secondary flex-fill" title="Click to load or drag JSON files onto the canvas">
                                 <i class="fas fa-folder-open"></i>
                                 Load
+                                <small style="font-size: 0.7rem; opacity: 0.8; display: block; margin-top: -2px;">or drag files</small>
                             </button>
                         </div>
                         </div>

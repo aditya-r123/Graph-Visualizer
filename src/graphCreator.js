@@ -126,38 +126,40 @@ export class GraphCreator {
         // Theme and display settings
         this.timeDisplayMode = 'digital'; // 'digital' or 'analog'
         
-        // Initialize the application
+        // Initialize the application - prioritize UI rendering
         this.initializeCanvas();
         this.initializeEventListeners();
-        this.startAutoSave();
-        this.loadSavedGraphs();
-        this.setupExpandableSections();
-        this.setupMouseCoordinateTracking();
-        this.setupMinimalEditModeEvents();
-        this.updateInfo();
-        this.updateRootVertexDisplay();
-        this.updateTime();
         
-        // Set up time update interval
-        setInterval(() => this.updateTime(), 1000);
+        // Add drag and drop hint
+        this.addDragDropHint();
         
-        // Initial draw
+        // Initial draw - do this immediately for fast UI
         this.draw();
         this.lastVertexClick = null; // { vertexId, time }
         
-        // Ensure confirmation buttons are hidden initially
-        setTimeout(() => {
-            this.hideSharedConfirmation();
-        }, 0);
-        
-        // Also directly hide confirmation buttons to ensure they're hidden
+        // Hide confirmation buttons immediately
         const confirmationDiv = document.getElementById('sharedConfirmation');
         if (confirmationDiv) {
             confirmationDiv.style.setProperty('display', 'none', 'important');
         }
         
-        // Initialize EmailJS configuration
-        this.initializeEmailJS();
+        // Defer non-critical initialization to avoid blocking UI
+        requestAnimationFrame(() => {
+            this.startAutoSave();
+            this.loadSavedGraphs();
+            this.setupExpandableSections();
+            this.setupMouseCoordinateTracking();
+            this.setupMinimalEditModeEvents();
+            this.updateInfo();
+            this.updateRootVertexDisplay();
+            this.updateTime();
+            
+            // Set up time update interval
+            setInterval(() => this.updateTime(), 1000);
+            
+            // Initialize EmailJS configuration
+            this.initializeEmailJS();
+        });
     }
     
     async initializeEmailJS() {
@@ -323,12 +325,20 @@ export class GraphCreator {
     }
     
     initializeEventListeners() {
-        // Canvas events
-        this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-        this.canvas.addEventListener('contextmenu', (e) => this.handleRightClick(e));
+        // Canvas event listeners
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+        this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+        this.canvas.addEventListener('contextmenu', (e) => this.handleRightClick(e));
+        
+        // Drag and drop support for JSON files
+        this.canvas.addEventListener('dragover', (e) => this.handleDragOver(e));
+        this.canvas.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        this.canvas.addEventListener('drop', (e) => this.handleDrop(e));
+        
+        // Prevent default drag behaviors on the canvas
+        this.canvas.addEventListener('dragenter', (e) => e.preventDefault());
         
         // Control events
         document.getElementById('vertexSize').addEventListener('input', (e) => {
@@ -1125,15 +1135,245 @@ export class GraphCreator {
             return;
         }
         
-        console.log('File selected:', file.name, file.size, 'bytes');
+        this.processFile(file);
+        // Reset file input
+        event.target.value = '';
+    }
+    
+    // Drag and drop handlers
+    handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        
+        // Add drag-active class to canvas container
+        const canvasContainer = this.canvas.parentElement;
+        canvasContainer.classList.add('drag-active');
+        
+        // Show drag overlay
+        this.showDragOverlay();
+    }
+    
+    handleDragLeave(e) {
+        e.preventDefault();
+        
+        // Only hide overlay if we're leaving the canvas area completely
+        if (!this.canvas.contains(e.relatedTarget)) {
+            this.hideDragOverlay();
+            const canvasContainer = this.canvas.parentElement;
+            canvasContainer.classList.remove('drag-active');
+        }
+    }
+    
+    handleDrop(e) {
+        e.preventDefault();
+        this.hideDragOverlay();
+        
+        // Remove drag-active class
+        const canvasContainer = this.canvas.parentElement;
+        canvasContainer.classList.remove('drag-active');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            this.processFile(file);
+        }
+    }
+    
+    showDragOverlay() {
+        if (this.dragOverlay) {
+            this.dragOverlay.classList.add('show');
+            return;
+        }
+        
+        // Create drag overlay
+        this.dragOverlay = document.createElement('div');
+        this.dragOverlay.id = 'dragOverlay';
+        this.dragOverlay.innerHTML = `
+            <div class="drag-overlay-content">
+                <i class="fas fa-file-upload fa-3x"></i>
+                <h3>Drop JSON file here</h3>
+                <p>Release to load your graph</p>
+            </div>
+        `;
+        
+        // Add to canvas container
+        const canvasContainer = this.canvas.parentElement;
+        canvasContainer.style.position = 'relative';
+        canvasContainer.appendChild(this.dragOverlay);
+    }
+    
+    hideDragOverlay() {
+        if (this.dragOverlay) {
+            this.dragOverlay.classList.remove('show');
+        }
+    }
+    
+    addDragDropHint() {
+        // Create drag and drop hint
+        const hint = document.createElement('div');
+        hint.className = 'drop-zone-hint';
+        hint.innerHTML = '<i class="fas fa-upload"></i>Drop JSON files here';
+        
+        // Add to canvas container
+        const canvasContainer = this.canvas.parentElement;
+        canvasContainer.appendChild(hint);
+        
+        // Hide hint after 5 seconds
+        setTimeout(() => {
+            if (hint.parentNode) {
+                hint.style.opacity = '0';
+                setTimeout(() => {
+                    if (hint.parentNode) {
+                        hint.remove();
+                    }
+                }, 500);
+            }
+        }, 5000);
+    }
+    
+    setupModalDragAndDrop(dialog) {
+        const modalContent = document.getElementById('loadModalContent');
+        const dragDropZone = document.getElementById('modalDragDropZone');
+        
+        // Add drag and drop event listeners to the entire modal
+        modalContent.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        });
+        
+        modalContent.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+        });
+        
+        modalContent.addEventListener('drop', (e) => {
+            e.preventDefault();
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                this.processFile(file);
+                document.body.removeChild(dialog);
+            }
+        });
+        
+        // Prevent default drag behaviors
+        modalContent.addEventListener('dragenter', (e) => e.preventDefault());
+        
+        // Add specific drag and drop to the drag drop zone
+        dragDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+            dragDropZone.classList.add('drag-active');
+        });
+        
+        dragDropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            if (!dragDropZone.contains(e.relatedTarget)) {
+                dragDropZone.classList.remove('drag-active');
+            }
+        });
+        
+        dragDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropZone.classList.remove('drag-active');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                this.processFile(file);
+                document.body.removeChild(dialog);
+            }
+        });
+        
+        dragDropZone.addEventListener('dragenter', (e) => e.preventDefault());
+        
+        // Make the entire drag drop zone clickable
+        dragDropZone.addEventListener('click', (e) => {
+            // Don't trigger if clicking on the browse button (to avoid double-triggering)
+            if (e.target.id === 'browseFileBtn' || e.target.closest('#browseFileBtn')) {
+                return;
+            }
+            
+            // Trigger the file input click
+            const fileInput = document.getElementById('loadFileInputModal');
+            if (fileInput) {
+                fileInput.click();
+            }
+        });
+    }
+    
+    showLoadingAnimation(filename) {
+        // Create loading overlay
+        this.loadingOverlay = document.createElement('div');
+        this.loadingOverlay.id = 'loadingOverlay';
+        this.loadingOverlay.innerHTML = `
+            <div class="loading-content">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <h3>Loading Graph</h3>
+                <p>Processing ${filename}...</p>
+                <div class="loading-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(this.loadingOverlay);
+        
+        // Start progress animation
+        this.startProgressAnimation();
+    }
+    
+    hideLoadingAnimation() {
+        if (this.loadingOverlay && this.loadingOverlay.parentNode) {
+            this.loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                if (this.loadingOverlay && this.loadingOverlay.parentNode) {
+                    this.loadingOverlay.remove();
+                }
+            }, 300);
+        }
+    }
+    
+    startProgressAnimation() {
+        const progressFill = this.loadingOverlay.querySelector('.progress-fill');
+        if (!progressFill) return;
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15; // Random progress increments
+            if (progress > 90) progress = 90; // Don't go to 100% until actually done
+            
+            progressFill.style.width = `${progress}%`;
+            
+            // Stop animation when overlay is removed
+            if (!this.loadingOverlay || !this.loadingOverlay.parentNode) {
+                clearInterval(interval);
+            }
+        }, 100);
+        
+        // Store interval for cleanup
+        this.progressInterval = interval;
+    }
+    
+    processFile(file) {
+        console.log('Processing file:', file.name, file.size, 'bytes');
         
         // Validate file type
         if (!file.name.toLowerCase().endsWith('.json')) {
             console.log('Invalid file type:', file.name);
             this.updateStatus('Please select a JSON file');
-            event.target.value = '';
             return;
         }
+        
+        // Show loading animation
+        this.showLoadingAnimation(file.name);
         
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -1148,27 +1388,35 @@ export class GraphCreator {
                 }
                 
                 console.log('Graph data validated, importing...');
-                // Import the graph
-                this.importGraph(graphData);
-                this.currentGraphId = null; // New graph, not linked to savedGraphs
                 
-                this.updateStatus(`Successfully loaded graph from: ${file.name}`);
-                console.log('Graph imported successfully');
+                // Add a minimum delay of 1 second for the loading animation
+                setTimeout(() => {
+                    // Import the graph
+                    this.importGraph(graphData);
+                    this.currentGraphId = null; // New graph, not linked to savedGraphs
+                    
+                    // Hide loading animation
+                    this.hideLoadingAnimation();
+                    
+                    this.updateStatus(`Successfully loaded graph from: ${file.name}`);
+                    console.log('Graph imported successfully');
+                }, 1000);
+                
             } catch (error) {
                 console.error('Failed to parse graph file:', error);
+                this.hideLoadingAnimation();
                 this.updateStatus('Invalid JSON file format. Please select a valid graph file.');
             }
         };
         
         reader.onerror = (error) => {
             console.error('File read error:', error);
+            this.hideLoadingAnimation();
             this.updateStatus('Failed to read file');
         };
         
         console.log('Starting to read file...');
         reader.readAsText(file);
-        // Reset file input
-        event.target.value = '';
     }
     
     takeScreenshot() {
@@ -4134,7 +4382,7 @@ export class GraphCreator {
         const dialog = document.createElement('div');
         dialog.className = 'modal-overlay';
         dialog.innerHTML = `
-            <div class="modal-content">
+            <div class="modal-content" id="loadModalContent">
                 <h3><i class="fas fa-folder-open"></i> Load</h3>
                 <div class="load-options">
                     <div class="load-section">
@@ -4148,10 +4396,17 @@ export class GraphCreator {
                         <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
                             <i class="fas fa-info-circle"></i> Only JSON files can be imported
                         </div>
+                        <div class="drag-drop-zone" id="modalDragDropZone">
+                            <div class="drag-drop-content">
+                                <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                                <p>Drag and drop JSON files here</p>
+                                <p class="drag-drop-subtitle">or</p>
+                                <button class="btn btn-secondary" id="browseFileBtn">
+                                    <i class="fas fa-folder"></i> Browse Files
+                                </button>
+                            </div>
+                        </div>
                         <input type="file" id="loadFileInputModal" accept=".json" style="display: none;">
-                        <button class="btn btn-secondary" id="browseFileBtn">
-                            <i class="fas fa-folder"></i> Browse Files
-                        </button>
                     </div>
                 </div>
                 <div class="modal-buttons">
@@ -4169,6 +4424,9 @@ export class GraphCreator {
         
         // Populate recent graphs
         this.populateLoadRecentGraphs();
+        
+        // Add drag and drop functionality to the modal
+        this.setupModalDragAndDrop(dialog);
         
         // Add event listeners
         document.getElementById('browseFileBtn').addEventListener('click', () => {

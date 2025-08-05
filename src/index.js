@@ -29,6 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeBtnX) closeBtnX.addEventListener('click', hideInstructionsModal);
     if (gotItBtn) gotItBtn.addEventListener('click', hideInstructionsModal);
+    
+    // Check if this is the user's first visit and show instructions
+    const hasSeenInstructions = localStorage.getItem('hasSeenInstructions');
+    if (!hasSeenInstructions) {
+        // Defer showing instructions to avoid blocking initial UI render
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                showInstructionsModal();
+                localStorage.setItem('hasSeenInstructions', 'true');
+            }, 100);
+        });
+    }
 
     if (modalContent) {
         modalContent.addEventListener('click', function(e) {
@@ -568,26 +580,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize draggable panels after DOM is ready
     function initializeApp() {
-        initializeDraggablePanels();
-        loadPanelOrder();
+        // Initialize GraphCreator immediately for fast UI
+        new GraphCreator();
         
-        // Force a reflow after initialization to ensure proper positioning
-        setTimeout(() => {
-            const panels = document.querySelectorAll('.draggable-panel');
-            panels.forEach(panel => {
-                panel.offsetHeight; // Force reflow
+        // Defer panel initialization to avoid blocking UI
+        requestAnimationFrame(() => {
+            initializeDraggablePanels();
+            loadPanelOrder();
+            
+            // Force a reflow after initialization to ensure proper positioning
+            requestAnimationFrame(() => {
+                const panels = document.querySelectorAll('.draggable-panel');
+                panels.forEach(panel => {
+                    panel.offsetHeight; // Force reflow
+                });
             });
-        }, 50);
+        });
     }
     
     // Wait for DOM to be fully ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeApp);
     } else {
-        // DOM is already ready
-        setTimeout(initializeApp, 100);
+        // DOM is already ready - initialize immediately
+        initializeApp();
     }
-
-    // Now initialize the app
-    new GraphCreator();
 });
