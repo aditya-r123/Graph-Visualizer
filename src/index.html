@@ -137,7 +137,17 @@
                         </div>
                     </div>
                     
-
+                    <!-- Grid Lines Toggle -->
+                    <div class="control-group" style="margin-bottom: 0.5rem;">
+                        <label class="switch-label" for="coordinateGridToggle">
+                            <i class="fas fa-th"></i>
+                            Grid Lines
+                            <div class="switch-container">
+                                <input type="checkbox" id="coordinateGridToggle">
+                                <span class="switch-slider"></span>
+                            </div>
+                        </label>
+                    </div>
                     
                     <div class="control-group" id="gridDensityContainer" style="display: none;">
                         <label for="gridDensity">
@@ -159,18 +169,6 @@
                             <i class="fas fa-trash"></i>
                             Delete Mode
                         </button>
-                    </div>
-                    
-                    <!-- Grid Lines Toggle -->
-                    <div class="control-group" style="margin-bottom: 0.5rem;">
-                        <label class="switch-label" for="coordinateGridToggle">
-                            <i class="fas fa-th"></i>
-                            Grid Lines
-                            <div class="switch-container">
-                                <input type="checkbox" id="coordinateGridToggle">
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
                     </div>
                     </div>
                 </div>
@@ -651,38 +649,33 @@
 
                     
                     <div class="control-group" style="margin-bottom: 0.5rem;">
-                        <label class="switch-label" for="hideLabelsToggle">
-                            <i class="fas fa-tag"></i>
-                            Show Labels
-                            <div class="switch-container">
-                                <input type="checkbox" id="hideLabelsToggle" checked>
-                                <span class="switch-slider"></span>
-                            </div>
+                        <label>
+                            <i class="fas fa-eye"></i>
+                            Visibility
                         </label>
-                    </div>
-                    
-
-                    
-                    <div class="control-group" style="margin-bottom: 0.5rem;">
-                        <label class="switch-label" for="vertexVisibilityToggle">
-                            <i class="fas fa-circle"></i>
-                            Show Vertices
-                            <div class="switch-container">
-                                <input type="checkbox" id="vertexVisibilityToggle" checked>
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
-                    </div>
-                    
-                    <div class="control-group" style="margin-bottom: 0.5rem;">
-                        <label class="switch-label" for="edgeVisibilityToggle">
-                            <i class="fas fa-minus"></i>
-                            Show Edges
-                            <div class="switch-container">
-                                <input type="checkbox" id="edgeVisibilityToggle" checked>
-                                <span class="switch-slider"></span>
-                            </div>
-                        </label>
+                        <div class="visibility-buttons">
+                            <label class="visibility-option" for="labelsVisibilityToggle">
+                                <input type="checkbox" id="labelsVisibilityToggle" checked>
+                                <span class="visibility-button">
+                                    <i class="fas fa-tag"></i>
+                                    Labels
+                                </span>
+                            </label>
+                            <label class="visibility-option" for="verticesVisibilityToggle">
+                                <input type="checkbox" id="verticesVisibilityToggle" checked>
+                                <span class="visibility-button">
+                                    <i class="fas fa-circle"></i>
+                                    Vertices
+                                </span>
+                            </label>
+                            <label class="visibility-option" for="edgesVisibilityToggle">
+                                <input type="checkbox" id="edgesVisibilityToggle" checked>
+                                <span class="visibility-button">
+                                    <i class="fas fa-minus"></i>
+                                    Edges
+                                </span>
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="button-group mt-2">

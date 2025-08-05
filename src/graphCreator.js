@@ -467,47 +467,46 @@ export class GraphCreator {
             console.error('Grid density slider not found!');
         }
         
-        // Show labels toggle
-        const hideLabelsToggle = document.getElementById('hideLabelsToggle');
-        if (hideLabelsToggle) {
+        // Visibility toggles (Labels, Vertices, Edges)
+        const labelsVisibilityToggle = document.getElementById('labelsVisibilityToggle');
+        const verticesVisibilityToggle = document.getElementById('verticesVisibilityToggle');
+        const edgesVisibilityToggle = document.getElementById('edgesVisibilityToggle');
+        
+        if (labelsVisibilityToggle) {
             // Initialize the checkbox state
-            hideLabelsToggle.checked = !this.hideLabels;
-            hideLabelsToggle.addEventListener('change', (e) => {
+            labelsVisibilityToggle.checked = !this.hideLabels;
+            labelsVisibilityToggle.addEventListener('change', (e) => {
                 this.hideLabels = !e.target.checked;
                 this.hideEdgeWeights = !e.target.checked; // Also control edge weights
                 this.draw(); // Redraw to show/hide labels and edge weights
                 this.updateStatus(`Labels ${this.hideLabels ? 'hidden' : 'shown'}`);
             });
         } else {
-            console.error('Show labels toggle not found!');
+            console.error('Labels visibility toggle not found!');
         }
         
-        // Vertex visibility toggle
-        const vertexVisibilityToggle = document.getElementById('vertexVisibilityToggle');
-        if (vertexVisibilityToggle) {
+        if (verticesVisibilityToggle) {
             // Initialize the checkbox state
-            vertexVisibilityToggle.checked = this.showVertices;
-            vertexVisibilityToggle.addEventListener('change', (e) => {
+            verticesVisibilityToggle.checked = this.showVertices;
+            verticesVisibilityToggle.addEventListener('change', (e) => {
                 this.showVertices = e.target.checked;
                 this.draw(); // Redraw to show/hide vertices
                 this.updateStatus(`Vertices ${this.showVertices ? 'shown' : 'hidden'}`);
             });
         } else {
-            console.error('Vertex visibility toggle not found!');
+            console.error('Vertices visibility toggle not found!');
         }
         
-        // Edge visibility toggle
-        const edgeVisibilityToggle = document.getElementById('edgeVisibilityToggle');
-        if (edgeVisibilityToggle) {
+        if (edgesVisibilityToggle) {
             // Initialize the checkbox state
-            edgeVisibilityToggle.checked = this.showEdges;
-            edgeVisibilityToggle.addEventListener('change', (e) => {
+            edgesVisibilityToggle.checked = this.showEdges;
+            edgesVisibilityToggle.addEventListener('change', (e) => {
                 this.showEdges = e.target.checked;
                 this.draw(); // Redraw to show/hide edges
                 this.updateStatus(`Edges ${this.showEdges ? 'shown' : 'hidden'}`);
             });
         } else {
-            console.error('Edge visibility toggle not found!');
+            console.error('Edges visibility toggle not found!');
         }
         
         document.getElementById('hideInstructions').addEventListener('click', () => {
@@ -794,7 +793,6 @@ export class GraphCreator {
             console.error('Auto-save failed:', error);
         }
     }
-    
     loadSavedGraphs() {
         try {
             const savedGraphsData = localStorage.getItem('savedGraphs');
@@ -1553,7 +1551,6 @@ export class GraphCreator {
         reader.readAsText(file);
         console.log('=== PROCESS FILE END ===');
     }
-    
     takeScreenshot() {
         console.log('takeScreenshot function called');
         console.log('White box dimensions:', this.whiteBoxWidth, 'x', this.whiteBoxHeight);
@@ -2319,7 +2316,6 @@ export class GraphCreator {
             ctx.fillText(edge.weight.toString(), midX, midY);
         }
     }
-    
     drawArrowOnCanvas(ctx, edge) {
         const arrowLength = 15;
         const arrowAngle = Math.PI / 6; // 30 degrees
@@ -3097,7 +3093,6 @@ export class GraphCreator {
             });
         }
     }
-    
     handleMouseUp(e) {
         // Check if hold timer was active (user held long enough to potentially enter edit mode)
         const wasHoldTimerActive = this.holdTimerWasActive;
@@ -3891,7 +3886,6 @@ export class GraphCreator {
             this.saveGraph(true);
         }
     }
-    
     addSelfLoop(vertex, weight = null) {
         // Check if self-loop already exists
         const existingSelfLoop = this.edges.find(edge => 
@@ -4690,7 +4684,6 @@ export class GraphCreator {
         
         this.draw();
     }
-    
     showDistanceInfo(distance, path) {
         const distanceInfo = document.getElementById('distanceInfo');
         const pathInfo = document.getElementById('pathInfo');
@@ -5401,7 +5394,6 @@ export class GraphCreator {
                 break;
         }
     }
-
     drawVertex(vertex) {
         const ctx = this.ctx;
         
@@ -6191,7 +6183,6 @@ export class GraphCreator {
             this.updateStatus('No suitable vertex found - exiting edit mode');
         }
     }
-    
     // Apply all pending changes (deletions and modifications)
     applyPendingChanges() {
         // Apply deletions (they're already removed from data structures, just need to confirm)
@@ -6691,7 +6682,6 @@ export class GraphCreator {
             this.exitEditMode();
         }
     }
-
     setupMinimalEditModeEvents() {
         // Label input: immediate update with validation
         const labelInput = document.getElementById('editVertexLabel');
@@ -7302,10 +7292,22 @@ export class GraphCreator {
         
         // Update utilities section display (always visible)
         if (mousePositionDisplay && topDisplay) {
+            // Never hide the mouse position box
+            mousePositionDisplay.style.display = 'block';
             if (!this.mouseOverCanvas || isDragging || !this.mouseCoordinates) {
-                mousePositionDisplay.style.display = 'none';
+                // Show a fun message when mouse is off the canvas
+                const messages = [
+                    "Where did you go? 🕵️",
+                    "Off the grid!",
+                    "Exploring the unknown...",
+                    "Come back soon!",
+                    "Lost in space 🚀",
+                    "Mouse not found!",
+                    "Easter egg unlocked! 🥚"
+                ];
+                const msg = messages[Math.floor(Math.random() * messages.length)];
+                topDisplay.textContent = msg;
             } else {
-                mousePositionDisplay.style.display = 'block';
                 // Display coordinates in bottom-left origin system
                 const displayX = Math.round(this.mouseCoordinates.x);
                 const displayY = Math.round(this.mouseCoordinates.y);
@@ -7490,7 +7492,6 @@ export class GraphCreator {
             this.confirmClearGraph();
         }
     }
-    
     // Confirm delete all graphs
     confirmDeleteAllGraphs() {
         const graphCount = this.savedGraphs.length;

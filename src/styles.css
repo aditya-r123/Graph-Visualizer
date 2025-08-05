@@ -443,7 +443,7 @@ body {
 
 /* Auto-save wand icon styling */
 .control-group .d-flex .fas.fa-magic {
-    color: var(--primary-color);
+    color: #38bdf8; /* light blue */
     font-size: 0.875rem;
     width: 14px;
 }
@@ -3383,6 +3383,103 @@ body {
     background: linear-gradient(90deg, #4f46e5, #4338ca);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(129, 140, 248, 0.5);
+}
+
+/* Visibility Buttons - Independent Toggle Style */
+.visibility-buttons {
+    display: flex;
+    gap: 0;
+    margin-top: 0.5rem;
+}
+
+.visibility-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.visibility-option input[type="checkbox"] {
+    display: none;
+}
+
+.visibility-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(90deg, #6b7280, #4b5563);
+    border: 1px solid #374151;
+    border-radius: 0;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 42px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.visibility-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.visibility-option:first-child .visibility-button {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-right: 1px solid var(--border-color);
+}
+
+.visibility-option:last-child .visibility-button {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-left: none;
+}
+
+.visibility-button i {
+    font-size: 1.25rem;
+    margin-bottom: 0.15rem;
+    opacity: 0.7;
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button {
+    background: linear-gradient(90deg, #10b981, #059669);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button i {
+    opacity: 1;
+}
+
+.visibility-button:hover {
+    background: linear-gradient(90deg, #10b981, #059669);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.visibility-button:hover::before {
+    left: 100%;
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button:hover {
+    background: linear-gradient(90deg, #059669, #047857);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
 }
 
 /* Edge Style Buttons - Adjacent Style */
