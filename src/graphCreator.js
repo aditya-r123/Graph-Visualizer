@@ -1345,17 +1345,25 @@ export class GraphCreator {
             console.log('Progress interval cleared');
         }
         
-        if (this.loadingOverlay && this.loadingOverlay.parentNode) {
-            console.log('Hiding loading overlay');
-            this.loadingOverlay.style.opacity = '0';
-            setTimeout(() => {
-                if (this.loadingOverlay && this.loadingOverlay.parentNode) {
-                    this.loadingOverlay.remove();
-                    console.log('Loading overlay removed');
+        // Force immediate removal of loading overlay
+        if (this.loadingOverlay) {
+            console.log('Force removing loading overlay');
+            if (this.loadingOverlay.parentNode) {
+                this.loadingOverlay.parentNode.removeChild(this.loadingOverlay);
+                console.log('Loading overlay force removed from DOM');
+            }
+            this.loadingOverlay = null;
+        }
+        
+        // Also check for any loading overlays that might be stuck
+        const stuckOverlays = document.querySelectorAll('#loadingOverlay');
+        if (stuckOverlays.length > 0) {
+            console.log('Found stuck loading overlays, removing them');
+            stuckOverlays.forEach(overlay => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
                 }
-            }, 300);
-        } else {
-            console.log('No loading overlay to hide');
+            });
         }
     }
     
@@ -1410,6 +1418,14 @@ export class GraphCreator {
         }
         
         console.log('Modal warning displayed:', message);
+        
+        // Debug: Check if modal is still visible
+        const modalOverlay = document.querySelector('.modal-overlay');
+        if (modalOverlay) {
+            console.log('Modal overlay is still present and visible');
+        } else {
+            console.log('WARNING: Modal overlay is not found!');
+        }
     }
     
     hideModalWarning() {
@@ -1420,6 +1436,7 @@ export class GraphCreator {
     }
     
     processFile(file, isFromModal = false) {
+        console.log('=== PROCESS FILE START ===');
         console.log('Processing file:', file.name, file.size, 'bytes', 'isFromModal:', isFromModal);
         
         // Validate file type first before showing loading animation
@@ -1552,6 +1569,7 @@ export class GraphCreator {
         
         console.log('Starting to read file...');
         reader.readAsText(file);
+        console.log('=== PROCESS FILE END ===');
     }
     
     takeScreenshot() {
@@ -4570,7 +4588,9 @@ export class GraphCreator {
         
         document.getElementById('loadFileInputModal').addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                this.processFile(e.target.files[0], true);
+                const file = e.target.files[0];
+                console.log('Processing file from browse button:', file.name, file.size, 'bytes');
+                this.processFile(file, true);
             }
         });
         
