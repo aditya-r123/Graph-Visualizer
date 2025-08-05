@@ -441,6 +441,13 @@ body {
     width: 16px;
 }
 
+/* Auto-save wand icon styling */
+.control-group .d-flex .fas.fa-magic {
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    width: 14px;
+}
+
 .control-group small {
     font-size: 0.75rem;
     color: var(--text-muted);

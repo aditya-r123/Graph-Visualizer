@@ -125,6 +125,7 @@ export class GraphCreator {
         
         // Hide labels mode
         this.hideLabels = false;
+        this.hideEdgeWeights = false;
         
         // Theme and display settings
         this.timeDisplayMode = 'digital'; // 'digital' or 'analog'
@@ -473,8 +474,9 @@ export class GraphCreator {
             hideLabelsToggle.checked = !this.hideLabels;
             hideLabelsToggle.addEventListener('change', (e) => {
                 this.hideLabels = !e.target.checked;
-                this.draw(); // Redraw to show/hide labels
-                this.updateStatus(`Vertex labels ${this.hideLabels ? 'hidden' : 'shown'}`);
+                this.hideEdgeWeights = !e.target.checked; // Also control edge weights
+                this.draw(); // Redraw to show/hide labels and edge weights
+                this.updateStatus(`Labels ${this.hideLabels ? 'hidden' : 'shown'}`);
             });
         } else {
             console.error('Show labels toggle not found!');
@@ -1813,8 +1815,8 @@ export class GraphCreator {
             this.drawSimpleArrow(ctx, edge);
         }
         
-        // Draw weight if exists
-        if (edge.weight !== null && edge.weight !== '') {
+        // Draw weight if exists and not hidden
+        if (edge.weight !== null && edge.weight !== '' && !this.hideEdgeWeights) {
             const midX = (edge.from.x + edge.to.x) / 2;
             const midY = (edge.from.y + edge.to.y) / 2;
             
@@ -1956,8 +1958,8 @@ export class GraphCreator {
             this.drawArrowForScreenshot(ctx, edge);
         }
         
-        // Draw weight if exists
-        if (edge.weight !== null && edge.weight !== '') {
+        // Draw weight if exists and not hidden
+        if (edge.weight !== null && edge.weight !== '' && !this.hideEdgeWeights) {
             let midX, midY;
             if (edge.type === 'curved') {
                 // For curved edges, calculate the exact point on the curve at t=0.5 (middle)
@@ -2256,8 +2258,8 @@ export class GraphCreator {
             this.drawArrowOnCanvas(ctx, edge);
         }
         
-        // Draw weight if exists
-        if (edge.weight !== null && edge.weight !== '') {
+        // Draw weight if exists and not hidden
+        if (edge.weight !== null && edge.weight !== '' && !this.hideEdgeWeights) {
             let midX, midY;
             if (edge.type === 'curved') {
                 // For curved edges, calculate the exact point on the curve at t=0.5 (middle)
@@ -5222,8 +5224,8 @@ export class GraphCreator {
             this.drawArrow(edge);
         }
         
-        // Draw weight if exists
-        if (edge.weight !== null && edge.weight !== '') {
+        // Draw weight if exists and not hidden
+        if (edge.weight !== null && edge.weight !== '' && !this.hideEdgeWeights) {
             let midX, midY;
             if (edge.type === 'self-loop') {
                 // For self-loops, position weight to the right of the vertex
