@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rightSidebarPanels = [
             { id: 'saveExportSection', title: 'Save & Export', sidebar: 'right' },
             { id: 'canvasManagementSection', title: 'Canvas Management', sidebar: 'right' },
-            { id: 'utilitiesSection', title: 'Utilities', sidebar: 'right' }
+            { id: 'utilitiesSection', title: 'Settings', sidebar: 'right' }
         ];
         
         const allPanels = [...leftSidebarPanels, ...rightSidebarPanels];

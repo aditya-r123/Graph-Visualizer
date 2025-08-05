@@ -7290,7 +7290,7 @@ export class GraphCreator {
             }
         }
         
-        // Update utilities section display (always visible)
+        // Update settings section display (always visible)
         if (mousePositionDisplay && topDisplay) {
             // Never hide the mouse position box
             mousePositionDisplay.style.display = 'block';
