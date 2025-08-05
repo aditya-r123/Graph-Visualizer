@@ -1247,12 +1247,13 @@ export class GraphCreator {
         
         modalContent.addEventListener('drop', (e) => {
             e.preventDefault();
+            console.log('Modal content drop event triggered');
             
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 const file = files[0];
-                this.processFile(file);
-                document.body.removeChild(dialog);
+                console.log('Processing file from modal content drop:', file.name, file.size, 'bytes');
+                this.processFile(file, true);
             }
         });
         
@@ -1276,12 +1277,13 @@ export class GraphCreator {
         dragDropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dragDropZone.classList.remove('drag-active');
+            console.log('Drag drop zone drop event triggered');
             
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 const file = files[0];
-                this.processFile(file);
-                document.body.removeChild(dialog);
+                console.log('Processing file from drag drop zone:', file.name, file.size, 'bytes');
+                this.processFile(file, true);
             }
         });
         
@@ -1331,13 +1333,23 @@ export class GraphCreator {
     }
     
     hideLoadingAnimation() {
+        console.log('hideLoadingAnimation called');
         if (this.loadingOverlay && this.loadingOverlay.parentNode) {
+            console.log('Hiding loading overlay');
             this.loadingOverlay.style.opacity = '0';
+            // Clear any progress interval
+            if (this.progressInterval) {
+                clearInterval(this.progressInterval);
+                this.progressInterval = null;
+            }
             setTimeout(() => {
                 if (this.loadingOverlay && this.loadingOverlay.parentNode) {
                     this.loadingOverlay.remove();
+                    console.log('Loading overlay removed');
                 }
             }, 300);
+        } else {
+            console.log('No loading overlay to hide');
         }
     }
     
@@ -1362,21 +1374,76 @@ export class GraphCreator {
         this.progressInterval = interval;
     }
     
-    processFile(file) {
-        console.log('Processing file:', file.name, file.size, 'bytes');
+    showModalWarning(message) {
+        // Remove any existing warning
+        this.hideModalWarning();
+        
+        // Create warning element
+        this.modalWarning = document.createElement('div');
+        this.modalWarning.id = 'modalWarning';
+        this.modalWarning.className = 'modal-warning';
+        this.modalWarning.innerHTML = `
+            <div class="warning-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        // Find the modal content and insert warning in the right location
+        const modalContent = document.getElementById('loadModalContent');
+        const loadOptions = modalContent ? modalContent.querySelector('.load-options') : null;
+        
+        if (modalContent && loadOptions) {
+            // Insert warning at the top of the load options section
+            loadOptions.insertBefore(this.modalWarning, loadOptions.firstChild);
+        } else if (modalContent) {
+            // Fallback: insert at the end of modal content
+            modalContent.appendChild(this.modalWarning);
+        }
+        
+        console.log('Modal warning displayed:', message);
+    }
+    
+    hideModalWarning() {
+        if (this.modalWarning && this.modalWarning.parentNode) {
+            this.modalWarning.remove();
+            this.modalWarning = null;
+        }
+    }
+    
+    processFile(file, isFromModal = false) {
+        console.log('Processing file:', file.name, file.size, 'bytes', 'isFromModal:', isFromModal);
         
         // Validate file type
         if (!file.name.toLowerCase().endsWith('.json')) {
             console.log('Invalid file type:', file.name);
-            this.updateStatus('Please select a JSON file');
+            if (isFromModal) {
+                this.showModalWarning('Invalid file type. Please select a JSON file. The file must be an unedited, previously exported JSON from this website using the Export button with JSON format.');
+            } else {
+                this.updateStatus('Please select a JSON file');
+            }
             return;
         }
         
         // Show loading animation
         this.showLoadingAnimation(file.name);
         
+        // Set up timeout for file processing
+        const processingTimeout = setTimeout(() => {
+            console.log('File processing timeout - stopping loading animation');
+            this.hideLoadingAnimation();
+            if (isFromModal) {
+                this.showModalWarning('File processing timeout. The file must be an unedited, previously exported JSON from this website using the Export button with JSON format. Large or corrupted files may cause this issue.');
+            } else {
+                this.updateStatus('File processing timeout. Please try a smaller file or ensure it is a valid exported JSON.');
+            }
+        }, 1100);
+        
         const reader = new FileReader();
         reader.onload = (e) => {
+            // Clear the timeout since file was read successfully
+            clearTimeout(processingTimeout);
+            
             console.log('File read successfully, content length:', e.target.result.length);
             try {
                 const graphData = JSON.parse(e.target.result);
@@ -1398,21 +1465,46 @@ export class GraphCreator {
                     // Hide loading animation
                     this.hideLoadingAnimation();
                     
+                    // Clear any modal warnings
+                    if (isFromModal) {
+                        this.hideModalWarning();
+                        // Close the modal on successful import
+                        const modalOverlay = document.querySelector('.modal-overlay');
+                        if (modalOverlay) {
+                            document.body.removeChild(modalOverlay);
+                        }
+                    }
+                    
                     this.updateStatus(`Successfully loaded graph from: ${file.name}`);
                     console.log('Graph imported successfully');
                 }, 1000);
                 
             } catch (error) {
                 console.error('Failed to parse graph file:', error);
+                // Stop loading animation immediately on error
                 this.hideLoadingAnimation();
-                this.updateStatus('Invalid JSON file format. Please select a valid graph file.');
+                console.log('Loading animation hidden due to parsing error');
+                
+                if (isFromModal) {
+                    this.showModalWarning('Invalid JSON format. The file must be an unedited, previously exported JSON from this website using the Export button with JSON format. Please do not modify the exported file.');
+                    console.log('Modal warning displayed for invalid JSON');
+                } else {
+                    this.updateStatus('Invalid JSON file format. Please select a valid graph file.');
+                }
             }
         };
         
         reader.onerror = (error) => {
+            // Clear the timeout since error occurred
+            clearTimeout(processingTimeout);
+            
             console.error('File read error:', error);
             this.hideLoadingAnimation();
-            this.updateStatus('Failed to read file');
+            if (isFromModal) {
+                this.showModalWarning('File read error. Please ensure you are uploading an unedited, previously exported JSON file from this website using the Export button with JSON format.');
+            } else {
+                this.updateStatus('Failed to read file');
+            }
         };
         
         console.log('Starting to read file...');
@@ -4434,8 +4526,9 @@ export class GraphCreator {
         });
         
         document.getElementById('loadFileInputModal').addEventListener('change', (e) => {
-            this.handleFileLoad(e);
-            document.body.removeChild(dialog);
+            if (e.target.files.length > 0) {
+                this.processFile(e.target.files[0], true);
+            }
         });
         
         document.getElementById('cancelLoadDialogBtn').addEventListener('click', () => {

@@ -705,7 +705,7 @@ body {
 }
 
 .load-graphs-list {
-    max-height: 350px;
+    max-height: 200px;
     overflow-y: auto;
 }
 
@@ -713,13 +713,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.3rem 0.5rem;
+    padding: 0.25rem 0.4rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
     background: var(--bg-secondary);
     transition: var(--transition);
-    min-height: 32px;
+    min-height: 28px;
 }
 
 .load-graph-actions {
@@ -774,18 +774,18 @@ body {
 .load-graph-name {
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.12rem;
-    font-size: 0.92rem;
+    margin-bottom: 0.08rem;
+    font-size: 0.85rem;
 }
 
 .load-graph-details {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     color: var(--text-secondary);
-    margin-bottom: 0.12rem;
+    margin-bottom: 0.08rem;
 }
 
 .load-graph-time {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
 }
 
@@ -1775,6 +1775,45 @@ body {
     100% { transform: translateX(100%); }
 }
 
+/* Modal Warning Styles */
+.modal-warning {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin: 1rem 0;
+    animation: warningSlideIn 0.3s ease-out;
+}
+
+.warning-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-primary);
+}
+
+.warning-content i {
+    color: #ef4444;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.warning-content span {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+@keyframes warningSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .instructions-content {
     background: var(--bg-card);
     border-radius: var(--radius-xl);
@@ -2057,7 +2096,7 @@ body {
 
 .expand-icon {
     font-size: 0.875rem;
-    transition: var(--transition);
+    transition: transform 0.3s ease;
     color: var(--text-muted);
     margin-left: auto;
     flex-shrink: 0;
