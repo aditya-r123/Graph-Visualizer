@@ -3409,13 +3409,13 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0.5rem 0.75rem;
-    background: linear-gradient(90deg, #6b7280, #4b5563);
+    background: linear-gradient(90deg, #ef4444, #b91c1c); /* red by default */
     border: 1px solid #374151;
     border-radius: 0;
     color: white;
-    font-size: 0.875rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Remove background transition */
     cursor: pointer;
     min-height: 42px;
     width: 100%;
@@ -3424,6 +3424,25 @@ body {
     box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
     position: relative;
     overflow: hidden;
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button {
+    background: linear-gradient(90deg, #10b981, #059669); /* green when active */
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.visibility-button:hover {
+    background: linear-gradient(90deg, #f87171, #dc2626); /* lighter red on hover when unchecked */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button:hover {
+    background: linear-gradient(90deg, #059669, #047857); /* darker green on hover when checked */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
 }
 
 .visibility-button::before {
@@ -3455,31 +3474,12 @@ body {
     opacity: 0.7;
 }
 
-.visibility-option input[type="checkbox"]:checked + .visibility-button {
-    background: linear-gradient(90deg, #10b981, #059669);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-}
-
 .visibility-option input[type="checkbox"]:checked + .visibility-button i {
     opacity: 1;
 }
 
-.visibility-button:hover {
-    background: linear-gradient(90deg, #10b981, #059669);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-}
-
 .visibility-button:hover::before {
     left: 100%;
-}
-
-.visibility-option input[type="checkbox"]:checked + .visibility-button:hover {
-    background: linear-gradient(90deg, #059669, #047857);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
 }
 
 /* Edge Style Buttons - Adjacent Style */

@@ -7297,13 +7297,7 @@ export class GraphCreator {
             if (!this.mouseOverCanvas || isDragging || !this.mouseCoordinates) {
                 // Show a fun message when mouse is off the canvas
                 const messages = [
-                    "Where did you go? 🕵️",
-                    "Off the grid!",
-                    "Exploring the unknown...",
-                    "Come back soon!",
-                    "Lost in space 🚀",
-                    "Mouse not found!",
-                    "Easter egg unlocked! 🥚"
+                    "Mouse is off the canvas"
                 ];
                 const msg = messages[Math.floor(Math.random() * messages.length)];
                 topDisplay.textContent = msg;
