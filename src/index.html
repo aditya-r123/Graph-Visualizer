@@ -466,78 +466,50 @@
                     <button type="button" class="btn-close position-absolute end-0 top-0 m-2" id="closeInstructionsX" aria-label="Close" style="background-color: white; color: #8b5cf6; border: 2px solid #8b5cf6; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;"></button>
                     
                     <!-- Introduction -->
-                    <div class="mb-4 p-3" style="background: var(--bg-secondary); border-radius: var(--radius-md); border-left: 4px solid var(--primary-color);">
-                        <h4 class="mb-3" style="font-size: 1.4rem; font-weight: 600; color: var(--text-primary);"><i class="fas fa-info-circle"></i> About Graph Visualizer</h4>
-                        <p class="mb-2" style="font-size: 0.9rem; line-height: 1.4;">
-                            Graph Visualizer is the first modern UI graph creation web software, designed for creating, visualizing, and analyzing graphs with an intuitive interface. Perfect for students, researchers, and professionals working with graph theory, algorithms, and data visualization.
-                        </p>
-                        <p class="mb-2" style="font-size: 0.9rem; line-height: 1.4;">
-                            <strong>What makes us special:</strong> Modern UI that feels professional, integrated creation and visualization, comprehensive session management, and accessibility with no downloads required.
-                        </p>
+                    <div class="mb-3 p-3" style="background: var(--bg-secondary); border-radius: var(--radius-md); border-left: 4px solid var(--primary-color);">
+                        <h4 class="mb-2" style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary);"><i class="fas fa-info-circle"></i> Quick Start</h4>
                         <p class="mb-0" style="font-size: 0.9rem; line-height: 1.4;">
-                            <strong>Need help?</strong> Visit <strong>Utilities > Contact</strong> to reach out for support or feature requests.
+                            Create, visualize, and analyze graphs with an intuitive interface. <strong>Need help?</strong> Visit <strong>Utilities > Contact</strong>.
                         </p>
                     </div>
 
-                    <h3 class="text-center mb-4" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary);"><i class="fas fa-lightbulb"></i> How to Use</h3>
-
-                    <h5 class="mb-3" style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary);"><i class="fas fa-mouse"></i> Core Controls</h5>
-                    <div class="instruction-grid mb-4">
+                    <h5 class="mb-3" style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary);"><i class="fas fa-mouse"></i> Basic Controls</h5>
+                    <div class="instruction-grid mb-3">
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-mouse-pointer"></i></div>
-                            <div class="instruction-text"><strong>Add Vertex:</strong> Left-click on empty canvas area</div>
+                            <div class="instruction-text"><strong>Add:</strong> Left-click empty area</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-hand-pointer"></i></div>
-                            <div class="instruction-text"><strong>Move Vertex:</strong> Drag vertex to reposition (5px movement threshold)</div>
+                            <div class="instruction-text"><strong>Move:</strong> Drag vertex (5px threshold)</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-mouse"></i></div>
-                            <div class="instruction-text"><strong>Create Edge:</strong> Right-click on first vertex, then right-click on second vertex</div>
+                            <div class="instruction-text"><strong>Connect:</strong> Right-click two vertices</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-bullseye"></i></div>
-                            <div class="instruction-text"><strong>Set Target:</strong> Right-click on vertex to set as search target</div>
+                            <div class="instruction-text"><strong>Target:</strong> Right-click vertex for search</div>
                         </div>
                     </div>
 
-                    <h5 class="mb-3" style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary);"><i class="fas fa-edit"></i> Advanced Modes</h5>
-                    <div class="instruction-grid mb-4">
+                    <h5 class="mb-3" style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary);"><i class="fas fa-edit"></i> Advanced</h5>
+                    <div class="instruction-grid mb-3">
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-edit"></i></div>
-                            <div class="instruction-text"><strong>Edit Mode:</strong> Hold vertex for 2.5 seconds (red glow appears at 1s). Click other vertices to switch between them.</div>
+                            <div class="instruction-text"><strong>Edit:</strong> Hold vertex 2.5s (glow at 1s)</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-trash"></i></div>
-                            <div class="instruction-text"><strong>Delete Mode:</strong> Use "Delete Mode" button in Utilities panel to delete multiple vertices</div>
+                            <div class="instruction-text"><strong>Delete:</strong> Use "Delete Mode" in Utilities</div>
                         </div>
-                        <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="instruction-text"><strong>Important:</strong> Dragging prevents edit mode activation</div>
-                        </div>
-                    </div>
-
-                    <h5 class="mb-3" style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary);"><i class="fas fa-star"></i> Key Features</h5>
-                    <div class="instruction-grid mb-4">
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-search"></i></div>
-                            <div class="instruction-text"><strong>Graph Algorithms:</strong> Run BFS/DFS with visual pathfinding</div>
-                        </div>
-                        <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-ruler"></i></div>
-                            <div class="instruction-text"><strong>Distance Calculator:</strong> Measure shortest paths between vertices</div>
+                            <div class="instruction-text"><strong>Algorithms:</strong> BFS/DFS with visual pathfinding</div>
                         </div>
                         <div class="instruction-item d-flex align-items-center mb-2">
                             <div class="instruction-icon me-2"><i class="fas fa-save"></i></div>
-                            <div class="instruction-text"><strong>Save & Load:</strong> Auto-save and manual save/load functionality</div>
-                        </div>
-                        <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-camera"></i></div>
-                            <div class="instruction-text"><strong>Export:</strong> Screenshot and export graphs in multiple formats</div>
-                        </div>
-                        <div class="instruction-item d-flex align-items-center mb-2">
-                            <div class="instruction-icon me-2"><i class="fas fa-sliders-h"></i></div>
-                            <div class="instruction-text"><strong>Customization:</strong> Adjust vertex size, colors, edge types, and themes</div>
+                            <div class="instruction-text"><strong>Save/Export:</strong> Auto-save + manual options</div>
                         </div>
                     </div>
                     <button class="btn btn-secondary w-100" id="hideInstructions"><i class="fas fa-times"></i> Got it!</button>
