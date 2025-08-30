@@ -1952,11 +1952,11 @@ export class GraphCreator {
     
     drawEdgeForScreenshot(ctx, edge) {
         // Read edge data and recreate appearance
-        const edgeColor = edge.color || this.edgeColor;
+        const edgeColor = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
         const edgeWidth = edge.width || this.edgeWidth;
         const edgeFontSize = edge.fontSize || this.edgeFontSize;
         const edgeFontFamily = edge.fontFamily || this.edgeFontFamily;
-        const edgeFontColor = edge.fontColor || this.edgeFontColor;
+        const edgeFontColor = edge.fontColor || '#3b82f6'; // Blue color for weight labels loaded from JSON
         
         // Draw the edge line
         ctx.strokeStyle = edgeColor;
@@ -2109,7 +2109,7 @@ export class GraphCreator {
         }
         
         // Draw arrow
-        ctx.strokeStyle = edge.color || this.edgeColor;
+        ctx.strokeStyle = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
         ctx.lineWidth = edge.width || this.edgeWidth;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -2253,11 +2253,11 @@ export class GraphCreator {
     
     drawEdgeOnCanvas(ctx, edge) {
         // Use individual edge styling or fall back to global styling
-        const edgeColor = edge.color || this.edgeColor;
+        const edgeColor = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
         const edgeWidth = edge.width || this.edgeWidth;
         const edgeFontSize = edge.fontSize || this.edgeFontSize;
         const edgeFontFamily = edge.fontFamily || this.edgeFontFamily;
-        const edgeFontColor = edge.fontColor || this.edgeFontColor;
+        const edgeFontColor = edge.fontColor || '#3b82f6'; // Blue color for weight labels loaded from JSON
         
         ctx.strokeStyle = edgeColor;
         ctx.lineWidth = edgeWidth;
@@ -2408,7 +2408,7 @@ export class GraphCreator {
         }
         
         // Draw arrow
-        ctx.strokeStyle = edge.color || this.edgeColor;
+        ctx.strokeStyle = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
         ctx.lineWidth = edge.width || this.edgeWidth;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -2496,11 +2496,6 @@ export class GraphCreator {
                 edgeIndex: e.edgeIndex,
                 style: e.style,
                 controlPoint: e.controlPoint,
-                color: e.color,
-                width: e.width,
-                fontSize: e.fontSize,
-                fontFamily: e.fontFamily,
-                fontColor: e.fontColor,
                 lineStyle: e.lineStyle || 'solid'
             })),
             nextVertexId: this.nextVertexId,
@@ -2561,11 +2556,6 @@ export class GraphCreator {
                 edgeIndex: e.edgeIndex,
                 style: e.style,
                 controlPoint: e.controlPoint,
-                color: e.color,
-                width: e.width,
-                fontSize: e.fontSize,
-                fontFamily: e.fontFamily,
-                fontColor: e.fontColor,
                 lineStyle: e.lineStyle || 'solid'
             };
         });
@@ -2579,11 +2569,11 @@ export class GraphCreator {
         this.vertexLabelSize = graphData.vertexLabelSize || 14;
         this.vertexFontFamily = graphData.vertexFontFamily || 'Inter';
         this.vertexFontColor = graphData.vertexFontColor || '#ffffff';
-        this.edgeColor = graphData.edgeColor || '#6366f1';
+        this.edgeColor = graphData.edgeColor || '#8b5cf6'; // Purple color for edges loaded from JSON
         this.edgeWidth = graphData.edgeWidth || 3;
         this.edgeFontSize = graphData.edgeFontSize || 14;
         this.edgeFontFamily = graphData.edgeFontFamily || 'Inter';
-        this.edgeFontColor = graphData.edgeFontColor || '#06b6d4';
+        this.edgeFontColor = graphData.edgeFontColor || '#3b82f6'; // Blue color for weight labels loaded from JSON
         if (graphData.theme && graphData.theme !== this.currentTheme) {
             this.currentTheme = graphData.theme;
             document.documentElement.setAttribute('data-theme', this.currentTheme);
@@ -4955,11 +4945,11 @@ export class GraphCreator {
         }
         
         // Determine edge styling based on individual properties
-        let edgeColor = edge.color || this.edgeColor;
+        let edgeColor = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
         let edgeWidth = edge.width || this.edgeWidth;
         let edgeFontSize = edge.fontSize || this.edgeFontSize;
         let edgeFontFamily = edge.fontFamily || this.edgeFontFamily;
-        let edgeFontColor = edge.fontColor || this.edgeFontColor;
+        let edgeFontColor = edge.fontColor || '#3b82f6'; // Blue color for weight labels loaded from JSON
         
         if (this.editModeElement === edge && this.editModeType === 'edge') {
             edgeColor = '#fbbf24'; // Yellow highlight for selected edge
@@ -4988,7 +4978,7 @@ export class GraphCreator {
             }
             
             // Draw the base edge in normal color
-            this.ctx.strokeStyle = edge.color || this.edgeColor;
+            this.ctx.strokeStyle = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
         this.ctx.lineWidth = edgeWidth;
         this.ctx.lineCap = 'round';
         this.ctx.beginPath();
@@ -5755,7 +5745,7 @@ export class GraphCreator {
         }
         
         // Draw arrow
-        this.ctx.strokeStyle = edge.color || this.edgeColor;
+        this.ctx.strokeStyle = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
         this.ctx.lineWidth = edge.width || this.edgeWidth;
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
