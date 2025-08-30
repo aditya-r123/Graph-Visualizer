@@ -7470,11 +7470,24 @@ export class GraphCreator {
         try {
             console.log('Opening contact modal...');
             
-            // Reset form
+            // Reset form and clear all autofill data
             const form = document.getElementById('contactForm');
             if (form) {
                 form.reset();
-                console.log('Form reset successfully');
+                
+                // Aggressively clear all input values to prevent autofill
+                const allInputs = form.querySelectorAll('input, textarea');
+                allInputs.forEach(input => {
+                    input.value = '';
+                    input.setAttribute('value', '');
+                    input.removeAttribute('value');
+                    // Clear any browser autofill data
+                    input.style.setProperty('-webkit-autofill', 'none', 'important');
+                    input.style.setProperty('-webkit-autofill-color', 'transparent', 'important');
+                    input.style.setProperty('-webkit-autofill-background-color', 'transparent', 'important');
+                });
+                
+                console.log('Form reset and autofill data cleared successfully');
             } else {
                 console.error('Contact form not found');
             }
@@ -7514,25 +7527,37 @@ export class GraphCreator {
             setTimeout(() => {
                 console.log('Configuring modal inputs for interaction...');
                 
-                // Focus on first input after modal is shown
-                const firstInput = modalElement.querySelector('#contactName');
-                if (firstInput) {
-                    console.log('First input found:', firstInput);
-                    firstInput.focus();
-                    // Ensure the input is not disabled or readonly
-                    firstInput.disabled = false;
-                    firstInput.readOnly = false;
-                    // Force the input to be interactive
-                    firstInput.style.pointerEvents = 'auto';
-                    firstInput.style.userSelect = 'text';
-                    firstInput.style.cursor = 'text';
-                    firstInput.style.opacity = '1';
-                    firstInput.style.background = 'var(--bg-primary)';
-                    firstInput.style.color = 'var(--text-primary)';
-                    console.log('First input configured for interaction');
-                } else {
-                    console.error('First input not found');
-                }
+                // Clear any remaining autofill data
+                const modalInputs = modalElement.querySelectorAll('input, textarea');
+                modalInputs.forEach(input => {
+                    if (input.value) {
+                        input.value = '';
+                        input.setAttribute('value', '');
+                    }
+                });
+                
+                // Small delay to ensure autofill suggestions don't appear
+                setTimeout(() => {
+                    // Focus on first input after modal is shown
+                    const firstInput = modalElement.querySelector('#contactName');
+                    if (firstInput) {
+                        console.log('First input found:', firstInput);
+                        firstInput.focus();
+                        // Ensure the input is not disabled or readonly
+                        firstInput.disabled = false;
+                        firstInput.readOnly = false;
+                        // Force the input to be interactive
+                        firstInput.style.pointerEvents = 'auto';
+                        firstInput.style.userSelect = 'text';
+                        firstInput.style.cursor = 'text';
+                        firstInput.style.opacity = '1';
+                        firstInput.style.background = 'var(--bg-primary)';
+                        firstInput.style.color = 'var(--text-primary)';
+                        console.log('First input configured for interaction');
+                    } else {
+                        console.error('First input not found');
+                    }
+                }, 100); // Small delay to prevent autofill flash
                 
                 // Ensure all form inputs are interactive
                 const allInputs = modalElement.querySelectorAll('input, textarea');

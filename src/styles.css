@@ -2915,107 +2915,74 @@ body {
     z-index: 9999 !important;
 }
 
+/* Completely disable ALL hover effects for the entire contact modal */
+#contactModal *:hover,
+#contactModal *:active,
+#contactModal *:focus {
+    transform: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background-color: inherit !important;
+    color: inherit !important;
+    border-color: inherit !important;
+    transition: none !important;
+    animation: none !important;
+}
+
 #contactModal .modal-dialog {
     z-index: 10000 !important;
 }
 
 #contactModal .modal-content {
     background: var(--bg-secondary) !important;
-    border: 3px solid var(--primary-color) !important;
+    border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.1) !important;
-    border-radius: 16px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 8px !important;
     position: relative !important;
     z-index: 10001 !important;
     overflow: hidden !important;
 }
 
-#contactModal .modal-content::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%), 
-                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%) !important;
-    pointer-events: none !important;
-    z-index: -1 !important;
-}
-
 #contactModal .modal-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
-    border-bottom: 2px solid var(--primary-color) !important;
-    border-radius: 16px 16px 0 0 !important;
-    padding: 2rem 1.5rem 1.5rem 1.5rem !important;
-    position: relative !important;
-}
-
-#contactModal .modal-header::after {
-    content: '' !important;
-    position: absolute !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 2px !important;
-    background: linear-gradient(90deg, transparent 0%, var(--primary-color) 50%, transparent 100%) !important;
+    background: var(--bg-tertiary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1.5rem !important;
 }
 
 #contactModal .modal-title {
-    color: #ffffff !important;
+    color: var(--text-primary) !important;
     display: flex !important;
     align-items: center !important;
-    gap: 0.75rem !important;
-    font-weight: 700 !important;
-    font-size: 1.5rem !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    gap: 0.5rem !important;
+    font-weight: 600 !important;
+    font-size: 1.25rem !important;
 }
 
 #contactModal .modal-title i {
-    color: #ffffff !important;
-    font-size: 1.75rem !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    color: var(--primary-color) !important;
+    font-size: 1.25rem !important;
 }
 
 #contactModal .modal-body {
     background: var(--bg-secondary) !important;
-    padding: 2rem 1.5rem !important;
-    position: relative !important;
+    padding: 1.5rem !important;
 }
 
 #contactModal .contact-form-section h6 {
-    color: var(--text-primary) !important;
-    font-size: 1.1rem !important;
-    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
     margin-bottom: 1.5rem !important;
     text-align: center !important;
-    padding: 0.75rem !important;
-    background: var(--bg-tertiary) !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--border-color) !important;
-}
-
-#contactModal .contact-form-section h6 i {
-    color: var(--primary-color) !important;
-    margin-right: 0.5rem !important;
 }
 
 #contactModal .modal-footer {
     background: var(--bg-tertiary) !important;
-    border-top: 2px solid var(--primary-color) !important;
-    border-radius: 0 0 16px 16px !important;
+    border-top: 1px solid var(--border-color) !important;
+    border-radius: 0 0 8px 8px !important;
     padding: 1.5rem !important;
-    position: relative !important;
-}
-
-#contactModal .modal-footer::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 2px !important;
-    background: linear-gradient(90deg, transparent 0%, var(--primary-color) 50%, transparent 100%) !important;
 }
 
 #contactModal .form-label {
@@ -3023,9 +2990,9 @@ body {
     display: flex !important;
     align-items: center !important;
     gap: 0.5rem !important;
-    font-weight: 600 !important;
-    margin-bottom: 0.75rem !important;
-    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 0.875rem !important;
 }
 
 /* Prevent auto-fill styling glitch */
@@ -3038,23 +3005,27 @@ body {
     transition: background-color 5000s ease-in-out 0s !important;
 }
 
+/* Additional autofill prevention */
+#contactModal input,
+#contactModal textarea {
+    -webkit-autocomplete: off !important;
+    -moz-autocomplete: off !important;
+    autocomplete: off !important;
+}
+
 /* Enhanced form spacing */
 #contactModal .mb-3 {
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 1rem !important;
 }
 
 #contactModal .form-label i {
-    color: var(--primary-color) !important;
-    width: 18px !important;
-    text-align: center !important;
-    font-size: 1rem !important;
-}
-
-#contactModal .form-label i {
-    color: var(--primary-color) !important;
+    color: var(--text-secondary) !important;
     width: 16px !important;
     text-align: center !important;
+    font-size: 0.875rem !important;
 }
+
+/* Duplicate removed */
 
 /* Critical fix: Override any inherited styles for form controls */
 #contactModal .form-control,
@@ -3062,13 +3033,12 @@ body {
 #contactModal input[type="email"],
 #contactModal textarea {
     width: 100% !important;
-    padding: 1rem !important;
+    padding: 0.75rem !important;
     background: var(--bg-primary) !important;
-    border: 2px solid var(--border-color) !important;
-    border-radius: 10px !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
     color: var(--text-primary) !important;
-    font-size: 0.95rem !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    font-size: 0.875rem !important;
     position: relative !important;
     z-index: 10002 !important;
     cursor: text !important;
@@ -3081,7 +3051,6 @@ body {
     /* Override any inherited background colors */
     background-color: var(--bg-primary) !important;
     background-image: none !important;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 #contactModal .form-control:focus,
@@ -3090,11 +3059,20 @@ body {
 #contactModal textarea:focus {
     background: var(--bg-primary) !important;
     border-color: var(--primary-color) !important;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-    color: var(--text-primary) !important;
     outline: none !important;
     background-color: var(--bg-primary) !important;
-    transform: translateY(-1px) !important;
+}
+
+/* Completely disable all hover effects for contact modal form inputs */
+#contactModal .form-control:hover,
+#contactModal input[type="text"]:hover,
+#contactModal input[type="email"]:hover,
+#contactModal textarea:hover {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 #contactModal .form-control::placeholder,
@@ -3113,18 +3091,20 @@ body {
 
 /* Ensure close button is visible and functional */
 #contactModal .btn-close {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") !important;
-    background-size: 18px !important;
-    opacity: 0.9 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") !important;
+    background-size: 16px !important;
+    opacity: 0.7 !important;
     filter: none !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border-radius: 50% !important;
-    padding: 0.5rem !important;
-    width: 32px !important;
-    height: 32px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+}
+
+/* Completely disable all hover effects for contact modal close button */
+#contactModal .btn-close:hover,
+#contactModal .btn-close:active,
+#contactModal .btn-close:focus {
+    opacity: 0.7 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
 }
 
 /* Hover effect removed from close button */
@@ -5861,6 +5841,9 @@ body {
     appearance: textfield !important;
     /* Ensure proper focus behavior */
     outline: none !important;
+    /* Disable all transitions and animations */
+    transition: none !important;
+    animation: none !important;
 }
 
 /* Override any potential Bootstrap form-control styles */
@@ -5905,22 +5888,108 @@ body {
 #contactModal .btn {
     all: unset !important;
     display: inline-block !important;
-    padding: 0.75rem 1.5rem !important;
+    padding: 0.5rem 1rem !important;
     margin: 0.25rem !important;
     background: var(--primary-color) !important;
     background-color: var(--primary-color) !important;
     color: #ffffff !important;
-    border: 2px solid var(--primary-color) !important;
-    border-radius: 10px !important;
+    border: none !important;
+    border-radius: 6px !important;
     font-family: inherit !important;
-    font-size: 0.95rem !important;
-    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
     text-align: center !important;
     text-decoration: none !important;
     cursor: pointer !important;
-    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3) !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
-    /* Transition removed to prevent hover effects */
+}
+
+/* Completely disable all hover effects for contact modal buttons */
+#contactModal .btn:hover,
+#contactModal .btn:hover:not(:disabled),
+#contactModal .btn:active,
+#contactModal .btn:focus {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    border: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Override global button hover effects specifically for contact modal */
+#contactModal .btn-primary:hover,
+#contactModal .btn-primary:hover:not(:disabled),
+#contactModal .btn-primary:active,
+#contactModal .btn-primary:focus {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    border: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Override any gradient backgrounds on hover */
+#contactModal .btn-primary:hover,
+#contactModal .btn-primary:hover:not(:disabled) {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    background-image: none !important;
+    background-gradient: none !important;
+}
+
+/* Ultra-specific override for the Send Message button */
+#contactModal button[form="contactForm"]:hover,
+#contactModal button[form="contactForm"]:hover:not(:disabled),
+#contactModal button[form="contactForm"]:active,
+#contactModal button[form="contactForm"]:focus {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    border: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Override any inherited button styles */
+#contactModal button[type="submit"]:hover,
+#contactModal button[type="submit"]:hover:not(:disabled),
+#contactModal button[type="submit"]:active,
+#contactModal button[type="submit"]:focus {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    border: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Nuclear option: Override ALL button hover effects in contact modal */
+#contactModal button:hover,
+#contactModal button:hover:not(:disabled),
+#contactModal button:active,
+#contactModal button:focus,
+#contactModal .btn:hover,
+#contactModal .btn:hover:not(:disabled),
+#contactModal .btn:active,
+#contactModal .btn:focus {
+    background: inherit !important;
+    background-color: inherit !important;
+    background-image: none !important;
+    color: inherit !important;
+    border: inherit !important;
+    transform: none !important;
+    box-shadow: inherit !important;
+    text-shadow: inherit !important;
+    transition: none !important;
+    animation: none !important;
 }
 
 /* Hover effects removed from contact panel buttons */
@@ -5929,8 +5998,20 @@ body {
     background: var(--bg-tertiary) !important;
     background-color: var(--bg-tertiary) !important;
     color: var(--text-primary) !important;
-    border: 2px solid var(--border-color) !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Completely disable all hover effects for contact modal secondary buttons */
+#contactModal .btn-secondary:hover,
+#contactModal .btn-secondary:hover:not(:disabled),
+#contactModal .btn-secondary:active,
+#contactModal .btn-secondary:focus {
+    background: var(--bg-tertiary) !important;
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 /* Ensure modal backdrop doesn't interfere */
