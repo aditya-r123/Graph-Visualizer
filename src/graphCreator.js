@@ -127,12 +127,18 @@ export class GraphCreator {
         this.hideLabels = false;
         this.hideEdgeWeights = false;
         
+        // Status message visibility
+        this.statusMessageVisible = localStorage.getItem('statusMessageVisible') !== 'false'; // Default to true unless explicitly set to false
+        
         // Theme and display settings
         this.timeDisplayMode = 'digital'; // 'digital' or 'analog'
         
         // Initialize the application - prioritize UI rendering
         this.initializeCanvas();
         this.initializeEventListeners();
+        
+        // Set initial status panel visibility
+        this.setStatusMessageVisibility(this.statusMessageVisible);
         
         // Add drag and drop hint
         this.addDragDropHint();
@@ -509,6 +515,18 @@ export class GraphCreator {
             console.error('Edges visibility toggle not found!');
         }
         
+        // Status message toggle
+        const statusMessageToggle = document.getElementById('statusMessageToggle');
+        if (statusMessageToggle) {
+            // Initialize the checkbox state
+            statusMessageToggle.checked = this.statusMessageVisible;
+            statusMessageToggle.addEventListener('change', (e) => {
+                this.setStatusMessageVisibility(e.target.checked);
+            });
+        } else {
+            console.error('Status message toggle not found!');
+        }
+        
         document.getElementById('hideInstructions').addEventListener('click', () => {
             this.hideInstructions();
         });
@@ -836,7 +854,7 @@ export class GraphCreator {
                 <div class="saved-graph-info">
                     <div class="saved-graph-name" data-index="${index}">${savedGraph.name}</div>
                     <div class="saved-graph-details">${savedGraph.vertices} vertices, ${savedGraph.edges} edges</div>
-                    <div class="saved-graph-time">Last edited: ${new Date(savedGraph.timestamp).toLocaleString()}</div>
+                    <div class="saved-graph-time">${new Date(savedGraph.timestamp).toLocaleString()}</div>
                 </div>
                 <div class="saved-graph-actions">
                     ${savedGraph.pendingDelete
@@ -4809,10 +4827,41 @@ export class GraphCreator {
     }
     
     updateStatus(message) {
+        // Only update status if messages are enabled
+        if (!this.statusMessageVisible) return;
+        
         const statusMessageTop = document.getElementById('statusMessageTop');
         if (statusMessageTop) {
             statusMessageTop.textContent = message;
         }
+    }
+    
+    setStatusMessageVisibility(visible) {
+        this.statusMessageVisible = visible;
+        const statusPanel = document.getElementById('statusPanel');
+        const statusMessageTop = document.getElementById('statusMessageTop');
+        
+        if (statusPanel) {
+            if (visible) {
+                // Show the panel
+                statusPanel.style.display = 'block';
+                if (statusMessageTop) {
+                    statusMessageTop.textContent = 'Status messages enabled';
+                    // Clear after a short delay
+                    setTimeout(() => {
+                        if (this.statusMessageVisible) {
+                            statusMessageTop.textContent = 'Ready to create your graph!';
+                        }
+                    }, 1000);
+                }
+            } else {
+                // Hide the panel
+                statusPanel.style.display = 'none';
+            }
+        }
+        
+        // Save preference to localStorage
+        localStorage.setItem('statusMessageVisible', visible.toString());
     }
     
     updateTime() {

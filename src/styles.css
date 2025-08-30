@@ -370,7 +370,7 @@ body {
 
 .sidebar-content {
     flex: 1;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -764,13 +764,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 0.25rem 0.4rem;
+    padding: 0.2rem 0.35rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.12rem;
     background: var(--bg-secondary);
     transition: var(--transition);
-    min-height: 28px;
+    min-height: 24px;
     /* Ensure proper text wrapping */
     min-height: fit-content;
     flex-wrap: nowrap;
@@ -821,6 +821,21 @@ body {
     border-color: #60a5fa !important;
 }
 
+/* Fix icon centering in load modal action buttons */
+.load-graph-actions .btn-sm {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.375rem !important;
+    width: 32px !important;
+    height: 32px !important;
+}
+
+.load-graph-actions .btn-sm i {
+    margin: 0 !important;
+    font-size: 0.75rem;
+}
+
 
 
 .load-graph-info {
@@ -832,31 +847,31 @@ body {
 .load-graph-name {
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.08rem;
+    margin-bottom: 0.06rem;
     word-wrap: break-word;
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-    line-height: 1.2;
+    line-height: 1.1;
     max-width: 100%;
     /* Responsive font sizing for very long names */
-    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
 }
 
 .load-graph-details {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     color: var(--text-secondary);
-    margin-bottom: 0.08rem;
+    margin-bottom: 0.06rem;
 }
 
 .load-graph-time {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     color: var(--text-muted);
 }
 
 .load-graph-btn {
-    padding: 0.3rem 0.7rem;
-    font-size: 0.78rem;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
 }
 
 .no-graphs {
@@ -1032,21 +1047,21 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.35rem;
 }
 
 .saved-graph-item {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    padding: 0.5rem;
+    padding: 0.35rem 0.4rem;
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     position: relative;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.2rem;
     /* Ensure proper text wrapping */
     min-height: fit-content;
     flex-wrap: nowrap;
@@ -1055,15 +1070,15 @@ body {
 .saved-graph-name {
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 0.12rem;
+    margin-bottom: 0.08rem;
     word-wrap: break-word;
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-    line-height: 1.2;
+    line-height: 1.1;
     max-width: 100%;
     /* Responsive font sizing for very long names */
-    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+    font-size: clamp(0.65rem, 2.5vw, 0.75rem);
 }
 
 .saved-graph-details {
@@ -1072,10 +1087,10 @@ body {
 }
 
 .saved-graph-time {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     color: var(--text-muted);
     font-style: italic;
-    margin-top: 0.12rem;
+    margin-top: 0.08rem;
 }
 
 .saved-graph-actions button {
@@ -1083,10 +1098,10 @@ body {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 0.18rem 0.3rem;
+    padding: 0.15rem 0.25rem;
     border-radius: var(--radius-sm);
     transition: var(--transition);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
 }
 
 .saved-graph-item:hover {
@@ -1120,27 +1135,30 @@ body {
 .saved-graph-name {
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 0.12rem;
+    margin-bottom: 0.08rem;
     word-wrap: break-word;
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-    line-height: 1.2;
+    line-height: 1.1;
     max-width: 100%;
     /* Responsive font sizing for very long names */
-    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+    font-size: clamp(0.65rem, 2.5vw, 0.75rem);
 }
 
 .saved-graph-details {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
 }
 
 .saved-graph-time {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     color: var(--text-muted);
     font-style: italic;
-    margin-top: 0.12rem;
+    margin-top: 0.08rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .saved-graph-actions {
@@ -3370,7 +3388,7 @@ body {
 /* Edge Type Buttons - Adjacent Style */
 .edge-type-buttons {
     display: flex;
-    gap: 0;
+    gap: 2px;
     margin-top: 0.5rem;
 }
 
@@ -3387,14 +3405,15 @@ body {
 
 .edge-type-button {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    background: linear-gradient(90deg, #818cf8, #6366f1);
-    border: 1px solid #4f46e5;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
     border-radius: 0;
-    color: white;
+    color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -3403,65 +3422,58 @@ body {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
-    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: relative;
-    overflow: hidden;
 }
 
-.edge-type-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
-}
+
 
 .edge-type-option:first-child .edge-type-button {
     border-top-left-radius: 6px;
     border-bottom-left-radius: 6px;
-    border-right: 1px solid var(--border-color);
 }
 
 .edge-type-option:last-child .edge-type-button {
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
-    border-left: none;
 }
 
 .edge-type-button i {
-    font-size: 1.25rem;
-    margin-bottom: 0.15rem;
+    font-size: 0.9rem;
     opacity: 0.7;
+    color: var(--text-secondary);
 }
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button {
-    background: linear-gradient(90deg, #6366f1, #4f46e5);
-    color: white;
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    border-width: 3px;
+    color: var(--primary-color);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+    font-weight: 600;
+    background-image: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 30%, rgba(139, 92, 246, 0.05) 70%, transparent 70%);
 }
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button i {
     opacity: 1;
+    color: var(--primary-color);
 }
 
 .edge-type-button:hover {
-    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.edge-type-button:hover::before {
-    left: 100%;
-}
+
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button:hover {
-    background: linear-gradient(90deg, #4f46e5, #4338ca);
+    background: var(--bg-tertiary);
+    border-color: var(--primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.5);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
 }
 
 /* Visibility Buttons - Independent Toggle Style */
@@ -3564,7 +3576,7 @@ body {
 /* Edge Style Buttons - Adjacent Style */
 .edge-style-buttons {
     display: flex;
-    gap: 0;
+    gap: 2px;
     margin-top: 0.5rem;
 }
 
@@ -3586,10 +3598,10 @@ body {
     justify-content: center;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
     border-radius: 0;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -3598,18 +3610,18 @@ body {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .edge-style-option:first-child .edge-style-button {
     border-top-left-radius: 6px;
     border-bottom-left-radius: 6px;
-    border-right: 1px solid var(--border-color);
 }
 
 .edge-style-option:last-child .edge-style-button {
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
-    border-left: none;
 }
 
 .edge-style-button i {
@@ -3619,33 +3631,39 @@ body {
 }
 
 .edge-style-option input[type="radio"]:checked + .edge-style-button {
-    background: var(--primary-color);
-    color: white;
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    border-width: 3px;
+    color: var(--primary-color);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+    font-weight: 600;
+    background-image: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 30%, rgba(139, 92, 246, 0.05) 70%, transparent 70%);
 }
 
 .edge-style-option input[type="radio"]:checked + .edge-style-button i {
     opacity: 1;
-    color: white;
+    color: var(--primary-color);
 }
 
 .edge-style-button:hover {
     background: var(--bg-tertiary);
+    border-color: var(--primary-color);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .edge-style-option input[type="radio"]:checked + .edge-style-button:hover {
-    background: var(--primary-dark);
+    background: var(--bg-tertiary);
+    border-color: var(--primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
 }
 
 /* Edge Direction Buttons - Adjacent Style */
 .edge-direction-buttons {
     display: flex;
-    gap: 0;
+    gap: 2px;
     margin-top: 0.5rem;
 }
 
@@ -3662,14 +3680,15 @@ body {
 
 .edge-direction-button {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    background: linear-gradient(90deg, #818cf8, #6366f1);
-    border: 1px solid #4f46e5;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
     border-radius: 0;
-    color: white;
+    color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -3678,65 +3697,56 @@ body {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
-    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: relative;
-    overflow: hidden;
-}
-
-.edge-direction-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
 }
 
 .edge-direction-option:first-child .edge-direction-button {
     border-top-left-radius: 6px;
     border-bottom-left-radius: 6px;
-    border-right: 1px solid var(--border-color);
 }
 
 .edge-direction-option:last-child .edge-direction-button {
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
-    border-left: none;
 }
 
 .edge-direction-button i {
-    font-size: 1.25rem;
-    margin-bottom: 0.15rem;
+    font-size: 0.9rem;
     opacity: 0.7;
+    color: var(--text-secondary);
 }
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button {
-    background: linear-gradient(90deg, #6366f1, #4f46e5);
-    color: white;
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    border-width: 3px;
+    color: var(--primary-color);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+    font-weight: 600;
+    background-image: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 30%, rgba(139, 92, 246, 0.05) 70%, transparent 70%);
 }
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button i {
     opacity: 1;
+    color: var(--primary-color);
 }
 
 .edge-direction-button:hover {
-    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.edge-direction-button:hover::before {
-    left: 100%;
-}
+
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button:hover {
-    background: linear-gradient(90deg, #4f46e5, #4338ca);
+    background: var(--bg-tertiary);
+    border-color: var(--primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.5);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
 }
 
 
