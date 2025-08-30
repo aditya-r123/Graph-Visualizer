@@ -43,7 +43,7 @@ export class GraphCreator {
         
         // Edit mode variables
         this.editModeElement = null;
-        this.editModeType = null; // 'vertex' or 'edge'
+        this.editModeType = null; // 'vertex' only
         this.longPressTimer = null;
         this.longPressDelay = 2500; // 2.5 seconds for edit mode
         this.holdProgress = 0;
@@ -3224,14 +3224,7 @@ export class GraphCreator {
             }
         }
         
-        // Handle edge clicking in edit mode
-        if (!this.draggedVertex && !this.isDraggingEdge && this.editModeElement && this.editModeType === 'edge') {
-            const pos = this.getMousePos(e);
-            const edge = this.getEdgeAt(pos.x, pos.y, 10); // Increased tolerance for easier clicking
-            if (edge) {
-                this.switchEditModeEdge(edge);
-            }
-        }
+
         
         if (this.isDraggingEdge && this.draggedEdge) {
             this.isDraggingEdge = false;
@@ -6582,15 +6575,13 @@ export class GraphCreator {
         
         // Hide edit controls
         const editSection = document.getElementById('editControlsSection');
-        const edgeEditSection = document.getElementById('edgeEditControlsSection');
         if (editSection) editSection.style.display = 'none';
-        if (edgeEditSection) edgeEditSection.style.display = 'none';
         // Always hide delete mode panel when exiting edit mode
         const deletePanel = document.getElementById('deleteModePanel');
         if (deletePanel) deletePanel.style.display = 'none';
         // Show all other control sections
         document.querySelectorAll('.control-section').forEach(section => {
-            if (section.id !== 'editControlsSection' && section.id !== 'edgeEditControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
+            if (section.id !== 'editControlsSection' && section.id !== 'deleteModePanel') section.style.display = 'block';
         });
         // Reset the edit section title
         const editTitle = editSection?.querySelector('h3');
@@ -6600,185 +6591,12 @@ export class GraphCreator {
         this.draw();
     }
 
-    enterEdgeEditMode(edge) {
-        console.log('[EditMode] Entering edge edit mode for edge:', edge);
-        this.exitEditMode();
-        this.editModeElement = edge;
-        this.editModeType = 'edge';
-        
-        // Store original values for cancellation
-        this._editOriginal = {
-            lineStyle: edge.lineStyle || 'solid'
-        };
-        
-        // Temporary edit state for preview
-        this._editPreview = {
-            lineStyle: edge.lineStyle || 'solid',
-            pendingDelete: false
-        };
-        
-        // Store original styles for all edges (for cancel/undo)
-        this._originalAllEdgeStyles = this.edges.map(e => e.lineStyle || 'solid');
-        
-        this.startShakeAnimation();
-        const editSection = document.getElementById('edgeEditControlsSection');
-        if (editSection) editSection.style.display = 'block';
-        document.querySelectorAll('.control-section').forEach(section => {
-            if (section.id !== 'edgeEditControlsSection') section.style.display = 'none';
-        });
-        
-        // Populate the edge style radio buttons
-        const straightRadio = document.getElementById('editEdgeStyleStraight');
-        const dashedRadio = document.getElementById('editEdgeStyleDashed');
-        if (straightRadio && dashedRadio) {
-            if (this._editPreview.lineStyle === 'solid') {
-                straightRadio.checked = true;
-            } else {
-                dashedRadio.checked = true;
-            }
-        }
-        
-        this.setupEdgeEditModeEvents();
-        this.draw();
-    }
 
-    switchEditModeEdge(edge) {
-        if (!this.editModeElement || this.editModeType !== 'edge') {
-            return;
-        }
-        
-        console.log('[EditMode] Switching to edge:', edge);
-        this.editModeElement = edge;
-        
-        // Update edit state for the new edge
-        this._editOriginal = {
-            lineStyle: edge.lineStyle || 'solid'
-        };
-        this._editPreview = {
-            lineStyle: edge.lineStyle || 'solid',
-            pendingDelete: false
-        };
-        
-        // Update UI elements
-        const straightRadio = document.getElementById('editEdgeStyleStraight');
-        const dashedRadio = document.getElementById('editEdgeStyleDashed');
-        if (straightRadio && dashedRadio) {
-            if (this._editPreview.lineStyle === 'solid') {
-                straightRadio.checked = true;
-            } else {
-                dashedRadio.checked = true;
-            }
-        }
-        
-        this.draw();
-    }
 
-    setupEdgeEditModeEvents() {
-        // Edge style radio buttons
-        const straightRadio = document.getElementById('editEdgeStyleStraight');
-        const dashedRadio = document.getElementById('editEdgeStyleDashed');
-        const applyToAllToggle = document.getElementById('applyToAllEdgesToggle');
-        
-        if (straightRadio) {
-            straightRadio.addEventListener('change', (e) => {
-                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
-                    this._editPreview.lineStyle = 'solid';
-                    this.draw();
-                }
-            });
-        }
-        
-        if (dashedRadio) {
-            dashedRadio.addEventListener('change', (e) => {
-                if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
-                    this._editPreview.lineStyle = 'dashed';
-                    this.draw();
-                }
-            });
-        }
-        
-        // Apply to all edges toggle
-        if (applyToAllToggle) {
-            applyToAllToggle.addEventListener('change', (e) => {
-                if (this.editModeElement && this._editPreview) {
-                    if (e.target.checked) {
-                        // Apply current style to all edges
-                        this.edges.forEach(edge => {
-                            if (edge !== this.editModeElement) {
-                                edge.lineStyle = this._editPreview.lineStyle;
-                            }
-                        });
-                    } else {
-                        // Revert all edges to original styles
-                        this.edges.forEach((edge, index) => {
-                            if (edge !== this.editModeElement) {
-                                edge.lineStyle = this._originalAllEdgeStyles[index];
-                            }
-                        });
-                    }
-                    this.draw();
-                }
-            });
-        }
-        
-        // Save button
-        const saveBtn = document.getElementById('saveEdgeEdit');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.saveAndExitEdgeEditMode();
-            });
-        }
-        
-        // Cancel button
-        const cancelBtn = document.getElementById('cancelEdgeEdit');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.exitEditMode();
-            });
-        }
-        
-        // Delete button
-        const deleteBtn = document.getElementById('deleteCurrentEdge');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleEdgeDeletionInEditMode();
-            });
-        }
-    }
 
-    saveAndExitEdgeEditMode() {
-        if (this.editModeElement && this._editPreview) {
-            // Apply style edits to current edge
-            this.editModeElement.lineStyle = this._editPreview.lineStyle;
-            
-            // If "Apply to All" was checked, apply final values to all other edges
-            const applyToAllToggle = document.getElementById('applyToAllEdgesToggle');
-            if (applyToAllToggle && applyToAllToggle.checked) {
-                this.edges.forEach(edge => {
-                    if (edge !== this.editModeElement) {
-                        edge.lineStyle = this._editPreview.lineStyle;
-                    }
-                });
-            }
-        }
-        this.exitEditMode();
-    }
 
-    handleEdgeDeletionInEditMode() {
-        if (this.editModeElement && this.editModeType === 'edge') {
-            // Remove the edge from the edges array
-            const edgeIndex = this.edges.indexOf(this.editModeElement);
-            if (edgeIndex > -1) {
-                this.edges.splice(edgeIndex, 1);
-                this.updateStatus(`Edge deleted`);
-                this.draw();
-            }
-            this.exitEditMode();
-        }
-    }
+
+
     setupMinimalEditModeEvents() {
         // Label input: immediate update with validation
         const labelInput = document.getElementById('editVertexLabel');
@@ -7108,37 +6926,7 @@ export class GraphCreator {
             }
         });
         
-        // Toggle edit mode buttons
-        const toggleEditModeBtn = document.getElementById('toggleEditMode');
-        const toggleEditModeEdgeBtn = document.getElementById('toggleEditModeEdge');
-        
-        if (toggleEditModeBtn) {
-            toggleEditModeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                // Switch to edge editing mode
-                if (this.edges.length > 0) {
-                    // Find the first edge to edit
-                    const firstEdge = this.edges[0];
-                    this.enterEdgeEditMode(firstEdge);
-                } else {
-                    this.updateStatus('No edges to edit');
-                }
-            });
-        }
-        
-        if (toggleEditModeEdgeBtn) {
-            toggleEditModeEdgeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                // Switch to vertex editing mode
-                if (this.vertices.length > 0) {
-                    // Find the first vertex to edit
-                    const firstVertex = this.vertices[0];
-                    this.enterEditMode(firstVertex);
-                } else {
-                    this.updateStatus('No vertices to edit');
-                }
-            });
-        }
+
     }
 
     // --- END Minimal Vertex Edit Mode ---

@@ -2528,15 +2528,13 @@ body {
     text-align: center;
 }
 
-#vertexEditControls,
-#edgeEditControls {
+#vertexEditControls {
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
 }
 
-#vertexEditControls h4,
-#edgeEditControls h4 {
+#vertexEditControls h4 {
     color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 600;
