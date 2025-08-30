@@ -4567,7 +4567,7 @@ export class GraphCreator {
                                 <i class="fas fa-cloud-upload-alt fa-2x"></i>
                                 <p>Drag and drop JSON files here</p>
                                 <p class="drag-drop-subtitle">or</p>
-                                <button class="btn btn-secondary" id="browseFileBtn">
+                                <button class="btn btn-primary" id="browseFileBtn">
                                     <i class="fas fa-folder"></i> Browse Files
                                 </button>
                             </div>
