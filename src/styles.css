@@ -2919,6 +2919,31 @@ body {
     border-radius: var(--radius-lg);
 }
 
+/* Ensure contact modal backdrop has no blur effects */
+#contactModal + .modal-backdrop,
+#contactModal ~ .modal-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Override any global backdrop blur for contact modal */
+#contactModal {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Global fix for Bootstrap modal backdrops - remove blur effects */
+.modal-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Ensure modal content itself has no blur */
+.modal-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
 #contactModal .modal-header {
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
