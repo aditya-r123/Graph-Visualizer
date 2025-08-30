@@ -942,6 +942,29 @@ export class GraphCreator {
             String(now.getMinutes()).padStart(2, '0') + ':' +
             String(now.getSeconds()).padStart(2, '0');
     }
+    
+    getCurrentGraphName() {
+        // If we have a current graph ID, find its name
+        if (this.currentGraphId) {
+            const currentGraph = this.savedGraphs.find(g => g.id === this.currentGraphId);
+            if (currentGraph && currentGraph.name) {
+                return currentGraph.name;
+            }
+        }
+        
+        // If no current graph or no name, return a default
+        return 'Graph';
+    }
+    
+    sanitizeFilename(filename) {
+        // Remove or replace characters that are invalid in filenames
+        return filename
+            .replace(/[<>:"/\\|?*]/g, '_') // Replace invalid characters with underscore
+            .replace(/\s+/g, '_') // Replace spaces with underscore
+            .replace(/_{2,}/g, '_') // Replace multiple consecutive underscores with single
+            .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
+            .substring(0, 100); // Limit length to prevent issues
+    }
 
     // Save the current graph (update if editing, otherwise new)
     saveGraph(isAutoSave = false) {
@@ -1579,8 +1602,9 @@ export class GraphCreator {
             // Handle JSON format - export graph data
             try {
                 const graphData = this.exportGraph();
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-                const filename = `graph-${timestamp}.json`;
+                const currentGraphName = this.getCurrentGraphName();
+                const sanitizedName = this.sanitizeFilename(currentGraphName);
+                const filename = `${sanitizedName}.json`;
                 
                 // Create the JSON blob
                 const jsonString = JSON.stringify(graphData, null, 2);
@@ -1644,7 +1668,9 @@ export class GraphCreator {
                     console.log('Created object URL:', url);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `graph-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`;
+                    const currentGraphName = this.getCurrentGraphName();
+                    const sanitizedName = this.sanitizeFilename(currentGraphName);
+                    a.download = `${sanitizedName}.${format}`;
                     a.style.display = 'none';
                     document.body.appendChild(a);
                     console.log('Triggering download...');
@@ -1757,7 +1783,9 @@ export class GraphCreator {
                         console.log('Share blob size:', blob.size, 'bytes');
                         
                         // Create file with appropriate name
-                        const fileName = `graph-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`;
+                        const currentGraphName = this.getCurrentGraphName();
+                        const sanitizedName = this.sanitizeFilename(currentGraphName);
+                        const fileName = `${sanitizedName}.${format}`;
                         const file = new File([blob], fileName, { 
                             type: format === 'png' ? 'image/png' : 'image/jpeg' 
                         });
