@@ -976,10 +976,11 @@ export class GraphCreator {
         // Check if updating existing
         const idx = this.savedGraphs.findIndex(g => g.id === currentId);
         if (idx !== -1) {
-            this.savedGraphs[idx] = savedGraph;
-        } else {
-        this.savedGraphs.unshift(savedGraph);
+            // Remove the existing graph from its current position
+            this.savedGraphs.splice(idx, 1);
         }
+        // Always add the graph to the top (most recent)
+        this.savedGraphs.unshift(savedGraph);
         
         // Keep only last 10 saved graphs
         if (this.savedGraphs.length > 10) {
@@ -1080,12 +1081,11 @@ export class GraphCreator {
         // Check if updating existing or creating new
         const idx = this.savedGraphs.findIndex(g => g.id === currentId);
         if (idx !== -1) {
-            // Update existing graph
-            this.savedGraphs[idx] = savedGraph;
-        } else {
-            // Create new graph entry
-            this.savedGraphs.unshift(savedGraph);
+            // Remove the existing graph from its current position
+            this.savedGraphs.splice(idx, 1);
         }
+        // Always add the graph to the top (most recent)
+        this.savedGraphs.unshift(savedGraph);
         
         // Keep only last 10 saved graphs
         if (this.savedGraphs.length > 10) {
@@ -4478,12 +4478,11 @@ export class GraphCreator {
         // Check if updating existing or creating new
         const idx = this.savedGraphs.findIndex(g => g.id === currentId);
         if (idx !== -1) {
-            // Update existing graph
-            this.savedGraphs[idx] = savedGraph;
-        } else {
-            // Create new graph entry
-            this.savedGraphs.unshift(savedGraph);
+            // Remove the existing graph from its current position
+            this.savedGraphs.splice(idx, 1);
         }
+        // Always add the graph to the top (most recent)
+        this.savedGraphs.unshift(savedGraph);
         
         // Keep only last 10 saved graphs
         if (this.savedGraphs.length > 10) {
@@ -6281,6 +6280,7 @@ export class GraphCreator {
         if (this._applyToAllBorderColorListener) borderColorInput?.removeEventListener('input', this._applyToAllBorderColorListener);
         if (this._applyToAllColorTextListener) document.getElementById('editVertexColorText')?.removeEventListener('input', this._applyToAllColorTextListener);
         if (this._applyToAllBorderColorTextListener) document.getElementById('editVertexBorderColorText')?.removeEventListener('input', this._applyToAllBorderColorTextListener);
+        if (this._applyToAllBorderThicknessListener) document.getElementById('editVertexBorderThickness')?.removeEventListener('input', this._applyToAllBorderThicknessListener);
         if (this._applyToAllShapeListener) document.getElementById('editVertexShape')?.removeEventListener('change', this._applyToAllShapeListener);
         if (this._applyToAllToggleListener) applyToAllToggle.removeEventListener('change', this._applyToAllToggleListener);
         
@@ -6419,6 +6419,26 @@ export class GraphCreator {
                 }
             };
             borderColorTextInput.addEventListener('input', this._applyToAllBorderColorTextListener);
+        }
+        
+        // Listener for border thickness slider
+        const borderThicknessInput = document.getElementById('editVertexBorderThickness');
+        if (borderThicknessInput) {
+            this._applyToAllBorderThicknessListener = (e) => {
+                const newBorderThickness = parseInt(e.target.value);
+                document.getElementById('editVertexBorderThicknessValue').textContent = newBorderThickness;
+                if (this.editModeElement && this._editPreview) {
+                    this._editPreview.borderThickness = newBorderThickness;
+                    this.editModeElement.borderThickness = newBorderThickness;
+                    if (applyToAllToggle.checked) {
+                        this.vertices.forEach((v, idx) => {
+                            if (v !== this.editModeElement) v.borderThickness = newBorderThickness;
+                        });
+                    }
+                    this.draw();
+                }
+            };
+            borderThicknessInput.addEventListener('input', this._applyToAllBorderThicknessListener);
         }
         
         // Listener for apply-to-all toggle
@@ -6822,6 +6842,17 @@ export class GraphCreator {
                     document.getElementById('editVertexBorderThicknessValue').textContent = newBorderThickness;
                     this._editPreview.borderThickness = newBorderThickness;
                     this.editModeElement.borderThickness = newBorderThickness; // Also update the current vertex immediately
+                    
+                    // Apply to all vertices if the toggle is checked
+                    const applyToAllToggle = document.getElementById('applyToAllToggle');
+                    if (applyToAllToggle && applyToAllToggle.checked) {
+                        this.vertices.forEach(vertex => {
+                            if (vertex !== this.editModeElement) {
+                                vertex.borderThickness = newBorderThickness;
+                            }
+                        });
+                    }
+                    
                     this.draw();
                 }
             });
