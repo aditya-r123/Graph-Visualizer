@@ -2,6 +2,73 @@ import './styles.css';
 import { GraphCreator } from './graphCreator.js';
 import './assets/logo.png';
 
+// FOUC Prevention: Hide content until styles are fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Show loading overlay initially
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const appContainer = document.getElementById('appContainer');
+    
+    // Font loading optimization
+    if ('fonts' in document) {
+        // Modern browsers: wait for fonts to load
+        Promise.all([
+            document.fonts.load('300 16px Inter'),
+            document.fonts.load('400 16px Inter'),
+            document.fonts.load('500 16px Inter'),
+            document.fonts.load('600 16px Inter'),
+            document.fonts.load('700 16px Inter')
+        ]).then(() => {
+            document.body.classList.add('fonts-loaded');
+        }).catch(() => {
+            // Fallback if font loading fails
+            document.body.classList.add('fonts-loaded');
+        });
+    } else {
+        // Fallback for older browsers
+        document.body.classList.add('fonts-loaded');
+    }
+    
+    // Function to hide loading overlay and show content
+    const showContent = () => {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+        if (appContainer) {
+            appContainer.classList.add('styles-loaded');
+        }
+    };
+    
+    // Check if styles are already loaded
+    const checkStylesLoaded = () => {
+        // Check if our CSS has been applied by testing a CSS property
+        const testElement = document.createElement('div');
+        testElement.style.position = 'absolute';
+        testElement.style.visibility = 'hidden';
+        testElement.style.height = '0';
+        testElement.style.overflow = 'hidden';
+        document.body.appendChild(testElement);
+        
+        // Test if CSS custom properties are available
+        const computedStyle = window.getComputedStyle(testElement);
+        const hasCustomProperties = computedStyle.getPropertyValue('--primary-color') !== '';
+        
+        document.body.removeChild(testElement);
+        
+        if (hasCustomProperties) {
+            showContent();
+        } else {
+            // Wait a bit more for styles to load
+            setTimeout(checkStylesLoaded, 50);
+        }
+    };
+    
+    // Start checking for styles
+    checkStylesLoaded();
+    
+    // Fallback: show content after a reasonable timeout
+    setTimeout(showContent, 2000);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     // Instructions overlay logic
     var overlay = document.getElementById('instructionsOverlay');

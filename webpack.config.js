@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 
 module.exports = (env, argv) => {
@@ -16,7 +17,10 @@ module.exports = (env, argv) => {
       rules: [
         {
           test: /\.css$/i,
-          use: ['style-loader', 'css-loader'],
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+            'css-loader'
+          ],
         },
         {
           test: /\.(png|jpg|jpeg|gif)$/i,
@@ -51,6 +55,10 @@ module.exports = (env, argv) => {
           minifyURLs: true,
         },
       }),
+      // Extract CSS for production builds
+      ...(isProduction ? [new MiniCssExtractPlugin({
+        filename: isProduction ? 'styles.[contenthash].css' : 'styles.css',
+      })] : []),
       // Inject environment variables at build time
       new webpack.DefinePlugin({
         'process.env.EMAILJS_PUBLIC_KEY': JSON.stringify(process.env.EMAILJS_PUBLIC_KEY),

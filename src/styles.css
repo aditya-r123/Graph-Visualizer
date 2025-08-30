@@ -1,3 +1,47 @@
+/* CSS Loading Performance Optimizations */
+/* Prevent layout shifts and improve initial render */
+
+/* Critical rendering path optimizations */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure smooth transitions after styles load */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Prevent FOUC with font loading */
+.fonts-loaded {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.fonts-loading {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Optimize paint and layout */
+body {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Critical layout containment */
+.app-container {
+    contain: layout style paint;
+}
+
+.sidebar {
+    contain: layout style paint;
+}
+
+.main-content {
+    contain: layout style paint;
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;
