@@ -5823,7 +5823,7 @@ export class GraphCreator {
             display.innerHTML = `<span class="target-vertex-label">${this.selectedTargetVertex.label}</span>`;
             display.classList.add('has-target');
         } else {
-            display.innerHTML = '<span class="target-placeholder">Unselected</span>';
+            display.innerHTML = '<span class="target-placeholder">Right-click</span>';
             display.classList.remove('has-target');
         }
     }

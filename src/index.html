@@ -308,15 +308,18 @@
                                 <i class="fas fa-shapes"></i>
                                 Shape
                             </label>
-                            <select id="editVertexShape" class="form-select">
-                                <option value="circle">Circle</option>
-                                <option value="square">Square</option>
-                                <option value="triangle">Triangle</option>
-                                <option value="star">Star</option>
-                                <option value="pentagon">Pentagon</option>
-                                <option value="hexagon">Hexagon</option>
-                                <option value="octagon">Octagon</option>
-                            </select>
+                            <div class="position-relative">
+                                <select id="editVertexShape" class="form-select">
+                                    <option value="circle">Circle</option>
+                                    <option value="square">Square</option>
+                                    <option value="triangle">Triangle</option>
+                                    <option value="star">Star</option>
+                                    <option value="pentagon">Pentagon</option>
+                                    <option value="hexagon">Hexagon</option>
+                                    <option value="octagon">Octagon</option>
+                                </select>
+                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);"></i>
+                            </div>
                         </div>
                         <div class="control-group">
                             <label class="checkbox-label" for="applyToAllToggle">
@@ -462,7 +465,7 @@
                                 </label>
                                 <div class="target-vertex-display">
                                     <div id="targetVertexDisplay" class="target-display">
-                                        <span class="target-placeholder">Unselected</span>
+                                        <span class="target-placeholder">Right-click</span>
                                     </div>
                                 </div>
                             </div>

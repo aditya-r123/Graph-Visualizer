@@ -763,7 +763,7 @@ body {
 .load-graph-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 0.25rem 0.4rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -771,12 +771,17 @@ body {
     background: var(--bg-secondary);
     transition: var(--transition);
     min-height: 28px;
+    /* Ensure proper text wrapping */
+    min-height: fit-content;
+    flex-wrap: nowrap;
 }
 
 .load-graph-actions {
     display: flex;
     gap: 0.15rem;
     align-items: center;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
 }
 
 .load-graph-item:hover {
@@ -820,13 +825,22 @@ body {
 
 .load-graph-info {
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .load-graph-name {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.08rem;
-    font-size: 0.85rem;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.2;
+    max-width: 100%;
+    /* Responsive font sizing for very long names */
+    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
 }
 
 .load-graph-details {
@@ -1030,16 +1044,26 @@ body {
     transition: var(--transition);
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     position: relative;
     margin-bottom: 0.25rem;
+    /* Ensure proper text wrapping */
+    min-height: fit-content;
+    flex-wrap: nowrap;
 }
 
 .saved-graph-name {
-    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 0.12rem;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.2;
+    max-width: 100%;
+    /* Responsive font sizing for very long names */
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
 }
 
 .saved-graph-details {
@@ -1089,13 +1113,22 @@ body {
 
 .saved-graph-info {
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .saved-graph-name {
-    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 0.12rem;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.2;
+    max-width: 100%;
+    /* Responsive font sizing for very long names */
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
 }
 
 .saved-graph-details {
@@ -1113,6 +1146,8 @@ body {
 .saved-graph-actions {
     display: flex;
     gap: 0.2rem;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
 }
 
 .saved-graph-actions button {
