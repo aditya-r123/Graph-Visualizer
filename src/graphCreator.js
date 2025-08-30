@@ -7465,14 +7465,115 @@ export class GraphCreator {
         }
     }
     
-    // Contact modal functionality
+    // Contact modal functionality - Fixed Implementation with Enhanced Debugging
     showContactModal() {
-        // Reset form
-        document.getElementById('contactForm').reset();
-        
-        // Show modal using Bootstrap
-        const contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
-        contactModal.show();
+        try {
+            console.log('Opening contact modal...');
+            
+            // Reset form
+            const form = document.getElementById('contactForm');
+            if (form) {
+                form.reset();
+                console.log('Form reset successfully');
+            } else {
+                console.error('Contact form not found');
+            }
+            
+            // Get modal element
+            const modalElement = document.getElementById('contactModal');
+            if (!modalElement) {
+                console.error('Contact modal element not found');
+                return;
+            }
+            
+            // Check if Bootstrap is available
+            if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+                console.error('Bootstrap Modal not available');
+                return;
+            }
+            
+            // Remove any existing modal instances
+            const existingModal = bootstrap.Modal.getInstance(modalElement);
+            if (existingModal) {
+                console.log('Disposing existing modal instance');
+                existingModal.dispose();
+            }
+            
+            // Create and show modal with proper configuration
+            const contactModal = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+            
+            // Show the modal
+            contactModal.show();
+            console.log('Modal show() called');
+            
+            // Ensure modal is fully visible and interactive
+            setTimeout(() => {
+                console.log('Configuring modal inputs for interaction...');
+                
+                // Focus on first input after modal is shown
+                const firstInput = modalElement.querySelector('#contactName');
+                if (firstInput) {
+                    console.log('First input found:', firstInput);
+                    firstInput.focus();
+                    // Ensure the input is not disabled or readonly
+                    firstInput.disabled = false;
+                    firstInput.readOnly = false;
+                    // Force the input to be interactive
+                    firstInput.style.pointerEvents = 'auto';
+                    firstInput.style.userSelect = 'text';
+                    firstInput.style.cursor = 'text';
+                    firstInput.style.opacity = '1';
+                    firstInput.style.background = 'var(--bg-primary)';
+                    firstInput.style.color = 'var(--text-primary)';
+                    console.log('First input configured for interaction');
+                } else {
+                    console.error('First input not found');
+                }
+                
+                // Ensure all form inputs are interactive
+                const allInputs = modalElement.querySelectorAll('input, textarea');
+                console.log('Found inputs:', allInputs.length);
+                allInputs.forEach((input, index) => {
+                    console.log(`Configuring input ${index}:`, input.type, input.id);
+                    input.disabled = false;
+                    input.readOnly = false;
+                    input.style.pointerEvents = 'auto';
+                    input.style.userSelect = 'text';
+                    input.style.cursor = 'text';
+                    input.style.opacity = '1';
+                    input.style.background = 'var(--bg-primary)';
+                    input.style.color = 'var(--text-primary)';
+                    
+                    // Test if input is actually interactive
+                    input.addEventListener('click', () => {
+                        console.log(`Input ${input.id} clicked`);
+                    });
+                    input.addEventListener('focus', () => {
+                        console.log(`Input ${input.id} focused`);
+                    });
+                    input.addEventListener('input', () => {
+                        console.log(`Input ${input.id} input event:`, input.value);
+                    });
+                });
+                
+                // Ensure modal backdrop doesn't interfere
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.pointerEvents = 'none';
+                    console.log('Modal backdrop pointer-events set to none');
+                }
+                
+                console.log('Contact modal inputs configured for interaction');
+            }, 300);
+            
+            console.log('Contact modal opened successfully');
+        } catch (error) {
+            console.error('Error opening contact modal:', error);
+        }
     }
     
     async handleContactSubmit() {

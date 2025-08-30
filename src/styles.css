@@ -2910,104 +2910,319 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-/* Contact Modal Styles */
-#contactModal .modal-content {
-    background: var(--bg-card);
-    border: 6px solid var(--border-color);
-    color: var(--text-primary);
-    box-shadow: var(--shadow-xl);
-    border-radius: var(--radius-lg);
-}
-
-/* Ensure contact modal backdrop has no blur effects */
-#contactModal + .modal-backdrop,
-#contactModal ~ .modal-backdrop {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-/* Override any global backdrop blur for contact modal */
+/* Contact Modal Styles - Fixed Implementation with Theme Colors */
 #contactModal {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    z-index: 9999 !important;
 }
 
-/* Global fix for Bootstrap modal backdrops - remove blur effects */
-.modal-backdrop {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+#contactModal .modal-dialog {
+    z-index: 10000 !important;
 }
 
-/* Ensure modal content itself has no blur */
-.modal-content {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+#contactModal .modal-content {
+    background: var(--bg-secondary) !important;
+    border: 3px solid var(--primary-color) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.1) !important;
+    border-radius: 16px !important;
+    position: relative !important;
+    z-index: 10001 !important;
+    overflow: hidden !important;
+}
+
+#contactModal .modal-content::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%), 
+                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%) !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
 }
 
 #contactModal .modal-header {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+    border-bottom: 2px solid var(--primary-color) !important;
+    border-radius: 16px 16px 0 0 !important;
+    padding: 2rem 1.5rem 1.5rem 1.5rem !important;
+    position: relative !important;
+}
+
+#contactModal .modal-header::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent 0%, var(--primary-color) 50%, transparent 100%) !important;
 }
 
 #contactModal .modal-title {
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    font-weight: 700 !important;
+    font-size: 1.5rem !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
 #contactModal .modal-title i {
-    color: var(--primary-color);
+    color: #ffffff !important;
+    font-size: 1.75rem !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
 #contactModal .modal-body {
-    background: var(--bg-card);
+    background: var(--bg-secondary) !important;
+    padding: 2rem 1.5rem !important;
+    position: relative !important;
+}
+
+#contactModal .contact-form-section h6 {
+    color: var(--text-primary) !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 1.5rem !important;
+    text-align: center !important;
+    padding: 0.75rem !important;
+    background: var(--bg-tertiary) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+#contactModal .contact-form-section h6 i {
+    color: var(--primary-color) !important;
+    margin-right: 0.5rem !important;
 }
 
 #contactModal .modal-footer {
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
+    background: var(--bg-tertiary) !important;
+    border-top: 2px solid var(--primary-color) !important;
+    border-radius: 0 0 16px 16px !important;
+    padding: 1.5rem !important;
+    position: relative !important;
+}
+
+#contactModal .modal-footer::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent 0%, var(--primary-color) 50%, transparent 100%) !important;
 }
 
 #contactModal .form-label {
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
+    color: var(--text-primary) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.75rem !important;
+    font-size: 0.95rem !important;
+}
+
+/* Prevent auto-fill styling glitch */
+#contactModal input:-webkit-autofill,
+#contactModal input:-webkit-autofill:hover,
+#contactModal input:-webkit-autofill:focus,
+#contactModal input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--bg-primary) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Enhanced form spacing */
+#contactModal .mb-3 {
+    margin-bottom: 1.5rem !important;
 }
 
 #contactModal .form-label i {
-    color: var(--accent-color);
-    width: 16px;
-    text-align: center;
+    color: var(--primary-color) !important;
+    width: 18px !important;
+    text-align: center !important;
+    font-size: 1rem !important;
 }
 
-#contactModal .form-control {
-    width: 100%;
-    padding: 0.75rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    transition: var(--transition);
+#contactModal .form-label i {
+    color: var(--primary-color) !important;
+    width: 16px !important;
+    text-align: center !important;
 }
 
-#contactModal .form-control:focus {
-    background: var(--bg-secondary);
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    color: var(--text-primary);
+/* Critical fix: Override any inherited styles for form controls */
+#contactModal .form-control,
+#contactModal input[type="text"],
+#contactModal input[type="email"],
+#contactModal textarea {
+    width: 100% !important;
+    padding: 1rem !important;
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 10px !important;
+    color: var(--text-primary) !important;
+    font-size: 0.95rem !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    position: relative !important;
+    z-index: 10002 !important;
+    cursor: text !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    opacity: 1 !important;
+    /* Override any inherited background colors */
+    background-color: var(--bg-primary) !important;
+    background-image: none !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
-#contactModal .form-control::placeholder {
-    color: var(--text-muted);
+#contactModal .form-control:focus,
+#contactModal input[type="text"]:focus,
+#contactModal input[type="email"]:focus,
+#contactModal textarea:focus {
+    background: var(--bg-primary) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    color: var(--text-primary) !important;
+    outline: none !important;
+    background-color: var(--bg-primary) !important;
+    transform: translateY(-1px) !important;
 }
 
-#contactModal textarea.form-control {
-    resize: none;
-    height: 100px;
+#contactModal .form-control::placeholder,
+#contactModal input[type="text"]::placeholder,
+#contactModal input[type="email"]::placeholder,
+#contactModal textarea::placeholder {
+    color: var(--text-secondary) !important;
+}
+
+#contactModal textarea.form-control,
+#contactModal textarea {
+    resize: none !important;
+    height: 100px !important;
+    min-height: 100px !important;
+}
+
+/* Ensure close button is visible and functional */
+#contactModal .btn-close {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") !important;
+    background-size: 18px !important;
+    opacity: 0.9 !important;
+    filter: none !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    padding: 0.5rem !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Hover effect removed from close button */
+
+/* Modal backdrop styling */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Ensure form is interactive */
+#contactForm {
+    position: relative !important;
+    z-index: 10003 !important;
+}
+
+#contactForm .form-control,
+#contactForm input[type="text"],
+#contactForm input[type="email"],
+#contactForm textarea {
+    pointer-events: auto !important;
+    user-select: text !important;
+    cursor: text !important;
+    background: #ffffff !important;
+    color: #1e293b !important;
+}
+
+/* Additional fixes for modal functionality */
+.modal.show {
+    display: block !important;
+}
+
+.modal.fade.show {
+    opacity: 1 !important;
+}
+
+/* Ensure modal is above everything */
+#contactModal.modal {
+    z-index: 9999 !important;
+}
+
+/* Fix any potential Bootstrap modal conflicts */
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+}
+
+/* Remove any potential overlay issues */
+#contactModal::before,
+#contactModal::after {
+    display: none !important;
+}
+
+/* Override any global form control styles that might affect the modal */
+#contactModal .form-control,
+#contactModal input,
+#contactModal textarea {
+    /* Reset any inherited styles */
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #d1d5db !important;
+    opacity: 1 !important;
+    /* Ensure text is selectable and editable */
+    cursor: text !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+}
+
+/* Specific overrides for different input types */
+#contactModal input[type="text"],
+#contactModal input[type="email"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #d1d5db !important;
+}
+
+#contactModal textarea {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* Ensure focus states work properly */
+#contactModal .form-control:focus,
+#contactModal input:focus,
+#contactModal textarea:focus {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+    outline: none !important;
 }
 
 /* Responsive Status Bar */
@@ -4181,4 +4396,1599 @@ body {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
     color: white !important;
+}
+
+/* Additional critical fixes for contact modal form inputs */
+#contactModal input[type="text"],
+#contactModal input[type="email"],
+#contactModal textarea {
+    /* Override any potential inherited styles */
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #1e293b !important;
+    border: 1px solid #d1d5db !important;
+    opacity: 1 !important;
+    /* Ensure text is selectable and editable */
+    cursor: text !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    /* Override any potential disabled states */
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+    /* Ensure proper sizing */
+    box-sizing: border-box !important;
+    /* Override any potential inherited font styles */
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Override any potential Bootstrap form control styles */
+#contactModal .form-control {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #d1d5db !important;
+    opacity: 1 !important;
+}
+
+/* Ensure the modal backdrop doesn't interfere with form inputs */
+.modal-backdrop {
+    pointer-events: none !important;
+}
+
+.modal-backdrop.show {
+    pointer-events: none !important;
+}
+
+/* Override any potential global input styles */
+#contactModal input,
+#contactModal textarea {
+    /* Reset any inherited styles that might cause issues */
+    margin: 0 !important;
+    padding: 0.75rem !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    outline: none !important;
+    /* Ensure proper display */
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Specific fixes for different input types */
+#contactModal input[type="text"] {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+#contactModal input[type="email"] {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+#contactModal textarea {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Ensure focus states override any global styles */
+#contactModal .form-control:focus,
+#contactModal input:focus,
+#contactModal textarea:focus {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+    outline: none !important;
+}
+
+/* Responsive Status Bar */
+@media (max-width: 768px) {
+
+    
+    .app-container {
+        grid-template-rows: auto 1fr auto;
+    }
+}
+
+@media (max-width: 480px) {
+
+    
+    .btn-outline-primary {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+} 
+
+
+
+/* Delete mode styling */
+.delete-mode-active .vertex {
+    position: relative;
+}
+
+.delete-button {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background: #ef4444;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 10px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.delete-button:hover {
+    background: #dc2626;
+    transform: scale(1.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.delete-button::before {
+    content: "×";
+    line-height: 1;
+}
+
+/* Delete mode canvas styling */
+.delete-mode-active #graphCanvas {
+    cursor: crosshair;
+}
+
+.delete-mode-active .vertex:hover {
+    cursor: pointer;
+}
+
+/* Statistics section styling - more compact */
+#infoSection {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#infoSection h3 {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#infoSection h3 i {
+    color: var(--primary-color);
+    font-size: 0.8rem;
+}
+
+.stats-compact {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-around;
+}
+
+.stat-compact-item {
+    text-align: center;
+    padding: 0.375rem 0.5rem;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    min-width: 50px;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.stat-compact-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.stat-compact-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.stat-compact-label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 0.125rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Delete Mode Panel Styling */
+#deleteModePanel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#deleteModePanel h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#deleteModePanel h3 i {
+    color: #ef4444;
+    font-size: 0.9rem;
+}
+
+.delete-mode-info {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.delete-mode-info-text {
+    color: #ef4444;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.selected-vertices-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.selected-vertex-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(236, 72, 153, 0.1);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.selected-vertex-item:last-child {
+    margin-bottom: 0;
+}
+
+.selected-vertex-item i {
+    color: #ec4899;
+    font-size: 0.8rem;
+}
+
+.selected-vertex-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.vertex-coords {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-left: auto;
+}
+
+.coordinate-tooltip {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.coordinate-tooltip-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.coordinate-tooltip-value {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+.coordinate-toggle-container {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.coordinate-toggle-container .switch-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.coordinate-toggle-container .switch-label i {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.coordinate-grid-controls {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+.coordinate-grid-toggle {
+    margin-bottom: 1rem;
+}
+
+.coordinate-grid-toggle .switch-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.coordinate-grid-toggle .switch-label:hover {
+    color: var(--text-primary);
+}
+
+.coordinate-grid-toggle .switch-label i {
+    color: var(--accent-color);
+    margin-right: 0.5rem;
+}
+
+.coordinate-grid-density {
+    margin-top: 0.75rem;
+}
+
+.coordinate-grid-density label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.coordinate-grid-density label i {
+    color: var(--accent-color);
+}
+
+
+
+
+
+
+
+
+
+/* Image Format Buttons - Adjacent Style */
+.image-format-buttons {
+    display: flex;
+    gap: 0;
+    margin-top: 0.5rem;
+}
+
+.format-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.format-option input[type="radio"] {
+    display: none;
+}
+
+.format-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 42px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.format-option:first-child .format-button {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-right: 1px solid var(--border-color);
+}
+
+.format-option:last-child .format-button {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-left: none;
+}
+
+.format-button i {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    color: var(--text-secondary);
+}
+
+.format-option input[type="radio"]:checked + .format-button {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.format-option input[type="radio"]:checked + .format-button i {
+    opacity: 1;
+    color: white;
+}
+
+.format-button:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.format-option input[type="radio"]:checked + .format-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Edge Type Buttons - Adjacent Style */
+.edge-type-buttons {
+    display: flex;
+    gap: 2px;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.edge-type-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.edge-type-option input[type="radio"] {
+    display: none;
+}
+
+.edge-type-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+    min-height: 42px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+
+
+.edge-type-option:first-child .edge-type-button {
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+}
+
+.edge-type-option:last-child .edge-type-button {
+    border-top-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+}
+
+.edge-type-button i {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    color: var(--text-secondary);
+}
+
+.edge-type-option input[type="radio"]:checked + .edge-type-button {
+    background: linear-gradient(90deg, #4f46e5, #3730a3);
+    border: none;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);
+    font-weight: 600;
+}
+
+.edge-type-option input[type="radio"]:checked + .edge-type-button i {
+    opacity: 1;
+    color: white;
+}
+
+.edge-type-button:hover {
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+}
+
+
+
+.edge-type-option input[type="radio"]:checked + .edge-type-button:hover {
+    background: linear-gradient(90deg, #3730a3, #1e1b4b);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+}
+
+/* Visibility Buttons - Independent Toggle Style */
+.visibility-buttons {
+    display: flex;
+    gap: 0;
+    margin-top: 0.5rem;
+}
+
+.visibility-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.visibility-option input[type="checkbox"] {
+    display: none;
+}
+
+.visibility-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(90deg, #ef4444, #b91c1c); /* red by default */
+    border: 1px solid #374151;
+    border-radius: 0;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 500;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Remove background transition */
+    cursor: pointer;
+    min-height: 42px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button {
+    background: linear-gradient(90deg, #10b981, #059669); /* green when active */
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.visibility-button:hover {
+    background: linear-gradient(90deg, #f87171, #dc2626); /* lighter red on hover when unchecked */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button:hover {
+    background: linear-gradient(90deg, #059669, #047857); /* darker green on hover when checked */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+}
+
+.visibility-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.visibility-option:first-child .visibility-button {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-right: 1px solid var(--border-color);
+}
+
+.visibility-option:last-child .visibility-button {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-left: none;
+}
+
+.visibility-button i {
+    font-size: 1.25rem;
+    margin-bottom: 0.15rem;
+    opacity: 0.7;
+}
+
+.visibility-option input[type="checkbox"]:checked + .visibility-button i {
+    opacity: 1;
+}
+
+.visibility-button:hover::before {
+    left: 100%;
+}
+
+/* Edge Style Buttons - Adjacent Style */
+.edge-style-buttons {
+    display: flex;
+    gap: 2px;
+    margin-top: 0.5rem;
+}
+
+.edge-style-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.edge-style-option input[type="radio"] {
+    display: none;
+}
+
+.edge-style-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 42px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.edge-style-option:first-child .edge-style-button {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.edge-style-option:last-child .edge-style-button {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.edge-style-button i {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    color: var(--text-secondary);
+}
+
+.edge-style-option input[type="radio"]:checked + .edge-style-button {
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    border-width: 3px;
+    color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+    font-weight: 600;
+    background-image: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 30%, rgba(139, 92, 246, 0.05) 70%, transparent 70%);
+}
+
+.edge-style-option input[type="radio"]:checked + .edge-style-button i {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.edge-style-button:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.edge-style-option input[type="radio"]:checked + .edge-style-button:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Edge Direction Buttons - Adjacent Style */
+.edge-direction-buttons {
+    display: flex;
+    gap: 2px;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.edge-direction-option {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.edge-direction-option input[type="radio"] {
+    display: none;
+}
+
+.edge-direction-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+    min-height: 42px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.edge-direction-option:first-child .edge-direction-button {
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+}
+
+.edge-direction-option:last-child .edge-direction-button {
+    border-top-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+}
+
+.edge-direction-button i {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    color: var(--text-secondary);
+}
+
+.edge-direction-option input[type="radio"]:checked + .edge-direction-button {
+    background: linear-gradient(90deg, #4f46e5, #3730a3);
+    border: none;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);
+    font-weight: 600;
+}
+
+.edge-direction-option input[type="radio"]:checked + .edge-direction-button i {
+    opacity: 1;
+    color: white;
+}
+
+.edge-direction-button:hover {
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+}
+
+
+
+.edge-direction-option input[type="radio"]:checked + .edge-direction-button:hover {
+    background: linear-gradient(90deg, #3730a3, #1e1b4b);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+}
+
+
+
+/* Panel Drag and Drop Styles */
+.draggable-panel {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    /* Ensure proper initial positioning */
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.draggable-panel:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 0 8px rgba(99, 102, 241, 0.4),
+        0 0 15px rgba(99, 102, 241, 0.25),
+        0 0 25px rgba(99, 102, 241, 0.15),
+        0 0 35px rgba(99, 102, 241, 0.08),
+        inset 0 0 25px rgba(99, 102, 241, 0.03),
+        var(--shadow-lg);
+    animation: laserGlow 2s ease-in-out infinite;
+}
+
+.draggable-panel.dragging {
+    transition: none !important;
+    box-shadow: var(--shadow-xl);
+    z-index: 1001;
+    animation: dragShake 0.1s ease-in-out infinite;
+}
+
+@keyframes dragShake {
+    0% { transform: translateX(0px) translateY(0px); }
+    25% { transform: translateX(-1px) translateY(-1px); }
+    50% { transform: translateX(1px) translateY(1px); }
+    75% { transform: translateX(-1px) translateY(1px); }
+    100% { transform: translateX(0px) translateY(0px); }
+}
+
+/* Alternative shake effect with more variation */
+@keyframes dragShakeVariant {
+    0% { transform: translateX(0px) translateY(0px); }
+    20% { transform: translateX(-1px) translateY(0px); }
+    40% { transform: translateX(1px) translateY(-1px); }
+    60% { transform: translateX(0px) translateY(1px); }
+    80% { transform: translateX(-1px) translateY(-1px); }
+    100% { transform: translateX(0px) translateY(0px); }
+}
+
+@keyframes laserGlow {
+    0% {
+        box-shadow: 
+            0 0 8px rgba(99, 102, 241, 0.4),
+            0 0 15px rgba(99, 102, 241, 0.25),
+            0 0 25px rgba(99, 102, 241, 0.15),
+            0 0 35px rgba(99, 102, 241, 0.08),
+            inset 0 0 25px rgba(99, 102, 241, 0.03),
+            var(--shadow-lg);
+    }
+    50% {
+        box-shadow: 
+            0 0 12px rgba(99, 102, 241, 0.5),
+            0 0 20px rgba(99, 102, 241, 0.35),
+            0 0 30px rgba(99, 102, 241, 0.25),
+            0 0 40px rgba(99, 102, 241, 0.12),
+            inset 0 0 30px rgba(99, 102, 241, 0.05),
+            var(--shadow-lg);
+    }
+    100% {
+        box-shadow: 
+            0 0 8px rgba(99, 102, 241, 0.4),
+            0 0 15px rgba(99, 102, 241, 0.25),
+            0 0 25px rgba(99, 102, 241, 0.15),
+            0 0 35px rgba(99, 102, 241, 0.08),
+            inset 0 0 25px rgba(99, 102, 241, 0.03),
+            var(--shadow-lg);
+    }
+}
+
+.panel-drag-handle {
+    cursor: pointer !important;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+    position: relative;
+}
+
+.panel-drag-handle:hover {
+    background-color: rgba(99, 102, 241, 0.05);
+}
+
+.panel-drag-handle:active {
+    cursor: grabbing !important;
+    background-color: rgba(99, 102, 241, 0.08);
+}
+
+/* Visual feedback for clickable panels */
+.panel-drag-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    z-index: 1;
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.02) 100%);
+    opacity: 0;
+}
+
+.panel-drag-handle:hover::after {
+    opacity: 1;
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.05) 100%);
+}
+
+/* Click feedback animation */
+.panel-drag-handle:active::after {
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.1) 100%);
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Hold feedback - shows when user is holding down but not yet dragging */
+.panel-drag-handle.holding::after {
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.08) 100%);
+    opacity: 1;
+    animation: holdPulse 0.3s ease-in-out;
+}
+
+.panel-drag-handle.holding {
+    transform: scale(0.99);
+    transition: transform 0.1s ease;
+}
+
+@keyframes holdPulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+    100% { opacity: 0.3; }
+}
+
+/* Make expand/collapse button non-draggable with 5px border */
+.panel-drag-handle .expand-icon {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+    cursor: pointer;
+    padding: 5px;
+    margin: -5px;
+    border-radius: 4px;
+}
+
+.panel-drag-handle .expand-icon:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Panel header container */
+.panel-header-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.edit-mode-toggle {
+    margin-left: auto;
+}
+
+/* Drag handle area */
+.drag-handle-area {
+    flex-shrink: 0;
+    cursor: grab;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    margin-left: 3px;
+    margin-top: -8px;
+    min-width: 2rem;
+    width: 2rem;
+}
+
+.drag-handle-area:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+/* Drag handle icon styling */
+.drag-handle-icon {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    font-weight: bold;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    display: block;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.drag-handle-area:hover .drag-handle-icon {
+    opacity: 1;
+    color: var(--text-primary);
+}
+
+/* Adjust drag handle position for Controls and Algorithms panels */
+#basicControlsSection .drag-handle-area {
+    margin-top: -12px;
+}
+
+#searchSection .drag-handle-area {
+    margin-top: -12px;
+}
+
+/* Adjust title position for Controls and Algorithms panels */
+#basicControlsSection .expandable-header {
+    transform: translateY(3px);
+}
+
+#searchSection .expandable-header {
+    transform: translateY(3px);
+}
+
+
+
+/* Drop preview styles */
+.drop-preview {
+    animation: dropPreviewPulse 1s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.drop-preview:hover {
+    transform: scale(1.02);
+}
+
+.drop-indicator {
+    animation: dropIndicatorFade 1.5s ease-in-out infinite;
+}
+
+@keyframes dropPreviewPulse {
+    0% { 
+        background-color: rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.6);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+    50% { 
+        background-color: rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.8);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+    100% { 
+        background-color: rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.6);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+}
+
+@keyframes dropIndicatorFade {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+
+
+/* Ensure proper spacing between panels */
+.draggable-panel + .draggable-panel {
+    margin-top: 1rem;
+}
+
+/* Animation for panel reordering */
+.sidebar-content {
+    transition: none;
+}
+
+.sidebar-content.reordering {
+    transition: all 0.3s ease;
+}
+
+/* Panel drag styling */
+.panel-drag-handle {
+    position: relative;
+}
+
+/* Ensure interactive elements stay above the drag overlay */
+.panel-drag-handle button,
+.panel-drag-handle input,
+.panel-drag-handle select,
+.panel-drag-handle textarea,
+.panel-drag-handle a,
+.panel-drag-handle label,
+.panel-drag-handle .control-group,
+.panel-drag-handle .button-group,
+.panel-drag-handle .slider-container,
+.panel-drag-handle .checkbox-label,
+.panel-drag-handle .checkmark {
+    position: relative;
+    z-index: 2;
+}
+
+/* Prevent text selection during drag */
+.draggable-panel.dragging * {
+    user-select: none;
+}
+
+/* Visual feedback for draggable panels - moved to header */
+
+
+/* Ensure panels maintain their expanded/collapsed state during drag */
+.draggable-panel .expandable-content {
+    transition: none;
+}
+
+.draggable-panel.dragging .expandable-content {
+    transition: none !important;
+}
+
+
+
+
+
+/* Ensure right sidebar panels have proper spacing */
+.right-sidebar .draggable-panel + .draggable-panel {
+    margin-top: 1rem;
+}
+
+/* Add styles for select options to make them smaller */
+.control-group select option {
+    font-size: 0.75rem;
+}
+
+.control-group select {
+    font-size: 0.875rem;
+}
+
+.btn-magenta {
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: 1px solid #4f46e5;
+    color: white;
+    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
+}
+
+.btn-magenta:hover:not(:disabled) {
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    border-color: #4338ca;
+    box-shadow: 0 4px 8px rgba(129, 140, 248, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-magenta:active:not(:disabled) {
+    background: linear-gradient(90deg, #4f46e5, #4338ca);
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(129, 140, 248, 0.3);
+}
+
+.root-vertex-display {
+    position: relative;
+}
+
+.root-display {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    min-height: 40px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    transition: var(--transition);
+    overflow: hidden; /* Prevent content from overflowing */
+}
+
+.root-display.has-root {
+    border-color: var(--primary-color);
+    background: var(--bg-secondary);
+}
+
+.root-placeholder {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.root-vertex-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Cancel button styling for edit and delete modes */
+#cancelVertexEdit,
+#cancelDeleteChanges {
+    background: linear-gradient(90deg, #f87171, #ef4444) !important;
+    color: white !important;
+    border: none !important;
+}
+
+#cancelVertexEdit:hover:not(:disabled),
+#cancelDeleteChanges:hover:not(:disabled) {
+    background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white !important;
+}
+
+/* Additional critical fixes for contact modal form inputs */
+#contactModal input[type="text"],
+#contactModal input[type="email"],
+#contactModal textarea {
+    /* Override any potential inherited styles */
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #1e293b !important;
+    border: 1px solid #d1d5db !important;
+    opacity: 1 !important;
+    /* Ensure text is selectable and editable */
+    cursor: text !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    /* Override any potential disabled states */
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+    /* Ensure proper sizing */
+    box-sizing: border-box !important;
+    /* Override any potential inherited font styles */
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Override any potential Bootstrap form control styles */
+#contactModal .form-control {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #d1d5db !important;
+    opacity: 1 !important;
+}
+
+/* Ensure the modal backdrop doesn't interfere with form inputs */
+.modal-backdrop {
+    pointer-events: none !important;
+}
+
+.modal-backdrop.show {
+    pointer-events: none !important;
+}
+
+/* Override any potential global input styles */
+#contactModal input,
+#contactModal textarea {
+    /* Reset any inherited styles that might cause issues */
+    margin: 0 !important;
+    padding: 0.75rem !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    outline: none !important;
+    /* Ensure proper display */
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Specific fixes for different input types */
+#contactModal input[type="text"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+}
+
+#contactModal input[type="email"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+}
+
+#contactModal textarea {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    resize: none !important;
+    height: 100px !important;
+    min-height: 100px !important;
+}
+
+/* Ensure focus states override any global styles */
+#contactModal input:focus,
+#contactModal textarea:focus {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+    outline: none !important;
+}
+
+/* Override any potential placeholder styles */
+#contactModal input::placeholder,
+#contactModal textarea::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 1 !important;
+}
+
+/* Ensure the modal content is above any potential overlays */
+#contactModal .modal-content {
+    position: relative !important;
+    z-index: 10001 !important;
+    background: var(--bg-secondary) !important;
+}
+
+/* Fix any potential form label issues */
+#contactModal .form-label {
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+}
+
+/* Ensure buttons in the modal are properly styled */
+#contactModal .btn {
+    background: var(--primary-color) !important;
+    color: var(--text-primary) !important;
+    border: none !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+}
+
+/* Hover effect removed from primary button */
+
+#contactModal .btn-secondary {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Hover effect removed from secondary button */
+
+/* Final critical fixes to ensure contact modal works perfectly */
+#contactModal {
+    /* Ensure modal is above everything */
+    z-index: 9999 !important;
+    position: fixed !important;
+}
+
+#contactModal .modal-dialog {
+    z-index: 10000 !important;
+}
+
+#contactModal .modal-content {
+    z-index: 10001 !important;
+    position: relative !important;
+}
+
+/* Override any potential global form styles */
+#contactModal form {
+    position: relative !important;
+    z-index: 10002 !important;
+}
+
+/* Ensure form inputs are completely isolated from global styles */
+#contactModal .form-control,
+#contactModal input[type="text"],
+#contactModal input[type="email"],
+#contactModal textarea {
+    /* Force override any inherited styles */
+    all: unset !important;
+    /* Re-apply our specific styles */
+    display: block !important;
+    width: 100% !important;
+    padding: 0.75rem !important;
+    margin: 0 !important;
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+    /* Ensure interactivity */
+    cursor: text !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    /* Remove any potential disabled appearance */
+    opacity: 1 !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+    /* Ensure proper focus behavior */
+    outline: none !important;
+}
+
+/* Override any potential Bootstrap form-control styles */
+#contactModal .form-control {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Ensure focus states work properly */
+#contactModal .form-control:focus,
+#contactModal input[type="text"]:focus,
+#contactModal input[type="email"]:focus,
+#contactModal textarea:focus {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+    outline: none !important;
+}
+
+/* Override any potential placeholder styles */
+#contactModal .form-control::placeholder,
+#contactModal input[type="text"]::placeholder,
+#contactModal input[type="email"]::placeholder,
+#contactModal textarea::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 1 !important;
+}
+
+/* Ensure textarea has proper height */
+#contactModal textarea.form-control,
+#contactModal textarea {
+    resize: none !important;
+    height: 100px !important;
+    min-height: 100px !important;
+}
+
+/* Override any potential global button styles */
+#contactModal .btn {
+    all: unset !important;
+    display: inline-block !important;
+    padding: 0.75rem 1.5rem !important;
+    margin: 0.25rem !important;
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    border: 2px solid var(--primary-color) !important;
+    border-radius: 10px !important;
+    font-family: inherit !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    /* Transition removed to prevent hover effects */
+}
+
+/* Hover effects removed from contact panel buttons */
+
+#contactModal .btn-secondary {
+    background: var(--bg-tertiary) !important;
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-color) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure modal backdrop doesn't interfere */
+.modal-backdrop {
+    pointer-events: none !important;
+    z-index: 9998 !important;
+}
+
+.modal-backdrop.show {
+    pointer-events: none !important;
+}
+
+/* Override any potential global modal styles */
+#contactModal.modal {
+    z-index: 9999 !important;
+}
+
+#contactModal.modal.show {
+    display: block !important;
+}
+
+#contactModal.modal.fade.show {
+    opacity: 1 !important;
+}
+
+/* Ensure form labels are properly styled */
+#contactModal .form-label {
+    all: unset !important;
+    display: block !important;
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Override any potential global input styles */
+#contactModal input,
+#contactModal textarea {
+    /* Force override any inherited styles */
+    all: unset !important;
+    /* Re-apply our specific styles */
+    display: block !important;
+    width: 100% !important;
+    padding: 0.75rem !important;
+    margin: 0 !important;
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+    cursor: text !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    opacity: 1 !important;
 }
