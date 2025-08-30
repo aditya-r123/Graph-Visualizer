@@ -3393,7 +3393,7 @@ body {
 }
 
 .edge-type-option {
-    flex: 1;
+    flex: 0.95;
     cursor: pointer;
     margin: 0;
     padding: 0;
@@ -3405,18 +3405,18 @@ body {
 
 .edge-type-button {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-primary);
-    border: 2px solid var(--border-color);
-    border-radius: 0;
-    color: var(--text-primary);
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
     font-size: 0.875rem;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     cursor: pointer;
     min-height: 42px;
     width: 100%;
@@ -3429,13 +3429,13 @@ body {
 
 
 .edge-type-option:first-child .edge-type-button {
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
 }
 
 .edge-type-option:last-child .edge-type-button {
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
+    border-top-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
 }
 
 .edge-type-button i {
@@ -3445,35 +3445,33 @@ body {
 }
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button {
-    background: var(--bg-tertiary);
-    border-color: var(--primary-color);
-    border-width: 3px;
-    color: var(--primary-color);
+    background: linear-gradient(90deg, #4f46e5, #3730a3);
+    border: none;
+    color: white;
     transform: translateY(-1px);
-    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);
     font-weight: 600;
-    background-image: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 30%, rgba(139, 92, 246, 0.05) 70%, transparent 70%);
 }
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button i {
     opacity: 1;
-    color: var(--primary-color);
+    color: white;
 }
 
 .edge-type-button:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--primary-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
 }
 
 
 
 .edge-type-option input[type="radio"]:checked + .edge-type-button:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(90deg, #3730a3, #1e1b4b);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
 }
 
 /* Visibility Buttons - Independent Toggle Style */
@@ -3665,10 +3663,11 @@ body {
     display: flex;
     gap: 2px;
     margin-top: 0.5rem;
+    margin-right: 0.5rem;
 }
 
 .edge-direction-option {
-    flex: 1;
+    flex: 0.95;
     cursor: pointer;
     margin: 0;
     padding: 0;
@@ -3680,18 +3679,18 @@ body {
 
 .edge-direction-button {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-primary);
-    border: 2px solid var(--border-color);
-    border-radius: 0;
-    color: var(--text-primary);
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
     font-size: 0.875rem;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     cursor: pointer;
     min-height: 42px;
     width: 100%;
@@ -3702,13 +3701,13 @@ body {
 }
 
 .edge-direction-option:first-child .edge-direction-button {
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
 }
 
 .edge-direction-option:last-child .edge-direction-button {
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
+    border-top-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
 }
 
 .edge-direction-button i {
@@ -3718,35 +3717,33 @@ body {
 }
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button {
-    background: var(--bg-tertiary);
-    border-color: var(--primary-color);
-    border-width: 3px;
-    color: var(--primary-color);
+    background: linear-gradient(90deg, #4f46e5, #3730a3);
+    border: none;
+    color: white;
     transform: translateY(-1px);
-    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);
     font-weight: 600;
-    background-image: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 30%, rgba(139, 92, 246, 0.05) 70%, transparent 70%);
 }
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button i {
     opacity: 1;
-    color: var(--primary-color);
+    color: white;
 }
 
 .edge-direction-button:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--primary-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
 }
 
 
 
 .edge-direction-option input[type="radio"]:checked + .edge-direction-button:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(90deg, #3730a3, #1e1b4b);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
 }
 
 
