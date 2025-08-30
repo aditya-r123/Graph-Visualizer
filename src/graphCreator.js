@@ -863,6 +863,7 @@ export class GraphCreator {
                     input.type = 'text';
                     input.value = savedGraph.name;
                     input.style.cssText = `width: 100%; padding: 0.25rem 0.5rem; border: 1px solid var(--primary-color); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: 0.875rem; font-weight: 500;`;
+                    const originalName = savedGraph.name; // Store the original name before editing
                     const originalContent = nameElement.innerHTML;
                     nameElement.innerHTML = '';
                     nameElement.appendChild(input);
@@ -870,7 +871,7 @@ export class GraphCreator {
                     input.select();
                     const saveName = () => {
                         const newName = input.value.trim();
-                        if (newName && newName !== savedGraph.name) {
+                        if (newName && newName !== originalName) {
                             // Check for duplicate names
                             const isDuplicate = this.savedGraphs.some((g, i) => i !== index && g.name === newName);
                             if (isDuplicate) {
@@ -886,8 +887,13 @@ export class GraphCreator {
                             nameElement.innerHTML = originalContent;
                         }
                     };
-                    const cancelEdit = () => {
-                        nameElement.innerHTML = originalContent;
+                    const undoRename = () => {
+                        // Revert to the original name (undo the rename)
+                        savedGraph.name = originalName;
+                        nameElement.innerHTML = originalName;
+                        this.updateStatus(`Rename undone - reverted to "${originalName}"`);
+                        localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                        this.updateSavedGraphsList();
                     };
                     input.addEventListener('blur', saveName);
                     input.addEventListener('keydown', (e) => {
@@ -897,7 +903,7 @@ export class GraphCreator {
                             input.blur(); // Remove focus from input
                         } else if (e.key === 'Escape') {
                             e.preventDefault();
-                            cancelEdit();
+                            undoRename();
                             input.blur(); // Remove focus from input
                         }
                     });
@@ -7235,6 +7241,7 @@ export class GraphCreator {
         `;
         
         // Replace the name element with input
+        const originalName = savedGraph.name; // Store the original name before editing
         const originalContent = nameElement.innerHTML;
         nameElement.innerHTML = '';
         nameElement.appendChild(input);
@@ -7244,7 +7251,7 @@ export class GraphCreator {
         // Handle save on Enter or blur
         const saveName = () => {
             const newName = input.value.trim();
-            if (newName && newName !== savedGraph.name) {
+            if (newName && newName !== originalName) {
                 // Check for duplicate names
                 const isDuplicate = this.savedGraphs.some((g, i) => i !== index && g.name === newName);
                 if (isDuplicate) {
@@ -7265,9 +7272,13 @@ export class GraphCreator {
             }
         };
         
-        // Handle cancel on Escape
-        const cancelEdit = () => {
-            nameElement.innerHTML = originalContent;
+        // Handle undo on Escape
+        const undoRename = () => {
+            // Revert to the original name (undo the rename)
+            savedGraph.name = originalName;
+            nameElement.innerHTML = originalName;
+            this.updateStatus(`Rename undone - reverted to "${originalName}"`);
+            // Note: This function doesn't save to localStorage since it's pending
         };
         
         input.addEventListener('blur', saveName);
@@ -7278,7 +7289,7 @@ export class GraphCreator {
                 input.blur(); // Remove focus from input
             } else if (e.key === 'Escape') {
                 e.preventDefault();
-                cancelEdit();
+                undoRename();
                 input.blur(); // Remove focus from input
             }
         });
