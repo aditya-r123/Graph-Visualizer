@@ -2525,7 +2525,7 @@ export class GraphCreator {
             
             return hierarchyText;
         } catch (error) {
-            console.error('Error generating hierarchy with AI:', error);
+            console.error('Error generating hierarchy', error);
             return "Error generating hierarchy. Please try again.";
         }
     }
@@ -2637,7 +2637,7 @@ export class GraphCreator {
     // Async TXT export method
     async exportTxtAsync() {
         try {
-            this.updateStatus('Generating hierarchy with AI...');
+            this.updateStatus('Generating hierarchy...');
             
             const txtContent = await this.exportGraphAsTxt();
             const currentGraphName = this.getCurrentGraphName();
