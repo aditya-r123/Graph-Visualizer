@@ -1960,12 +1960,8 @@ export class GraphCreator {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Draw vertex label
-        ctx.font = '14px Arial';
-        ctx.fillStyle = '#000000';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(vertex.label, vertex.x, vertex.y);
+        // Draw vertex label with wrapping
+        this.drawVertexLabel(ctx, vertex, vertex.x, vertex.y, size, 'circle', 14, 'Arial', '#000000');
     }
     
     drawEdgeForScreenshot(ctx, edge) {
@@ -2168,24 +2164,7 @@ export class GraphCreator {
         
         // Draw vertex label (only if not hidden)
         if (!this.hideLabels) {
-            ctx.font = `${labelSize}px ${fontFamily}`;
-            ctx.fillStyle = fontColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // Add text shadow for better readability
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 2;
-            ctx.shadowOffsetX = 1;
-            ctx.shadowOffsetY = 1;
-            
-            ctx.fillText(vertex.label, vertex.x, vertex.y);
-            
-            // Reset shadow
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
+            this.drawVertexLabel(ctx, vertex, vertex.x, vertex.y, size, shape, labelSize, fontFamily, fontColor);
         }
     }
     
@@ -2467,24 +2446,7 @@ export class GraphCreator {
         
         // Draw vertex label (only if not hidden)
         if (!this.hideLabels) {
-            ctx.font = `${labelSize}px ${fontFamily}`;
-            ctx.fillStyle = fontColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // Add a subtle text shadow for better readability
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 2;
-            ctx.shadowOffsetX = 1;
-            ctx.shadowOffsetY = 1;
-            
-            ctx.fillText(vertex.label, vertex.x, vertex.y);
-            
-            // Reset shadow
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
+            this.drawVertexLabel(ctx, vertex, vertex.x, vertex.y, size, shape, labelSize, fontFamily, fontColor);
         }
     }
     
@@ -5463,6 +5425,158 @@ export class GraphCreator {
                 break;
         }
     }
+
+    // Calculate the available text area for a given shape and size
+    getTextBounds(shape, size) {
+        switch (shape) {
+            case 'circle':
+                // For circles, use inscribed square area
+                const radius = size;
+                const side = radius * Math.sqrt(2); // Diagonal of inscribed square
+                return { width: side * 0.8, height: side * 0.8 }; // 80% of inscribed square
+            case 'square':
+                return { width: size * 1.6, height: size * 1.6 }; // 80% of square
+            case 'triangle':
+                const height = size * Math.sqrt(3);
+                return { width: size * 1.6, height: height * 0.8 }; // 80% of triangle
+            case 'star':
+                return { width: size * 1.4, height: size * 1.4 }; // 80% of star
+            case 'pentagon':
+                return { width: size * 1.4, height: size * 1.4 }; // 80% of pentagon
+            case 'hexagon':
+                return { width: size * 1.4, height: size * 1.4 }; // 80% of hexagon
+            case 'octagon':
+                return { width: size * 1.4, height: size * 1.4 }; // 80% of octagon
+            default:
+                // Default to circle
+                const defaultRadius = size;
+                const defaultSide = defaultRadius * Math.sqrt(2);
+                return { width: defaultSide * 0.8, height: defaultSide * 0.8 };
+        }
+    }
+
+    // Wrap text to fit within bounds
+    wrapText(text, maxWidth, ctx) {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+
+        for (let i = 0; i < words.length; i++) {
+            const testLine = currentLine + (currentLine ? ' ' : '') + words[i];
+            const metrics = ctx.measureText(testLine);
+            
+            if (metrics.width > maxWidth && currentLine) {
+                lines.push(currentLine);
+                currentLine = words[i];
+            } else {
+                currentLine = testLine;
+            }
+        }
+        
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+        
+        return lines;
+    }
+
+    // Draw vertex label with wrapping and font size adjustment
+    drawVertexLabel(ctx, vertex, x, y, size, shape, originalFontSize, fontFamily, fontColor) {
+        const textBounds = this.getTextBounds(shape, size);
+        const maxWidth = textBounds.width;
+        const maxHeight = textBounds.height;
+        
+        // Debug logging
+        console.log('Text wrapping debug:', {
+            label: vertex.label,
+            shape,
+            size,
+            maxWidth,
+            maxHeight,
+            originalFontSize
+        });
+        
+        // Start with original font size
+        let fontSize = originalFontSize;
+        let lines = [];
+        let totalHeight = 0;
+        let fits = false;
+        
+        // Try to fit text with decreasing font sizes
+        while (fontSize >= 8 && !fits) { // Minimum font size of 8px
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
+            // Wrap text to fit width
+            lines = this.wrapText(vertex.label, maxWidth, ctx);
+            
+            // Calculate total height needed
+            const lineHeight = fontSize * 1.2; // 1.2 line height
+            totalHeight = lines.length * lineHeight;
+            
+            // Check if text fits in height
+            if (totalHeight <= maxHeight) {
+                fits = true;
+            } else {
+                fontSize -= 1; // Reduce font size by 1px
+            }
+        }
+        
+        // If still doesn't fit, use minimum font size and truncate
+        if (!fits) {
+            fontSize = 8;
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            lines = this.wrapText(vertex.label, maxWidth, ctx);
+            
+            // Truncate lines to fit height
+            const lineHeight = fontSize * 1.2;
+            const maxLines = Math.floor(maxHeight / lineHeight);
+            if (lines.length > maxLines) {
+                lines = lines.slice(0, maxLines);
+                if (lines.length > 0) {
+                    // Add ellipsis to last line if truncated
+                    const lastLine = lines[lines.length - 1];
+                    const testLine = lastLine + '...';
+                    if (ctx.measureText(testLine).width <= maxWidth) {
+                        lines[lines.length - 1] = testLine;
+                    } else {
+                        // Remove characters until ellipsis fits
+                        let truncated = lastLine;
+                        while (truncated.length > 0 && ctx.measureText(truncated + '...').width > maxWidth) {
+                            truncated = truncated.slice(0, -1);
+                        }
+                        lines[lines.length - 1] = truncated + '...';
+                    }
+                }
+            }
+        }
+        
+        // Set up text rendering
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Add a subtle text shadow for better readability
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        
+        // Draw each line
+        const lineHeight = fontSize * 1.2;
+        const startY = y - (lines.length - 1) * lineHeight / 2;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const lineY = startY + i * lineHeight;
+            ctx.fillText(lines[i], x, lineY);
+        }
+        
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+    }
+
     drawVertex(vertex) {
         const ctx = this.ctx;
         
@@ -5643,19 +5757,7 @@ export class GraphCreator {
         if (!this.hideLabels) {
             const fontFamily = vertex.fontFamily || this.vertexFontFamily;
             const fontColor = vertex.fontColor || this.vertexFontColor;
-            ctx.font = `${labelSize}px ${fontFamily}`;
-            ctx.fillStyle = fontColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 2;
-            ctx.shadowOffsetX = 1;
-            ctx.shadowOffsetY = 1;
-            ctx.fillText(label, drawX, drawY);
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
+            this.drawVertexLabel(ctx, { label }, drawX, drawY, size, shape, labelSize, fontFamily, fontColor);
         }
         if (isMarkedForDeletion || isPendingDeleteEdit) {
             ctx.restore();
