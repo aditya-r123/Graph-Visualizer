@@ -1,5 +1,8 @@
 import { EMAILJS_CONFIG, isProduction } from './config.js';
 
+// AI API Control - Set to true to enable OpenAI API calls
+const ai_usage = false;
+
 export class GraphCreator {
     constructor() {
         // Initialize canvas
@@ -2637,7 +2640,13 @@ export class GraphCreator {
     // Async TXT export method
     async exportTxtAsync() {
         try {
-            this.updateStatus('Generating hierarchy...');
+            // Check if AI usage is enabled
+            if (!ai_usage) {
+                this.updateStatus('ERROR');
+                return;
+            }
+            
+            this.updateStatus('Generating hierarchy');
             
             const txtContent = await this.exportGraphAsTxt();
             const currentGraphName = this.getCurrentGraphName();
@@ -2678,7 +2687,13 @@ export class GraphCreator {
     // Async TXT sharing method
     async shareTxtAsync() {
         try {
-            this.updateStatus('Generating hierarchy with AI...');
+            // Check if AI usage is enabled
+            if (!ai_usage) {
+                this.updateStatus('ERROR');
+                return;
+            }
+            
+            this.updateStatus('Generating hierarchy');
             
             const txtContent = await this.exportGraphAsTxt();
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
