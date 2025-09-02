@@ -5455,20 +5455,37 @@ export class GraphCreator {
         }
     }
 
-    // Wrap text to fit within bounds
+    // Wrap text to fit within bounds with hyphenation for long words
     wrapText(text, maxWidth, ctx) {
         const words = text.split(' ');
         const lines = [];
         let currentLine = '';
 
         for (let i = 0; i < words.length; i++) {
-            const testLine = currentLine + (currentLine ? ' ' : '') + words[i];
+            const word = words[i];
+            const testLine = currentLine + (currentLine ? ' ' : '') + word;
             const metrics = ctx.measureText(testLine);
             
-            if (metrics.width > maxWidth && currentLine) {
-                lines.push(currentLine);
-                currentLine = words[i];
+            if (metrics.width > maxWidth) {
+                if (currentLine) {
+                    // Current line is full, start a new line
+                    lines.push(currentLine);
+                    currentLine = '';
+                }
+                
+                // Check if the word itself is too long for a single line
+                const wordMetrics = ctx.measureText(word);
+                if (wordMetrics.width > maxWidth) {
+                    // Word is too long, need to break it with hyphens
+                    const brokenWord = this.breakLongWord(word, maxWidth, ctx);
+                    lines.push(...brokenWord);
+                    currentLine = ''; // Start fresh after breaking the word
+                } else {
+                    // Word fits on its own line
+                    currentLine = word;
+                }
             } else {
+                // Word fits on current line
                 currentLine = testLine;
             }
         }
@@ -5480,21 +5497,64 @@ export class GraphCreator {
         return lines;
     }
 
+    // Break a long word into multiple lines with hyphens
+    breakLongWord(word, maxWidth, ctx) {
+        const lines = [];
+        let remainingWord = word;
+        
+        while (remainingWord.length > 0) {
+            // Find the maximum number of characters that fit
+            let charsToTake = 1;
+            let testWord = remainingWord.substring(0, charsToTake);
+            let metrics = ctx.measureText(testWord);
+            
+            // Keep adding characters until we exceed the width
+            while (charsToTake < remainingWord.length && metrics.width <= maxWidth) {
+                charsToTake++;
+                testWord = remainingWord.substring(0, charsToTake);
+                metrics = ctx.measureText(testWord);
+            }
+            
+            // If we couldn't fit even one character, something's wrong
+            if (charsToTake === 1) {
+                charsToTake = Math.min(remainingWord.length, 10); // Force at least 10 chars
+            } else {
+                // Back off by one character since we exceeded the width
+                charsToTake--;
+            }
+            
+            // Extract the part that fits
+            const part = remainingWord.substring(0, charsToTake);
+            
+            // Add hyphen if there's more word to come
+            if (remainingWord.length > charsToTake) {
+                const hyphenatedPart = part + '-';
+                const hyphenatedMetrics = ctx.measureText(hyphenatedPart);
+                
+                // If hyphenated version still fits, use it
+                if (hyphenatedMetrics.width <= maxWidth) {
+                    lines.push(hyphenatedPart);
+                } else {
+                    // If hyphen doesn't fit, just use the part without hyphen
+                    lines.push(part);
+                }
+            } else {
+                // Last part of the word, no hyphen needed
+                lines.push(part);
+            }
+            
+            // Remove the processed part from remaining word
+            remainingWord = remainingWord.substring(charsToTake);
+        }
+        
+        return lines;
+    }
+
     // Draw vertex label with wrapping and font size adjustment
     drawVertexLabel(ctx, vertex, x, y, size, shape, originalFontSize, fontFamily, fontColor) {
         const textBounds = this.getTextBounds(shape, size);
         const maxWidth = textBounds.width;
         const maxHeight = textBounds.height;
-        
-        // Debug logging
-        console.log('Text wrapping debug:', {
-            label: vertex.label,
-            shape,
-            size,
-            maxWidth,
-            maxHeight,
-            originalFontSize
-        });
         
         // Start with original font size
         let fontSize = originalFontSize;
