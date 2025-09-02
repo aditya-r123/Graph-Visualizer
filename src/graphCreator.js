@@ -2556,17 +2556,7 @@ export class GraphCreator {
 
     // ChatGPT API call
     async callChatGPTAPI(imageDataUrl) {
-        const prompt = `You are given an input image showing a tree with numbered nodes and directed edges. Your task is to generate a file hierarchy diagram using only the characters "|", "_", and spaces, based on the structure in the image
-
-Rules:
-- Each child must connect directly under its parent, aligned with the parent's vertical "|"
-- The label should be right after the underscores, not below them
-- Don't include extra "|" chars beyond what's needed for alignment
-- Output only the diagram, nothing else.
-- For undirected edges, top node is parent and mode node is child
-- For nodes that are not connected to the main tree, put them at the bottom of the output on the parent level
-`;
-        
+        const prompt = `Generate text-based file tree from the image using "|", "_", and spaces Rules: Indent childs with "|___", align under the parent's vertical "|".Place labels right after underscores. Put unconnected nodes on new line at root lvl. Output only diagram`;
         console.log('Calling ChatGPT API with image data URL length:', imageDataUrl.length);
         console.log('Image data URL preview:', imageDataUrl.substring(0, 100) + '...');
         
