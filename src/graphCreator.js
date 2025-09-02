@@ -7722,7 +7722,11 @@ export class GraphCreator {
         this.verticesToDelete = new Set();
         // Save original state for cancel
         this.originalVertices = this.vertices.map(v => ({ ...v }));
-        this.originalEdges = this.edges.map(e => ({ ...e }));
+        this.originalEdges = this.edges.map(e => ({
+            ...e,
+            fromId: e.from.id, // Store vertex IDs instead of references
+            toId: e.to.id      // Store vertex IDs instead of references
+        }));
         document.body.classList.add('delete-mode-active');
         
         // Hide theme toggle and mouse position display when in delete mode
@@ -7781,7 +7785,16 @@ export class GraphCreator {
     cancelDeleteChanges() {
         // Restore original state
         this.vertices = this.originalVertices.map(v => ({ ...v }));
-        this.edges = this.originalEdges.map(e => ({ ...e }));
+        this.edges = this.originalEdges.map(e => {
+            const restoredEdge = { ...e };
+            // Reconnect edges to the restored vertices
+            restoredEdge.from = this.vertices.find(v => v.id === e.fromId);
+            restoredEdge.to = this.vertices.find(v => v.id === e.toId);
+            // Remove the temporary ID properties
+            delete restoredEdge.fromId;
+            delete restoredEdge.toId;
+            return restoredEdge;
+        });
         this.isDeleteMode = false;
         this.verticesToDelete = new Set();
         document.body.classList.remove('delete-mode-active');
