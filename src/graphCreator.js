@@ -5817,7 +5817,7 @@ export class GraphCreator {
         if (!this.hideLabels) {
             const fontFamily = vertex.fontFamily || this.vertexFontFamily;
             const fontColor = vertex.fontColor || this.vertexFontColor;
-            this.drawVertexLabel(ctx, { label }, drawX, drawY, size, shape, labelSize, fontFamily, fontColor);
+            this.drawVertexLabel(ctx, vertex, drawX, drawY, size, shape, labelSize, fontFamily, fontColor);
         }
         if (isMarkedForDeletion || isPendingDeleteEdit) {
             ctx.restore();
