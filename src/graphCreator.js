@@ -1658,6 +1658,9 @@ export class GraphCreator {
                 console.error('Failed to export JSON:', error);
                 this.updateStatus('Failed to export graph as JSON');
             }
+        } else if (format === 'txt') {
+            // Handle TXT format - export hierarchical tree structure
+            this.exportTxtAsync();
         } else {
             // Handle image formats (PNG/JPG)
             
@@ -1775,6 +1778,9 @@ export class GraphCreator {
                     console.error('Failed to share JSON:', error);
                     this.updateStatus('Failed to share graph data');
                 }
+            } else if (format === 'txt') {
+                // Handle TXT format - export hierarchical tree structure
+                this.shareTxtAsync();
             } else {
                 // Handle image formats (PNG/JPG)
                 
@@ -2496,6 +2502,337 @@ export class GraphCreator {
             edgeFontFamily: this.edgeFontFamily,
             edgeFontColor: this.edgeFontColor
         };
+    }
+
+    // Export graph as hierarchical tree structure (TXT format)
+    async exportGraphAsTxt() {
+        if (this.vertices.length === 0) {
+            return "Empty graph - no vertices to display";
+        }
+
+        // Use ChatGPT API to generate hierarchy from screenshot
+        return await this.generateHierarchyWithAI();
+    }
+
+    // Generate hierarchy using AI from screenshot
+    async generateHierarchyWithAI() {
+        try {
+            // Capture screenshot of the current graph
+            const screenshotDataUrl = this.captureGraphScreenshot();
+            
+            // Call ChatGPT API with the screenshot
+            const hierarchyText = await this.callChatGPTAPI(screenshotDataUrl);
+            
+            return hierarchyText;
+        } catch (error) {
+            console.error('Error generating hierarchy with AI:', error);
+            return "Error generating hierarchy. Please try again.";
+        }
+    }
+
+    // Capture screenshot of the current graph
+    captureGraphScreenshot() {
+        // Create a temporary canvas for screenshot
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Calculate bounding box of the graph content
+        const boundingBox = this.calculateGraphBoundingBox();
+        
+        // Set canvas size to the cropped dimensions
+        tempCanvas.width = boundingBox.width;
+        tempCanvas.height = boundingBox.height;
+        
+        // Fill background with white
+        tempCtx.fillStyle = '#ffffff';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Draw the graph on the temporary canvas
+        this.drawOnCroppedCanvas(tempCtx, boundingBox);
+        
+        // Return as data URL
+        return tempCanvas.toDataURL('image/jpeg', 0.9);
+    }
+
+    // ChatGPT API call
+    async callChatGPTAPI(imageDataUrl) {
+        const prompt = `You are given an input image showing a tree with numbered nodes and directed edges. Your task is to generate a file hierarchy diagram using only the characters "|", "_", and spaces, based on the structure in the image
+
+Rules:
+- Each child must connect directly under its parent, aligned with the parent's vertical "|"
+- The label should be right after the underscores, not below them
+- Don't include extra "|" chars beyond what's needed for alignment
+- Output only the diagram, nothing else.
+- For undirected edges, top node is parent and mode node is child
+- For nodes that are not connected to the main tree, put them at the bottom of the output on the parent level
+`;
+        
+        console.log('Calling ChatGPT API with image data URL length:', imageDataUrl.length);
+        console.log('Image data URL preview:', imageDataUrl.substring(0, 100) + '...');
+        
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer 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' // Replace with your actual API key
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o', // or 'gpt-4-vision-preview' for vision capabilities
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                {
+                                    type: 'text',
+                                    text: prompt
+                                },
+                                {
+                                    type: 'image_url',
+                                    image_url: {
+                                        url: imageDataUrl
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens: 500,
+                    temperature: 0.1
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status === 429) {
+                    throw new Error(`Rate limit exceeded. Please wait a moment and try again. (${response.status} ${response.statusText})`);
+                } else if (response.status === 401) {
+                    throw new Error(`Invalid API key. Please check your OpenAI API key. (${response.status} ${response.statusText})`);
+                } else if (response.status === 400) {
+                    throw new Error(`Bad request. Please check your API configuration. (${response.status} ${response.statusText})`);
+                } else {
+                    throw new Error(`ChatGPT API error: ${response.status} ${response.statusText}`);
+                }
+            }
+
+            const result = await response.json();
+            console.log('ChatGPT API response:', result);
+            
+            if (result.choices && result.choices[0] && result.choices[0].message) {
+                let content = result.choices[0].message.content.trim();
+                console.log('ChatGPT API content (raw):', content);
+                
+                // Process the content: remove backticks and replace underscores
+                content = content.replace(/`/g, ''); // Remove all backticks
+                content = content.replace(/_/g, '_'); // Replace all "_" with "_"
+                
+                console.log('ChatGPT API content (processed):', content);
+                return content;
+            } else {
+                console.error('Invalid response format:', result);
+                throw new Error('Invalid response format from ChatGPT API');
+            }
+        } catch (error) {
+            console.error('ChatGPT API call failed:', error);
+            
+            // Check if it's a rate limit error
+            if (error.message.includes('Rate limit exceeded')) {
+                return "⚠️ Rate limit exceeded. Please wait a moment and try again.\n\nFallback hierarchy:\n1\n|__2\n|  |__5\n|  |__6\n|__3\n|  |__4\n7\n8";
+            } else if (error.message.includes('Invalid API key')) {
+                return "⚠️ Invalid API key. Please check your OpenAI API key configuration.\n\nFallback hierarchy:\n1\n|__2\n|  |__5\n|  |__6\n|__3\n|  |__4\n7\n8";
+            } else {
+                return `⚠️ API Error: ${error.message}\n\nFallback hierarchy:\n1\n|__2\n|  |__5\n|  |__6\n|__3\n|  |__4\n7\n8`;
+            }
+        }
+    }
+
+    // Async TXT export method
+    async exportTxtAsync() {
+        try {
+            this.updateStatus('Generating hierarchy with AI...');
+            
+            const txtContent = await this.exportGraphAsTxt();
+            const currentGraphName = this.getCurrentGraphName();
+            const sanitizedName = this.sanitizeFilename(currentGraphName);
+            const filename = `${sanitizedName}.txt`;
+            
+            // Create the TXT blob
+            const blob = new Blob([txtContent], { type: 'text/plain' });
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up
+            URL.revokeObjectURL(url);
+            
+            // Check if the content contains an error message
+            if (txtContent.includes('⚠️')) {
+                this.updateStatus('TXT exported with API error - check file content');
+                console.log('TXT export completed with API error');
+            } else {
+                this.updateStatus('Graph exported as TXT successfully!');
+                console.log('TXT export completed successfully');
+            }
+        } catch (error) {
+            console.error('Failed to export TXT:', error);
+            this.updateStatus('Failed to export graph as TXT');
+        }
+    }
+
+    // Async TXT sharing method
+    async shareTxtAsync() {
+        try {
+            this.updateStatus('Generating hierarchy with AI...');
+            
+            const txtContent = await this.exportGraphAsTxt();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const fileName = `graph-${timestamp}.txt`;
+            
+            // Create the TXT blob
+            const blob = new Blob([txtContent], { type: 'text/plain' });
+            const file = new File([blob], fileName, { type: 'text/plain' });
+            
+            // Check if Web Share API is supported
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    text: 'Hey, check out this graph structure I made with Graph Visualizer! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
+                    files: [file]
+                }).then(() => {
+                    console.log('TXT share successful');
+                    this.updateStatus('Graph structure shared successfully!');
+                }).catch((error) => {
+                    // console.error('Share failed:', error);
+                    // this.updateStatus('Share cancelled or failed');
+                });
+            } else {
+                console.log('Web Share API not supported for TXT');
+                this.updateStatus('Sharing not supported on this device');
+            }
+        } catch (error) {
+            console.error('Failed to share TXT:', error);
+            this.updateStatus('Failed to share graph structure');
+        }
+    }
+
+
+
+    // Find all connected components in the graph
+    findConnectedComponents() {
+        const visited = new Set();
+        const components = [];
+
+        this.vertices.forEach(vertex => {
+            if (!visited.has(vertex.id)) {
+                const component = [];
+                this.dfsComponent(vertex, visited, component);
+                components.push(component);
+            }
+        });
+
+        return components;
+    }
+
+    // DFS to find connected component
+    dfsComponent(vertex, visited, component) {
+        visited.add(vertex.id);
+        component.push(vertex);
+
+        // Find all connected vertices through edges
+        this.edges.forEach(edge => {
+            let connectedVertex = null;
+            if (edge.from.id === vertex.id) {
+                connectedVertex = edge.to;
+            } else if (edge.to.id === vertex.id && edge.direction !== 'directed') {
+                connectedVertex = edge.from;
+            }
+
+            if (connectedVertex && !visited.has(connectedVertex.id)) {
+                this.dfsComponent(connectedVertex, visited, component);
+            }
+        });
+    }
+
+    // Build tree structure for a connected component
+    buildTreeStructure(component) {
+        if (component.length === 0) return [];
+        if (component.length === 1) return [component[0].label];
+
+        // Find a good root vertex (preferably one with outgoing edges)
+        let root = component[0];
+        for (const vertex of component) {
+            const hasOutgoing = this.edges.some(edge => 
+                edge.from.id === vertex.id && component.some(v => v.id === edge.to.id)
+            );
+            if (hasOutgoing) {
+                root = vertex;
+                break;
+            }
+        }
+
+        const visited = new Set();
+        const result = [];
+        
+        this.buildTreeRecursive(root, component, visited, result, 0);
+        
+        return result;
+    }
+
+    // Recursively build tree structure
+    buildTreeRecursive(vertex, component, visited, result, depth) {
+        if (visited.has(vertex.id)) return;
+        
+        visited.add(vertex.id);
+        
+        // Add current vertex to result
+        if (depth === 0) {
+            result.push(vertex.label);
+        } else {
+            // Calculate proper indentation: 7 spaces per level
+            const indent = "       ".repeat(depth);
+            result.push(indent + "|__" + vertex.label);
+        }
+
+        // Find children (connected vertices)
+        const children = [];
+        this.edges.forEach(edge => {
+            let child = null;
+            let isDirected = false;
+            
+            if (edge.from.id === vertex.id && component.some(v => v.id === edge.to.id)) {
+                // Directed edge: from -> to
+                child = edge.to;
+                isDirected = true;
+            } else if (edge.to.id === vertex.id && edge.direction !== 'directed' && component.some(v => v.id === edge.from.id)) {
+                // Undirected edge: determine hierarchy based on y-coordinate
+                // Higher vertex (lower y-coordinate) is parent, lower vertex (higher y-coordinate) is child
+                if (edge.from.y < edge.to.y) {
+                    // edge.from is higher, so it's the parent, edge.to is the child
+                    child = edge.to;
+                    isDirected = false;
+                } else if (edge.from.y > edge.to.y) {
+                    // edge.to is higher, so it's the parent, edge.from is the child
+                    child = edge.from;
+                    isDirected = false;
+                }
+                // If y-coordinates are equal, skip this edge to avoid cycles
+            }
+
+            if (child && !visited.has(child.id)) {
+                children.push({ vertex: child, isDirected });
+            }
+        });
+
+        // Process children
+        children.forEach((child, index) => {
+            // Recursively process the child with increased depth
+            this.buildTreeRecursive(child.vertex, component, visited, result, depth + 1);
+        });
     }
     
     importGraph(graphData) {
