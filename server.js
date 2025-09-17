@@ -7,7 +7,7 @@ const path = require('path');
 
 const app = express();
 // Change the port to 3002
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3005;
 
 // Middleware
 app.use(cors());

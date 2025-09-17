@@ -69,7 +69,6 @@ export class GraphCreator {
         this.originalVertices = [];
 
         // Label uniqueness setting (default: true)
-        this.uniqueLabelsEnabled = true;
         this.originalEdges = [];
         
         // Search variables
@@ -554,18 +553,6 @@ export class GraphCreator {
         document.getElementById('runBFS').addEventListener('click', () => {
             this.runBFS();
         });
-        // Unique Labels toggle
-        const uniqueToggle = document.getElementById('uniqueLabelsToggle');
-        if (uniqueToggle) {
-            uniqueToggle.checked = true;
-            uniqueToggle.addEventListener('change', () => {
-                this.uniqueLabelsEnabled = !!uniqueToggle.checked;
-                this.updateAlgorithmsPanelVisibility();
-            });
-        }
-
-        // Initialize Algorithms panel visibility based on default setting
-        this.updateAlgorithmsPanelVisibility();
         
         document.getElementById('runDFS').addEventListener('click', () => {
             this.runDFS();
@@ -800,7 +787,6 @@ export class GraphCreator {
             }
         }, 30000);
     }
-    
     autoSave() {
         // Only auto-save if there are unsaved changes
         if (!this.hasUnsavedChanges()) {
@@ -3067,7 +3053,6 @@ export class GraphCreator {
             this.handleVertexRightSelect(vertex);
         }
     }
-    
     handleVertexLeftEdge(vertex) {
         // Prevent edge creation during edit mode or if dragging
         if (this.editModeElement || this.isDragging || this.hasDragged) {
@@ -4124,15 +4109,6 @@ export class GraphCreator {
         if (!label) {
             // Auto-generate label - find the next available numeric label
             label = this.findNextAvailableLabel();
-        } else {
-            // If unique labels are enforced, prevent duplicates
-            if (this.uniqueLabelsEnabled) {
-                const existingVertex = this.vertices.find(v => v.label === label);
-                if (existingVertex) {
-                    this.updateStatus(`Label "${label}" already exists! Each vertex must have a unique label.`);
-                    return;
-                }
-            }
         }
         
         const vertex = {
@@ -4388,10 +4364,6 @@ export class GraphCreator {
     }
     
     async runBFS() {
-        if (!this.uniqueLabelsEnabled) {
-            this.updateStatus('Algorithms are disabled when Unique Labels is off');
-            return;
-        }
         if (!this.selectedTargetVertex) {
             this.updateStatus('Please select a target vertex first');
             return;
@@ -4434,10 +4406,6 @@ export class GraphCreator {
     }
     
     async runDFS() {
-        if (!this.uniqueLabelsEnabled) {
-            this.updateStatus('Algorithms are disabled when Unique Labels is off');
-            return;
-        }
         if (!this.selectedTargetVertex) {
             this.updateStatus('Please select a target vertex first');
             return;
@@ -4465,7 +4433,7 @@ export class GraphCreator {
         // Check if root node is connected to at least one other node
         const adjacencyList = this.getAdjacencyList();
         if (!adjacencyList[startVertex.id] || adjacencyList[startVertex.id].length === 0) {
-            this.updateStatus('Root node must be connected to at least one other node');
+            this.updateStatus(`Target vertex "${targetVertex.label}" is not reachable from root vertex "${startVertex.label}"`);
             return;
         }
         
@@ -5774,12 +5742,13 @@ export class GraphCreator {
                 break;
             }
             case 'cloud': {
-                const r = size * 0.6;
-                ctx.moveTo(x - r * 2, y);
-                ctx.bezierCurveTo(x - r * 3, y - r, x - r, y - r * 2, x, y - r);
-                ctx.bezierCurveTo(x + r, y - r * 2, x + r * 3, y - r, x + r * 2, y);
-                ctx.bezierCurveTo(x + r * 3, y + r, x + r, y + r * 2, x, y + r);
-                ctx.bezierCurveTo(x - r, y + r * 2, x - r * 3, y + r, x - r * 2, y);
+                const r = size * 0.5; // Bubble radius
+                // Main cloud body (4 bubbles)
+                ctx.beginPath();
+                ctx.arc(x - r * 0.8, y + r * 0.3, r, 0, 2 * Math.PI); // Bottom-left
+                ctx.arc(x + r * 0.8, y + r * 0.3, r, 0, 2 * Math.PI); // Bottom-right
+                ctx.arc(x - r * 0.5, y - r * 0.5, r * 0.8, 0, 2 * Math.PI); // Top-left
+                ctx.arc(x + r * 0.5, y - r * 0.5, r * 0.8, 0, 2 * Math.PI); // Top-right
                 ctx.closePath();
                 break;
             }
@@ -6446,11 +6415,12 @@ export class GraphCreator {
     
     // Target Selection Methods
     selectTargetVertex(vertex) {
-        if (!this.uniqueLabelsEnabled) {
-            // Disable selecting targets when unique labels are off
-            return;
-        }
         this.selectedTargetVertex = vertex;
+        
+        // Auto-run BFS if root is also selected
+        if (this.rootUserSelected) {
+            this.runBFS();
+        }
         
         // Update the display
         this.updateTargetVertexDisplay();
@@ -7216,8 +7186,6 @@ export class GraphCreator {
                 let error = '';
                 if (!trimmed) {
                     error = 'Label cannot be empty.';
-                } else if (this.uniqueLabelsEnabled && this.vertices.some(v => v !== this.editModeElement && v.label === trimmed)) {
-                    error = `Label "${trimmed}" already exists! Each vertex must have a unique label.`;
                 }
                 if (error) {
                     labelInput.style.borderColor = 'var(--danger-color)';
@@ -8734,45 +8702,17 @@ export class GraphCreator {
         const content = document.getElementById('searchSectionContent');
         if (!content) return;
 
-        // Ensure message element exists
-        let msg = document.getElementById('algorithmsDisabledMsg');
-        if (!msg) {
-            msg = document.createElement('div');
-            msg.id = 'algorithmsDisabledMsg';
-            msg.style.display = 'none';
-            msg.style.padding = '0.5rem 0';
-            msg.style.color = 'var(--text-secondary)';
-            msg.innerHTML = '<i class="fas fa-info-circle"></i> Algorithms features are disabled for non-unique labels';
-            content.insertBefore(msg, content.firstChild);
-        }
-
-        // Direct child elements of the content except the message
-        const children = Array.from(content.children).filter(el => el.id !== 'algorithmsDisabledMsg');
+        // Direct child elements of the content
+        const children = Array.from(content.children);
 
         const runBFSBtn = document.getElementById('runBFS');
         const runDFSBtn = document.getElementById('runDFS');
         const stopBtn = document.getElementById('stopSearch');
 
-        if (this.uniqueLabelsEnabled) {
-            // Show normal UI
-            msg.style.display = 'none';
-            children.forEach(el => { el.style.display = ''; });
-            if (runBFSBtn) runBFSBtn.disabled = false;
-            if (runDFSBtn) runDFSBtn.disabled = false;
-            if (stopBtn) stopBtn.disabled = true; // default
-        } else {
-            // Hide UI and show message
-            msg.style.display = 'block';
-            children.forEach(el => { el.style.display = 'none'; });
-            if (runBFSBtn) runBFSBtn.disabled = true;
-            if (runDFSBtn) runDFSBtn.disabled = true;
-            if (stopBtn) stopBtn.disabled = true;
-
-            // Also clear Root and Target when features disabled
-            this.selectedTargetVertex = null;
-            this.updateTargetVertexDisplay();
-            this.rootUserSelected = false;
-            this.updateRootVertexDisplay();
-        }
+        // Show normal UI
+        children.forEach(el => { el.style.display = ''; });
+        if (runBFSBtn) runBFSBtn.disabled = false;
+        if (runDFSBtn) runDFSBtn.disabled = false;
+        if (stopBtn) stopBtn.disabled = true; // default
     }
 } // End of GraphCreator class 
