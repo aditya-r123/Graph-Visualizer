@@ -7,10 +7,13 @@ module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
   
   return {
-    entry: './src/index.js',
+    entry: {
+      editor: './src/index.js',
+      landing: './src/landing.js'
+    },
     output: {
       path: path.resolve(__dirname, 'public'),
-      filename: isProduction ? 'bundle.[contenthash].js' : 'bundle.js',
+      filename: isProduction ? '[name].[contenthash].js' : '[name].js',
       clean: true,
     },
     module: {
@@ -39,9 +42,11 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
+      // Editor page (main app) -> /editor.html
       new HtmlWebpackPlugin({
         template: './src/index.html',
-        filename: 'index.html',
+        filename: 'editor.html',
+        chunks: ['editor'],
         minify: {
           removeComments: true,
           collapseWhitespace: true,
@@ -54,6 +59,13 @@ module.exports = (env, argv) => {
           minifyCSS: true,
           minifyURLs: true,
         },
+      }),
+      // Landing page -> /index.html
+      new HtmlWebpackPlugin({
+        template: './src/landing.html',
+        filename: 'index.html',
+        chunks: ['landing'],
+        minify: true,
       }),
       // Extract CSS for production builds
       ...(isProduction ? [new MiniCssExtractPlugin({

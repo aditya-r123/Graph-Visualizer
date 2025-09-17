@@ -24,9 +24,14 @@ app.use(express.static('public', {
     }
 }));
 
-// Serve the main application
+// Serve landing page at root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Serve the main editor
+app.get('/editor', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'editor.html'));
 });
 
 // API routes for future graph operations
