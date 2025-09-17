@@ -67,6 +67,9 @@ export class GraphCreator {
         this.isDeleteMode = false;
         this.verticesToDelete = new Set();
         this.originalVertices = [];
+
+        // Label uniqueness setting (default: true)
+        this.uniqueLabelsEnabled = true;
         this.originalEdges = [];
         
         // Search variables
@@ -336,7 +339,6 @@ export class GraphCreator {
         // Force complete redraw after resize to prevent phantom nodes
         this.forceRedraw();
     }
-    
     initializeEventListeners() {
         // Canvas event listeners
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
@@ -552,6 +554,18 @@ export class GraphCreator {
         document.getElementById('runBFS').addEventListener('click', () => {
             this.runBFS();
         });
+        // Unique Labels toggle
+        const uniqueToggle = document.getElementById('uniqueLabelsToggle');
+        if (uniqueToggle) {
+            uniqueToggle.checked = true;
+            uniqueToggle.addEventListener('change', () => {
+                this.uniqueLabelsEnabled = !!uniqueToggle.checked;
+                this.updateAlgorithmsPanelVisibility();
+            });
+        }
+
+        // Initialize Algorithms panel visibility based on default setting
+        this.updateAlgorithmsPanelVisibility();
         
         document.getElementById('runDFS').addEventListener('click', () => {
             this.runDFS();
@@ -778,7 +792,6 @@ export class GraphCreator {
         // Prevent default context menu
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     }
-    
     startAutoSave() {
         // Auto-save every 30 seconds
         this.autoSaveInterval = setInterval(() => {
@@ -973,7 +986,6 @@ export class GraphCreator {
             String(now.getMinutes()).padStart(2, '0') + ':' +
             String(now.getSeconds()).padStart(2, '0');
     }
-    
     getCurrentGraphName() {
         // If we have a current graph ID, find its name
         if (this.currentGraphId) {
@@ -1468,7 +1480,6 @@ export class GraphCreator {
             this.modalWarning = null;
         }
     }
-    
     processFile(file, isFromModal = false) {
         console.log('=== PROCESS FILE START ===');
         console.log('Processing file:', file.name, file.size, 'bytes', 'isFromModal:', isFromModal);
@@ -2256,7 +2267,6 @@ export class GraphCreator {
         // Restore the context state
         ctx.restore();
     }
-    
     drawEdgeOnCanvas(ctx, edge) {
         // Use individual edge styling or fall back to global styling
         const edgeColor = edge.color || '#8b5cf6'; // Purple color for edges loaded from JSON
@@ -2839,7 +2849,6 @@ export class GraphCreator {
             this.buildTreeRecursive(child.vertex, component, visited, result, depth + 1);
         });
     }
-    
     importGraph(graphData) {
         console.log('importGraph called', graphData);
         console.log('Vertices count:', graphData.vertices?.length);
@@ -3032,7 +3041,6 @@ export class GraphCreator {
         // Only add a vertex if you click empty space (not on a vertex or edge)
         this.addVertex(pos.x, pos.y);
     }
-    
     handleRightClick(e) {
         e.preventDefault();
         
@@ -3410,7 +3418,10 @@ export class GraphCreator {
             const vertex = this.getVertexAt(pos.x, pos.y);
             // Use the same 3px tolerance for both hover and click detection
             const edge = this.getEdgeAt(pos.x, pos.y, 10);
-            if (this.isSearching) {
+            if (this.isDeleteMode || this.editModeElement) {
+                // Let CSS control the cursor in delete/edit modes
+                this.canvas.style.cursor = '';
+            } else if (this.isSearching) {
                 this.canvas.style.cursor = 'not-allowed';
             } else if (vertex) {
                 this.canvas.style.cursor = 'grab';
@@ -3543,6 +3554,10 @@ export class GraphCreator {
         this.exitEditMode();
         this.editModeElement = vertex;
         this.editModeType = 'vertex';
+        // Apply global edit mode cursor styling
+        document.body.classList.add('edit-mode-active');
+        // Allow stylesheet to control cursor during edit mode
+        if (this.canvas) this.canvas.style.cursor = '';
         // Store original values for cancellation
         this._editOriginal = {
             label: vertex.label,
@@ -3805,7 +3820,6 @@ export class GraphCreator {
         this.editGlowProgress = 0;
         this.draw();
     }
-    
     showEditControls() {
         // Hide styling section
         const stylingSection = document.getElementById('stylingSection');
@@ -4090,7 +4104,6 @@ export class GraphCreator {
         // Redraw to show the change
         this.draw();
     }
-    
     addVertex(x, y) {
         // Prevent adding vertices in delete mode
         if (this.isDeleteMode) {
@@ -4112,11 +4125,13 @@ export class GraphCreator {
             // Auto-generate label - find the next available numeric label
             label = this.findNextAvailableLabel();
         } else {
-            // Check if custom label already exists
-            const existingVertex = this.vertices.find(v => v.label === label);
-            if (existingVertex) {
-                this.updateStatus(`Label "${label}" already exists! Each vertex must have a unique label.`);
-                return;
+            // If unique labels are enforced, prevent duplicates
+            if (this.uniqueLabelsEnabled) {
+                const existingVertex = this.vertices.find(v => v.label === label);
+                if (existingVertex) {
+                    this.updateStatus(`Label "${label}" already exists! Each vertex must have a unique label.`);
+                    return;
+                }
             }
         }
         
@@ -4308,6 +4323,8 @@ export class GraphCreator {
     }
     
     findVertexByLabel(label) {
+        // When unique labels are disabled, this method is only used for UI population
+        // Algorithms that rely on unique labels are disabled in that mode.
         return this.vertices.find(vertex => vertex.label === label);
     }
     
@@ -4371,6 +4388,10 @@ export class GraphCreator {
     }
     
     async runBFS() {
+        if (!this.uniqueLabelsEnabled) {
+            this.updateStatus('Algorithms are disabled when Unique Labels is off');
+            return;
+        }
         if (!this.selectedTargetVertex) {
             this.updateStatus('Please select a target vertex first');
             return;
@@ -4413,6 +4434,10 @@ export class GraphCreator {
     }
     
     async runDFS() {
+        if (!this.uniqueLabelsEnabled) {
+            this.updateStatus('Algorithms are disabled when Unique Labels is off');
+            return;
+        }
         if (!this.selectedTargetVertex) {
             this.updateStatus('Please select a target vertex first');
             return;
@@ -4557,7 +4582,6 @@ export class GraphCreator {
             this.showSearchResult(false, 'BFS', null, visitedCount, visitOrder);
         }
     }
-    
     async animateDFS(targetVertex, startVertex) {
         // Instead of using adjacencyList, use edges directly for direction-aware traversal
         const visited = new Set();
@@ -4706,7 +4730,6 @@ export class GraphCreator {
         const delay = ms !== null ? ms : this.animationSpeed;
         return new Promise(resolve => setTimeout(resolve, delay));
     }
-    
     async animateEdgeTraversal(edge, duration = null, onComplete = null, fromVertex = null, toVertex = null) {
         if (!edge) return;
         
@@ -5275,7 +5298,6 @@ export class GraphCreator {
         this.ctx.shadowOffsetX = 0;
         this.ctx.shadowOffsetY = 0;
     }
-    
     drawEdge(edge) {
         // Apply shaking animation if this edge is in edit mode
         let drawFromX = edge.from.x;
@@ -5699,6 +5721,68 @@ export class GraphCreator {
                 ctx.closePath();
                 break;
 
+            case 'diamond': {
+                const d = size * 1.2;
+                ctx.moveTo(x, y - d);
+                ctx.lineTo(x + d, y);
+                ctx.lineTo(x, y + d);
+                ctx.lineTo(x - d, y);
+                ctx.closePath();
+                break;
+            }
+            case 'rounded-rect': {
+                const w = size * 2;
+                const h = size * 1.4;
+                const r = Math.min(size * 0.4, h / 2, w / 2);
+                const left = x - w / 2, top = y - h / 2, right = x + w / 2, bottom = y + h / 2;
+                ctx.moveTo(left + r, top);
+                ctx.arcTo(right, top, right, bottom, r);
+                ctx.arcTo(right, bottom, left, bottom, r);
+                ctx.arcTo(left, bottom, left, top, r);
+                ctx.arcTo(left, top, right, top, r);
+                ctx.closePath();
+                break;
+            }
+            case 'parallelogram': {
+                const w = size * 2;
+                const h = size * 1.4;
+                const skew = size * 0.6;
+                const left = x - w / 2, top = y - h / 2;
+                ctx.moveTo(left + skew, top);
+                ctx.lineTo(left + w + skew, top);
+                ctx.lineTo(left + w - skew, top + h);
+                ctx.lineTo(left - skew, top + h);
+                ctx.closePath();
+                break;
+            }
+            case 'cylinder': {
+                // Database cylinder: rounded top/bottom with vertical sides
+                const w = size * 2;
+                const h = size * 1.6;
+                const ry = size * 0.5;
+                const left = x - w / 2, right = x + w / 2, top = y - h / 2, bottom = y + h / 2;
+                // Top ellipse (approx with bezier)
+                ctx.moveTo(left, top);
+                ctx.bezierCurveTo(left, top - ry, right, top - ry, right, top);
+                // Right side
+                ctx.lineTo(right, bottom);
+                // Bottom ellipse
+                ctx.bezierCurveTo(right, bottom + ry, left, bottom + ry, left, bottom);
+                // Left side
+                ctx.lineTo(left, top);
+                ctx.closePath();
+                break;
+            }
+            case 'cloud': {
+                const r = size * 0.6;
+                ctx.moveTo(x - r * 2, y);
+                ctx.bezierCurveTo(x - r * 3, y - r, x - r, y - r * 2, x, y - r);
+                ctx.bezierCurveTo(x + r, y - r * 2, x + r * 3, y - r, x + r * 2, y);
+                ctx.bezierCurveTo(x + r * 3, y + r, x + r, y + r * 2, x, y + r);
+                ctx.bezierCurveTo(x - r, y + r * 2, x - r * 3, y + r, x - r * 2, y);
+                ctx.closePath();
+                break;
+            }
             case 'star':
                 // Draw 5-pointed star
                 const starSize = size * 0.8;
@@ -5781,6 +5865,16 @@ export class GraphCreator {
             case 'triangle':
                 const height = size * Math.sqrt(3);
                 return { width: size * 1.6, height: height * 0.8 }; // 80% of triangle
+            case 'diamond':
+                return { width: size * 1.6, height: size * 1.6 };
+            case 'rounded-rect':
+                return { width: size * 1.8, height: size * 1.2 };
+            case 'parallelogram':
+                return { width: size * 1.8, height: size * 1.2 };
+            case 'cylinder':
+                return { width: size * 1.8, height: size * 1.2 };
+            case 'cloud':
+                return { width: size * 1.8, height: size * 1.3 };
             case 'star':
                 return { width: size * 1.4, height: size * 1.4 }; // 80% of star
             case 'pentagon':
@@ -5891,7 +5985,6 @@ export class GraphCreator {
         
         return lines;
     }
-
     // Draw vertex label with wrapping and font size adjustment
     drawVertexLabel(ctx, vertex, x, y, size, shape, originalFontSize, fontFamily, fontColor) {
         const textBounds = this.getTextBounds(shape, size);
@@ -5978,7 +6071,6 @@ export class GraphCreator {
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
     }
-
     drawVertex(vertex) {
         const ctx = this.ctx;
         
@@ -6354,6 +6446,10 @@ export class GraphCreator {
     
     // Target Selection Methods
     selectTargetVertex(vertex) {
+        if (!this.uniqueLabelsEnabled) {
+            // Disable selecting targets when unique labels are off
+            return;
+        }
         this.selectedTargetVertex = vertex;
         
         // Update the display
@@ -6507,7 +6603,6 @@ export class GraphCreator {
             `;
         }
     }
-
     // --- Minimal Vertex Edit Mode Implementation ---
     enterEditMode(vertex) {
         console.log('[EditMode] Entering edit mode for vertex:', vertex.label);
@@ -6528,6 +6623,8 @@ export class GraphCreator {
         this.exitEditMode();
         this.editModeElement = vertex;
         this.editModeType = 'vertex';
+        document.body.classList.add('edit-mode-active');
+        if (this.canvas) this.canvas.style.cursor = '';
         // Store original values for cancellation
         this._editOriginal = {
             label: vertex.label,
@@ -6776,7 +6873,6 @@ export class GraphCreator {
         // Clear pending changes
         this._pendingChanges = null;
     }
-    
     // Revert all pending changes back to original state
     revertPendingChanges() {
         if (!this._pendingChanges) return;
@@ -7058,6 +7154,7 @@ export class GraphCreator {
     exitEditMode() {
         // Stop shaking animation
         this.stopShakeAnimation();
+        document.body.classList.remove('edit-mode-active');
         
         this.editModeElement = null;
         this.editModeType = null;
@@ -7094,13 +7191,6 @@ export class GraphCreator {
         }
         this.draw();
     }
-
-
-
-
-
-
-
     setupMinimalEditModeEvents() {
         // Label input: immediate update with validation
         const labelInput = document.getElementById('editVertexLabel');
@@ -7126,7 +7216,7 @@ export class GraphCreator {
                 let error = '';
                 if (!trimmed) {
                     error = 'Label cannot be empty.';
-                } else if (this.vertices.some(v => v !== this.editModeElement && v.label === trimmed)) {
+                } else if (this.uniqueLabelsEnabled && this.vertices.some(v => v !== this.editModeElement && v.label === trimmed)) {
                     error = `Label "${trimmed}" already exists! Each vertex must have a unique label.`;
                 }
                 if (error) {
@@ -7550,7 +7640,6 @@ export class GraphCreator {
         
         requestAnimationFrame(animate);
     }
-
     // Edit the name of a saved graph
     editSavedGraphName(index, nameElement) {
         const savedGraph = this.savedGraphs[index];
@@ -7720,7 +7809,6 @@ export class GraphCreator {
         // Higher density = smaller spacing
         this.gridSpacing = Math.max(10, 110 - this.gridDensity);
     }
-    
     drawCoordinateGrid() {
         if (!this.showCoordinateGrid) return;
         
@@ -8232,6 +8320,7 @@ export class GraphCreator {
             toId: e.to.id      // Store vertex IDs instead of references
         }));
         document.body.classList.add('delete-mode-active');
+        if (this.canvas) this.canvas.style.cursor = '';
         
         // Hide theme toggle and mouse position display when in delete mode
         const themeToggle = document.getElementById('themeToggle');
@@ -8253,6 +8342,7 @@ export class GraphCreator {
         this.isDeleteMode = false;
         this.verticesToDelete = new Set();
         document.body.classList.remove('delete-mode-active');
+        if (this.canvas) this.canvas.style.cursor = '';
         
         // Show theme toggle and mouse position display when exiting delete mode
         const themeToggle = document.getElementById('themeToggle');
@@ -8302,6 +8392,7 @@ export class GraphCreator {
         this.isDeleteMode = false;
         this.verticesToDelete = new Set();
         document.body.classList.remove('delete-mode-active');
+        if (this.canvas) this.canvas.style.cursor = '';
         
         // Show theme toggle and mouse position display when exiting delete mode
         const themeToggle = document.getElementById('themeToggle');
@@ -8342,7 +8433,6 @@ export class GraphCreator {
             this.updateDeleteModeInfo();
         }
     }
-
     hideDeleteModePanel() {
         // Hide delete mode panel
         const deletePanel = document.getElementById('deleteModePanel');
@@ -8357,7 +8447,6 @@ export class GraphCreator {
             }
         });
     }
-
     updateDeleteModeInfo() {
         const deletePanel = document.getElementById('deleteModePanel');
         if (!deletePanel) return;
@@ -8638,6 +8727,52 @@ export class GraphCreator {
         } else {
             // User has manually selected, keep empty if no current selection
             rootDropdown.value = '';
+        }
+    }
+
+    updateAlgorithmsPanelVisibility() {
+        const content = document.getElementById('searchSectionContent');
+        if (!content) return;
+
+        // Ensure message element exists
+        let msg = document.getElementById('algorithmsDisabledMsg');
+        if (!msg) {
+            msg = document.createElement('div');
+            msg.id = 'algorithmsDisabledMsg';
+            msg.style.display = 'none';
+            msg.style.padding = '0.5rem 0';
+            msg.style.color = 'var(--text-secondary)';
+            msg.innerHTML = '<i class="fas fa-info-circle"></i> Algorithms features are disabled for non-unique labels';
+            content.insertBefore(msg, content.firstChild);
+        }
+
+        // Direct child elements of the content except the message
+        const children = Array.from(content.children).filter(el => el.id !== 'algorithmsDisabledMsg');
+
+        const runBFSBtn = document.getElementById('runBFS');
+        const runDFSBtn = document.getElementById('runDFS');
+        const stopBtn = document.getElementById('stopSearch');
+
+        if (this.uniqueLabelsEnabled) {
+            // Show normal UI
+            msg.style.display = 'none';
+            children.forEach(el => { el.style.display = ''; });
+            if (runBFSBtn) runBFSBtn.disabled = false;
+            if (runDFSBtn) runDFSBtn.disabled = false;
+            if (stopBtn) stopBtn.disabled = true; // default
+        } else {
+            // Hide UI and show message
+            msg.style.display = 'block';
+            children.forEach(el => { el.style.display = 'none'; });
+            if (runBFSBtn) runBFSBtn.disabled = true;
+            if (runDFSBtn) runDFSBtn.disabled = true;
+            if (stopBtn) stopBtn.disabled = true;
+
+            // Also clear Root and Target when features disabled
+            this.selectedTargetVertex = null;
+            this.updateTargetVertexDisplay();
+            this.rootUserSelected = false;
+            this.updateRootVertexDisplay();
         }
     }
 } // End of GraphCreator class 

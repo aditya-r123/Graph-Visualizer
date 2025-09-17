@@ -1540,6 +1540,15 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Cursor overrides for modes using inline SVG data URLs */
+body.edit-mode-active #graphCanvas {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z'/></svg>") 2 22, crosshair;
+}
+
+body.delete-mode-active #graphCanvas {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f87171' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>") 12 12, not-allowed;
+}
+
 [data-theme="light"] #graphCanvas {
     background: #e0f2fe; /* Light blue for light mode */
 }
@@ -5700,7 +5709,7 @@ body {
     /* Reset any inherited styles that might cause issues */
     margin: 0 !important;
     padding: 0.75rem !important;
-    border: 1px solid #d1d5db !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 8px !important;
     outline: none !important;
     /* Ensure proper display */

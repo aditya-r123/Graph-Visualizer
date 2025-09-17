@@ -24,6 +24,15 @@
         .logo {
             width: 72px;
             height: 72px;
+            transition: transform 0.8s ease;
+        }
+        .logo:hover {
+            animation: spin 1.2s linear infinite;
+            filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.45));
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         h1 {
             margin: 16px 0 8px;
@@ -45,6 +54,68 @@
             padding: 24px;
             margin: 24px auto;
         }
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+        .badge {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #c7d2fe;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+            margin: 16px auto 0;
+            max-width: 900px;
+        }
+        @media (min-width: 900px) {
+            .sections {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .section {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 14px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+        .section:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(600px 200px at 0% 0%, rgba(99,102,241,0.05), transparent 35%),
+                        radial-gradient(400px 160px at 100% 100%, rgba(56,189,248,0.05), transparent 40%);
+        }
+        .section h2 {
+            margin: 0 0 8px;
+            font-size: 1.15rem;
+            color: #e2e8f0;
+        }
+        .section p { margin: 0; font-size: 0.98rem; color: #cbd5e1; }
+        .section .subtext { color: #94a3b8; font-size: 0.9rem; margin-top: 6px; }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 8px;
+        }
+        .feature-list li { display: flex; align-items: flex-start; gap: 8px; }
+        .feature-list li .tick { color: #22c55e; }
+        .muted { color: #94a3b8; }
+        .divider { height: 1px; background: rgba(148,163,184,0.15); margin: 14px 0; }
         .cta {
             display: inline-flex;
             align-items: center;
@@ -75,7 +146,42 @@
                 <span>Enter Editor</span>
                 <span aria-hidden="true">→</span>
             </a>
-            <div class="subtext" style="margin-top: 10px;">No sign‑in required. Your canvases are saved locally.</div>
+            <div class="badges" aria-label="quick highlights">
+                <span class="badge">No sign‑in</span>
+                <span class="badge">Runs in your browser</span>
+                <span class="badge">Export: JPG · PNG · JSON</span>
+                <span class="badge">Autosave</span>
+            </div>
+        </div>
+        <div class="sections" aria-label="Why Graph Visualizer">
+            <section class="section" aria-labelledby="features-title">
+                <h2 id="features-title">Key Features</h2>
+                <div class="divider"></div>
+                <ul class="feature-list">
+                    <li><span class="tick">✔</span><span>Fast editing: add, move, connect vertices with precise drag and drop</span></li>
+                    <li><span class="tick">✔</span><span>Animated BFS/DFS with clear step‑through visuals</span></li>
+                    <li><span class="tick">✔</span><span>Flexible styling: sizes, colors, shapes, labels, grid, themes</span></li>
+                    <li><span class="tick">✔</span><span>Reorderable side panels to fit your workflow</span></li>
+                    <li><span class="tick">✔</span><span>Autosave + one‑click export (JPG/PNG/JSON)</span></li>
+                </ul>
+            </section>
+            <section class="section" aria-labelledby="value-title">
+                <h2 id="value-title">Why it helps</h2>
+                <div class="divider"></div>
+                <p>Create clear, compelling graph visuals in seconds—perfect for explaining ideas, teaching algorithms, and prototyping without setup or code.</p>
+                <p class="subtext">Less fiddling, more thinking. Focus on your concepts; the editor takes care of the rest.</p>
+            </section>
+            <section class="section" aria-labelledby="unique-title">
+                <h2 id="unique-title">What’s unique</h2>
+                <div class="divider"></div>
+                <p>Sleek UX + pragmatic touches: zero setup, instant performance, smart defaults, draggable panels, and a guided overlay so you’re productive from minute one.</p>
+            </section>
+            <section class="section" aria-labelledby="audience-title">
+                <h2 id="audience-title">Built for</h2>
+                <div class="divider"></div>
+                <p>Students, educators, interviewees, researchers, and engineers who sketch graphs, communicate algorithms, or prototype ideas—quickly and beautifully.</p>
+                <p class="subtext muted">Use it in classrooms, tech talks, interviews, or when designing systems.</p>
+            </section>
         </div>
     </div>
     <!-- HtmlWebpackPlugin injects the built landing bundle -->
