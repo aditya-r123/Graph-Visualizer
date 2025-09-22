@@ -62,6 +62,7 @@ export class GraphCreator {
         this._originalAllVertexColors = null;
         this._originalAllVertexLabelSizes = null;
         this._originalAllEdgeStyles = null;
+        this.selfLoopEnabled = true;
         
         // Delete mode variables
         this.isDeleteMode = false;
@@ -519,6 +520,18 @@ export class GraphCreator {
             console.error('Edges visibility toggle not found!');
         }
         
+        // Self-loop toggle
+        const selfLoopToggle = document.getElementById('selfLoopToggle');
+        if (selfLoopToggle) {
+            selfLoopToggle.checked = this.selfLoopEnabled;
+            selfLoopToggle.addEventListener('change', (e) => {
+                this.selfLoopEnabled = e.target.checked;
+                this.updateStatus(`Self-loops ${this.selfLoopEnabled ? 'enabled' : 'disabled'}`);
+            });
+        } else {
+            console.error('Self-loop toggle not found!');
+        }
+
         // Status message toggle
         const statusMessageToggle = document.getElementById('statusMessageToggle');
         if (statusMessageToggle) {
@@ -3065,15 +3078,17 @@ export class GraphCreator {
             this.lastVertexClick.vertexId === vertex.id &&
             now - this.lastVertexClick.time < 1000
         ) {
-            const weightInput = document.getElementById('edgeWeight');
-            const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
-            this.addSelfLoop(vertex, weight);
-            
-            // Keep the edge weight input value for creating multiple edges with the same weight
-            
-            this.selectedVertices = [];
-            this.flashVertices(vertex, vertex);
-            this.lastVertexClick = null;
+            if (this.selfLoopEnabled) {
+                const weightInput = document.getElementById('edgeWeight');
+                const weight = weightInput.value.trim() ? parseFloat(weightInput.value) : null;
+                this.addSelfLoop(vertex, weight);
+                
+                // Keep the edge weight input value for creating multiple edges with the same weight
+                
+                this.selectedVertices = [];
+                this.flashVertices(vertex, vertex);
+            }
+            this.lastVertexClick = null; // Reset for next click
             return;
         }
         this.lastVertexClick = { vertexId: vertex.id, time: now };

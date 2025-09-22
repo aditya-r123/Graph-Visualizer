@@ -140,7 +140,7 @@ body {
 /* App Container */
 .app-container {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 290px 1fr;
     grid-template-rows: 1fr;
     height: 100vh;
     gap: 0;
@@ -512,6 +512,7 @@ body {
     border-radius: 3px;
     outline: none;
     -webkit-appearance: none;
+    appearance: none;
 }
 
 .slider-container input[type="range"]::-webkit-slider-thumb {
@@ -1344,7 +1345,7 @@ body {
     background: var(--bg-primary);
     overflow: hidden; /* Remove scrollbars from main content */
     transition: var(--transition);
-    margin-right: 280px; /* Make room for right sidebar */
+    margin-right: 290px; /* Make room for right sidebar */
     padding-right: 0;
     padding-bottom: 0;
     min-width: 0;
@@ -1360,7 +1361,7 @@ body {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 280px;
+    width: 290px;
     background: var(--bg-secondary);
     display: flex;
     flex-direction: column;
@@ -2100,7 +2101,7 @@ body.delete-mode-active #graphCanvas {
 /* Responsive Design */
 @media (max-width: 1024px) {
     .app-container {
-        grid-template-columns: 280px 1fr;
+        grid-template-columns: 290px 1fr;
     }
     
     .sidebar-content {
@@ -3726,7 +3727,7 @@ body.delete-mode-active #graphCanvas {
     align-items: center;
     justify-content: center;
     padding: 0.5rem 0.75rem;
-    background: linear-gradient(90deg, #ef4444, #b91c1c); /* red by default */
+    background: linear-gradient(90deg, #818cf8, #6366f1); /* purple gradient */
     border: 1px solid #374151;
     border-radius: 0;
     color: white;
@@ -3744,22 +3745,22 @@ body.delete-mode-active #graphCanvas {
 }
 
 .visibility-option input[type="checkbox"]:checked + .visibility-button {
-    background: linear-gradient(90deg, #10b981, #059669); /* green when active */
+    background: linear-gradient(90deg, #6366f1, #4f46e5); /* darker purple when active */
     color: white;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
 .visibility-button:hover {
-    background: linear-gradient(90deg, #f87171, #dc2626); /* lighter red on hover when unchecked */
+    background: linear-gradient(90deg, #6366f1, #4f46e5); /* darker purple on hover */
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
 .visibility-option input[type="checkbox"]:checked + .visibility-button:hover {
-    background: linear-gradient(90deg, #059669, #047857); /* darker green on hover when checked */
+    background: linear-gradient(90deg, #4f46e5, #4338ca); /* even darker purple on hover when checked */
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.5);
 }
 
 .visibility-button::before {
@@ -3888,14 +3889,14 @@ body.delete-mode-active #graphCanvas {
 
 /* Edge Direction Buttons - Adjacent Style */
 .edge-direction-buttons {
-    display: flex;
+    display: inline-flex;
     gap: 2px;
     margin-top: 0.5rem;
-    width: 100%;
+    /* width: 100%; */
 }
 
 .edge-direction-option {
-    flex: 1;
+    /* flex: 1; */
     cursor: pointer;
     margin: 0;
     padding: 0;
@@ -4994,7 +4995,7 @@ body.delete-mode-active #graphCanvas {
     align-items: center;
     justify-content: center;
     padding: 0.5rem 0.75rem;
-    background: linear-gradient(90deg, #ef4444, #b91c1c); /* red by default */
+    background: linear-gradient(90deg, #818cf8, #6366f1); /* purple gradient */
     border: 1px solid #374151;
     border-radius: 0;
     color: white;
@@ -5012,22 +5013,22 @@ body.delete-mode-active #graphCanvas {
 }
 
 .visibility-option input[type="checkbox"]:checked + .visibility-button {
-    background: linear-gradient(90deg, #10b981, #059669); /* green when active */
+    background: linear-gradient(90deg, #6366f1, #4f46e5); /* darker purple when active */
     color: white;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
 .visibility-button:hover {
-    background: linear-gradient(90deg, #f87171, #dc2626); /* lighter red on hover when unchecked */
+    background: linear-gradient(90deg, #6366f1, #4f46e5); /* darker purple on hover */
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
 .visibility-option input[type="checkbox"]:checked + .visibility-button:hover {
-    background: linear-gradient(90deg, #059669, #047857); /* darker green on hover when checked */
+    background: linear-gradient(90deg, #4f46e5, #4338ca); /* even darker purple on hover when checked */
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.5);
 }
 
 .visibility-button::before {
@@ -5156,14 +5157,14 @@ body.delete-mode-active #graphCanvas {
 
 /* Edge Direction Buttons - Adjacent Style */
 .edge-direction-buttons {
-    display: flex;
+    display: inline-flex;
     gap: 2px;
     margin-top: 0.5rem;
-    width: 100%;
+    /* width: 100%; */
 }
 
 .edge-direction-option {
-    flex: 1;
+    /* flex: 1; */
     cursor: pointer;
     margin: 0;
     padding: 0;
@@ -6081,4 +6082,51 @@ body.delete-mode-active #graphCanvas {
     pointer-events: auto !important;
     user-select: text !important;
     opacity: 1 !important;
+}
+
+/* Remove Autocomplete background color on Chrome */
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px var(--bg-secondary) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+    background-color: transparent !important;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* ... existing code ... */
+#contactModal .btn-primary:hover,
+#contactModal .btn-primary:hover:not(:disabled) {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    background-image: none !important;
+}
+
+/* Ultra-specific override for the Send Message button */
+#contactModal .modal-footer .btn-primary {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    border: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+/* Additional autofill prevention */
+#contactModal input,
+#contactModal textarea {
+    -webkit-autocomplete: off !important;
+    -moz-autocomplete: off !important;
+}
+
+/* Enhanced form spacing */
+.contact-form-section .form-label {
+    /* ... existing code ... */
 }
