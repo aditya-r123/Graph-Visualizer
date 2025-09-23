@@ -3644,8 +3644,6 @@ export class GraphCreator {
         
         labelInput.style.borderColor = '';
         labelInput.style.boxShadow = '';
-        const warningMsg = document.getElementById('editVertexLabelWarning');
-        if (warningMsg) warningMsg.textContent = '';
         const applyToAllToggle = document.getElementById('applyToAllToggle');
         if (applyToAllToggle) applyToAllToggle.checked = false;
         setTimeout(() => { if (labelInput) { labelInput.focus(); labelInput.select(); } }, 100);
@@ -6675,8 +6673,6 @@ export class GraphCreator {
         }
         labelInput.style.borderColor = '';
         labelInput.style.boxShadow = '';
-        const warningMsg = document.getElementById('editVertexLabelWarning');
-        if (warningMsg) warningMsg.textContent = '';
         const applyToAllToggle = document.getElementById('applyToAllToggle');
         if (applyToAllToggle) applyToAllToggle.checked = false;
         setTimeout(() => { if (labelInput) { labelInput.focus(); labelInput.select(); } }, 100);
@@ -6789,8 +6785,6 @@ export class GraphCreator {
         // Clear any warnings
         labelInput.style.borderColor = '';
         labelInput.style.boxShadow = '';
-        const warningMsg = document.getElementById('editVertexLabelWarning');
-        if (warningMsg) warningMsg.textContent = '';
         
         // Reset apply to all toggle
         const applyToAllToggle = document.getElementById('applyToAllToggle');
@@ -7180,39 +7174,13 @@ export class GraphCreator {
         // Label input: immediate update with validation
         const labelInput = document.getElementById('editVertexLabel');
         const saveBtn = document.getElementById('saveVertexEdit');
-        // Create warning message element if it doesn't exist
-        let warningMsg = document.getElementById('editVertexLabelWarning');
-        if (!warningMsg) {
-            warningMsg = document.createElement('div');
-            warningMsg.id = 'editVertexLabelWarning';
-            warningMsg.style.color = 'var(--danger-color)';
-            warningMsg.style.fontSize = '0.8rem';
-            warningMsg.style.marginTop = '0.25rem';
-            warningMsg.style.fontWeight = '500';
-            labelInput.parentElement.appendChild(warningMsg);
-        }
+
         labelInput.addEventListener('input', (e) => {
             if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
                 this._editPreview.label = e.target.value;
+                this.editModeElement.label = e.target.value; // Force immediate update
                 this.draw();
                 this.updateRootDropdown();
-                // Show validation warnings and disable save if not unique
-                const trimmed = e.target.value.trim();
-                let error = '';
-                if (!trimmed) {
-                    error = 'Label cannot be empty.';
-                }
-                if (error) {
-                    labelInput.style.borderColor = 'var(--danger-color)';
-                    labelInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
-                    warningMsg.textContent = error;
-                    saveBtn.disabled = true;
-                } else {
-                    labelInput.style.borderColor = '';
-                    labelInput.style.boxShadow = '';
-                    warningMsg.textContent = '';
-                    saveBtn.disabled = false;
-                }
             }
         });
         
@@ -7467,8 +7435,6 @@ export class GraphCreator {
                 
                 const labelInput = document.getElementById('editVertexLabel');
                 if (labelInput) { labelInput.style.borderColor = ''; labelInput.style.boxShadow = ''; }
-                let warningMsg = document.getElementById('editVertexLabelWarning');
-                if (warningMsg) warningMsg.textContent = '';
                 this.exitEditMode();
                 this.updateRootDropdown();
                 this.draw();
