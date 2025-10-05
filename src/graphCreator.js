@@ -5793,15 +5793,42 @@ export class GraphCreator {
                 break;
             }
             case 'cloud': {
-                const r = size * 0.5; // Bubble radius
-                // Main cloud body (4 bubbles)
+                // Create cloud shape with overlapping circles
+                const r = size * 0.45; // Base circle radius
+                
+                // Draw cloud as overlapping circles
+                // Bottom left circle
                 ctx.beginPath();
-                ctx.arc(x - r * 0.8, y + r * 0.3, r, 0, 2 * Math.PI); // Bottom-left
-                ctx.arc(x + r * 0.8, y + r * 0.3, r, 0, 2 * Math.PI); // Bottom-right
-                ctx.arc(x - r * 0.5, y - r * 0.5, r * 0.8, 0, 2 * Math.PI); // Top-left
-                ctx.arc(x + r * 0.5, y - r * 0.5, r * 0.8, 0, 2 * Math.PI); // Top-right
-                ctx.closePath();
-                break;
+                ctx.arc(x - r * 0.9, y + r * 0.2, r * 0.9, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Bottom middle circle  
+                ctx.beginPath();
+                ctx.arc(x, y + r * 0.3, r * 1.0, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Bottom right circle
+                ctx.beginPath();
+                ctx.arc(x + r * 0.9, y + r * 0.2, r * 0.9, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Top left circle
+                ctx.beginPath();
+                ctx.arc(x - r * 0.5, y - r * 0.4, r * 0.85, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Top right circle
+                ctx.beginPath();
+                ctx.arc(x + r * 0.5, y - r * 0.4, r * 0.85, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // We've already drawn the shape, so return to prevent double-drawing
+                return;
             }
             case 'star':
                 // Draw 5-pointed star
