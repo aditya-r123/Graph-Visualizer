@@ -8278,8 +8278,8 @@ export class GraphCreator {
                 console.log('Template parameters:', templateParams);
                 
                 // Get EmailJS configuration from environment variables or use defaults
-                const serviceId = window.EMAILJS_SERVICE_ID || 'service_i267ter';
-                const templateId = window.EMAILJS_TEMPLATE_ID || 'template_df3rw2f';
+                const serviceId = window.EMAILJS_SERVICE_ID;
+                const templateId = window.EMAILJS_TEMPLATE_ID;
                 
                 console.log('Service ID:', serviceId);
                 console.log('Template ID:', templateId);

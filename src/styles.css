@@ -462,6 +462,33 @@ body {
     color: var(--primary-color);
 }
 
+/* Edit Section Dividers */
+.edit-section-divider {
+    margin: 1.5rem 0 1rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.edit-section-divider:first-child {
+    margin-top: 0;
+}
+
+.edit-section-divider h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.edit-section-divider h4 i {
+    font-size: 1rem;
+}
+
 .control-group {
     margin-bottom: 1.25rem;
 }
