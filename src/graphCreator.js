@@ -2480,8 +2480,7 @@ export class GraphCreator {
                 labelSize: v.labelSize,
                 fontFamily: v.fontFamily,
                 fontColor: v.fontColor,
-                shape: v.shape || 'circle',
-                labelShadow: v.labelShadow !== undefined ? v.labelShadow : true
+                shape: v.shape || 'circle'
             })),
             edges: this.edges.map(e => ({
                 from: e.from.id,
@@ -2871,8 +2870,7 @@ export class GraphCreator {
             labelSize: v.labelSize,
             fontFamily: v.fontFamily,
             fontColor: v.fontColor,
-            shape: v.shape || 'circle',
-            labelShadow: v.labelShadow !== undefined ? v.labelShadow : true
+            shape: v.shape || 'circle'
         }));
         this.edges = graphData.edges.map(e => {
             const fromVertex = this.vertices.find(v => v.id === e.from);
@@ -3567,8 +3565,7 @@ export class GraphCreator {
             borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
             fontColor: vertex.fontColor || this.vertexFontColor,
-            shape: vertex.shape || 'circle',  // Store the actual shape or default to circle
-            labelShadow: vertex.labelShadow !== undefined ? vertex.labelShadow : true
+            shape: vertex.shape || 'circle'  // Store the actual shape or default to circle
         };
         // Temporary edit state for preview
         this._editPreview = {
@@ -3580,7 +3577,6 @@ export class GraphCreator {
             labelSize: vertex.labelSize || this.vertexLabelSize,
             fontColor: vertex.fontColor || this.vertexFontColor,
             shape: vertex.shape || 'circle',  // Store the actual shape or default to circle
-            labelShadow: vertex.labelShadow !== undefined ? vertex.labelShadow : true,
             pendingDelete: false
         };
         // Store original sizes, colors, and label sizes for all vertices (for cancel/undo)
@@ -3664,9 +3660,6 @@ export class GraphCreator {
             const shape = vertex.shape || 'circle';
             shapeInput.value = shape;
         }
-        
-        // Set label shadow
-        document.getElementById('editVertexLabelShadow').checked = this._editPreview.labelShadow;
 
         // Apply to all
         document.getElementById('applyToAllToggle').checked = false;
@@ -4182,8 +4175,7 @@ export class GraphCreator {
             labelSize: this.vertexLabelSize,
             fontFamily: this.vertexFontFamily,
             fontColor: this.vertexFontColor,
-            shape: 'circle', // Default shape
-            labelShadow: true // Default label shadow
+            shape: 'circle' // Default shape
         };
         
         this.vertices.push(vertex);
@@ -6078,14 +6070,6 @@ export class GraphCreator {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Add a subtle text shadow for better readability
-        if (vertex.labelShadow) {
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 2;
-            ctx.shadowOffsetX = 1;
-            ctx.shadowOffsetY = 1;
-        }
-        
         // Draw each line
         const lineHeight = fontSize * 1.2;
         const startY = y - (lines.length - 1) * lineHeight / 2;
@@ -6094,12 +6078,6 @@ export class GraphCreator {
             const lineY = startY + i * lineHeight;
             ctx.fillText(lines[i], x, lineY);
         }
-        
-        // Reset shadow
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
     }
     drawVertex(vertex) {
         const ctx = this.ctx;
@@ -6525,8 +6503,6 @@ export class GraphCreator {
                             vertex.label = value.trim();
                         }
                     }
-                } else if (property === 'labelShadow') {
-                    vertex.labelShadow = value;
                 } else {
                     vertex[property] = value;
                 }
@@ -6552,8 +6528,6 @@ export class GraphCreator {
                         return;
                     }
                 }
-            } else if (property === 'labelShadow') {
-                this.editModeElement.labelShadow = value;
             } else {
                 this.editModeElement[property] = value;
             }
@@ -6670,8 +6644,7 @@ export class GraphCreator {
             borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
             fontColor: vertex.fontColor || this.vertexFontColor,
-            shape: vertex.shape || 'circle',
-            labelShadow: vertex.labelShadow !== undefined ? vertex.labelShadow : true
+            shape: vertex.shape || 'circle'
         };
         // Temporary edit state for preview
         this._editPreview = {
@@ -6683,7 +6656,6 @@ export class GraphCreator {
             labelSize: vertex.labelSize || this.vertexLabelSize,
             fontColor: vertex.fontColor || this.vertexFontColor,
             shape: vertex.shape || 'circle',
-            labelShadow: vertex.labelShadow !== undefined ? vertex.labelShadow : true,
             pendingDelete: false
         };
         // Store original sizes for all vertices (for cancel/undo)
@@ -6774,8 +6746,7 @@ export class GraphCreator {
             borderThickness: vertex.borderThickness || 2,
             labelSize: vertex.labelSize || this.vertexLabelSize,
             fontColor: vertex.fontColor || this.vertexFontColor,
-            shape: vertex.shape || 'circle',
-            labelShadow: vertex.labelShadow !== undefined ? vertex.labelShadow : true
+            shape: vertex.shape || 'circle'
         };
         this._editPreview = {
             label: vertex.originalLabel || vertex.label,
@@ -6786,7 +6757,6 @@ export class GraphCreator {
             labelSize: vertex.labelSize || this.vertexLabelSize,
             fontColor: vertex.fontColor || this.vertexFontColor,
             shape: vertex.shape || 'circle',
-            labelShadow: vertex.labelShadow !== undefined ? vertex.labelShadow : true,
             pendingDelete: false
         };
         
@@ -6953,7 +6923,6 @@ export class GraphCreator {
                 vertex.labelSize = modification.original.labelSize;
                 vertex.fontColor = modification.original.fontColor;
                 vertex.shape = modification.original.shape;
-                vertex.labelShadow = modification.original.labelShadow;
                 console.log(`[EditMode] Reverted modification for vertex: ${vertex.label}`);
             }
         });
