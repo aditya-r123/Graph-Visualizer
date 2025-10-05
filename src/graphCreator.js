@@ -1774,7 +1774,7 @@ export class GraphCreator {
                                             // Check if Web Share API is supported
                         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                             navigator.share({
-                                text: 'Hey, check out this graph data I made with Graph Visualizer! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
+                                text: 'Hey, check out this graph data I made with Graph Visualizer! Create your own graphs at graphvisualizer.com',
                                 files: [file]
                             }).then(() => {
                             console.log('JSON share successful');
@@ -1837,7 +1837,7 @@ export class GraphCreator {
                         // Check if Web Share API is supported
                         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                             navigator.share({
-                                text: 'Hey, check out this cool graph I made with Graph Visualizer! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
+                                text: 'Hey, check out this cool graph I made with Graph Visualizer! Create your own graphs at graphvisualizer.com',
                                 files: [file]
                             }).then(() => {
                                 console.log('Share successful');
@@ -1923,10 +1923,10 @@ export class GraphCreator {
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
-        const vertexRadius = this.vertexSize;
+        const targetVertex = edge.to;
+        const vertexRadius = targetVertex.size || this.vertexSize;
         
         // Calculate the exact intersection point between the edge and vertex boundary
-        const targetVertex = edge.to;
         
         // Calculate intersection of line with circle
         const intersectionDx = endX - targetVertex.x;
@@ -2117,10 +2117,10 @@ export class GraphCreator {
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
-        const vertexRadius = edge.from.size || this.vertexSize;
+        const targetVertex = edge.to;
+        const vertexRadius = targetVertex.size || this.vertexSize;
         
         // Calculate the exact intersection point between the edge and vertex boundary
-        const targetVertex = edge.to;
         
         // Calculate intersection of line/curve with circle
         const dx = endX - targetVertex.x;
@@ -2398,10 +2398,10 @@ export class GraphCreator {
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
-        const vertexRadius = edge.from.size || this.vertexSize;
+        const targetVertex = edge.to;
+        const vertexRadius = targetVertex.size || this.vertexSize;
         
         // Calculate the exact intersection point between the edge and vertex boundary
-        const targetVertex = edge.to;
         
         // Calculate intersection of line/curve with circle
         const dx = endX - targetVertex.x;
@@ -2712,7 +2712,7 @@ export class GraphCreator {
             // Check if Web Share API is supported
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({
-                    text: 'Hey, check out this graph structure I made with Graph Visualizer! Create your own graphs at https://graph-visualizer-delta.vercel.app/',
+                    text: 'Hey, check out this graph structure I made with Graph Visualizer! Create your own graphs at graphvisualizer.com',
                     files: [file]
                 }).then(() => {
                     console.log('TXT share successful');
@@ -6372,16 +6372,18 @@ export class GraphCreator {
         }
         
         // Calculate arrow position at the exact intersection with vertex boundary
-        const vertexRadius = edge.from.size || this.vertexSize;
+        const targetVertex = edge.to;
+        const vertexRadius = targetVertex.size || this.vertexSize;
         
         let arrowX, arrowY;
         if (edge.type === 'self-loop') {
+            // For self-loops, use source vertex size for positioning
+            const loopVertexRadius = edge.from.size || this.vertexSize;
             // For self-loops, position arrow at the bottom of the circle
             arrowX = endX;
-            arrowY = endY - vertexRadius;
+            arrowY = endY - loopVertexRadius;
         } else {
             // Calculate the exact intersection point between the edge and vertex boundary
-            const targetVertex = edge.to;
             
             // Calculate intersection of line/curve with circle
             if (edge.type === 'curved') {
