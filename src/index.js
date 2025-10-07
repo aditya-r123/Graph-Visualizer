@@ -117,6 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Logo click handler - navigate to landing page
+    const logoHome = document.getElementById('logoHome');
+    if (logoHome) {
+        logoHome.addEventListener('click', () => {
+            window.location.href = '/';
+        });
+    }
+
     // Mouse speed tracking for dynamic glow effect
     let mousePositions = [];
     let lastMouseTime = Date.now();

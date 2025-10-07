@@ -282,6 +282,20 @@ body {
     animation: none;
 }
 
+/* Logo home button hover effect */
+#logoHome:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+#logoHome:active {
+    transform: translateY(0);
+}
+
+#logoHome h1:hover {
+    color: var(--primary-color) !important;
+}
+
 /* Status Panel - No hover effects */
 #statusPanel:hover {
     /* No animations or effects on hover */

@@ -1,128 +1,772 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Graph Visualizer — Welcome</title><link rel="icon" type="image/png" href="/logo.png"><style>body {
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Graph Visualizer — Welcome</title><link rel="icon" type="image/png" href="/logo.png"><style>* {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+            background: #0a0a0f;
             color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hero Section */
+        .hero {
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-        .container {
-            max-width: 900px;
-            padding: 40px 24px;
             text-align: center;
+            padding: 40px 24px;
+            position: relative;
         }
+
+        .logo-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
         .logo {
-            width: 72px;
-            height: 72px;
-            transition: transform 0.8s ease;
+            width: 120px;
+            height: 120px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.5));
         }
-        .logo:hover {
-            animation: spin 1.2s linear infinite;
-            filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.45));
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: simpleFadeIn 1s ease-out forwards;
         }
-        h1 {
-            margin: 16px 0 8px;
-            font-size: 2.25rem;
-            line-height: 1.2;
-            letter-spacing: 0.2px;
+        
+        @keyframes simpleFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        p {
-            margin: 0 auto 24px;
-            max-width: 720px;
+
+        .hero p {
+            font-size: 1.3rem;
             color: #cbd5e1;
-            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto 40px;
             line-height: 1.6;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
         }
-        .card {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            border-radius: 16px;
-            padding: 24px;
-            margin: 24px auto;
-        }
-        .badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 12px;
-        }
-        .badge {
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.35);
-            color: #c7d2fe;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 0.85rem;
-            white-space: nowrap;
-        }
-        .sections {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-            margin: 16px auto 0;
-            max-width: 900px;
-        }
-        @media (min-width: 900px) {
-            .sections {
-                grid-template-columns: 1fr 1fr;
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-        .section {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 14px;
-            padding: 18px;
-            position: relative;
-            overflow: hidden;
+
+        .cta-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
         }
-        .section:before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background: radial-gradient(600px 200px at 0% 0%, rgba(99,102,241,0.05), transparent 35%),
-                        radial-gradient(400px 160px at 100% 100%, rgba(56,189,248,0.05), transparent 40%);
-        }
-        .section h2 {
-            margin: 0 0 8px;
-            font-size: 1.15rem;
-            color: #e2e8f0;
-        }
-        .section p { margin: 0; font-size: 0.98rem; color: #cbd5e1; }
-        .section .subtext { color: #94a3b8; font-size: 0.9rem; margin-top: 6px; }
-        .feature-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: grid;
-            gap: 8px;
-        }
-        .feature-list li { display: flex; align-items: flex-start; gap: 8px; }
-        .feature-list li .tick { color: #22c55e; }
-        .muted { color: #94a3b8; }
-        .divider { height: 1px; background: rgba(148,163,184,0.15); margin: 14px 0; }
+
         .cta {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            background: #6366f1;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 12px 18px;
-            font-size: 1rem;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
-            transition: transform 0.06s ease, box-shadow 0.2s ease;
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
         }
-        .cta:hover { transform: translateY(-1px); }
-        .cta:active { transform: translateY(0); }
-        .subtext { color: #94a3b8; font-size: 0.95rem; }</style><script defer="defer" src="landing.439d2633455dd9d1bfe2.js"></script></head><body><div class="container"><img class="logo" src="/logo.png" alt="Graph Visualizer"/><h1>Graph Visualizer</h1><p>Design, visualize, and analyze graphs with an intuitive, high‑performance editor. Create vertices and edges, run algorithms like BFS and DFS, and export your work — all in one place.</p><div class="card"><a class="cta" href="/editor" id="enterEditorBtn"><span>Enter Editor</span> <span aria-hidden="true">→</span></a><div class="badges" aria-label="quick highlights"><span class="badge">No sign‑in</span> <span class="badge">Runs in your browser</span> <span class="badge">Export: JPG · PNG · JSON</span> <span class="badge">Autosave</span></div></div><div class="sections" aria-label="Why Graph Visualizer"><section class="section" aria-labelledby="features-title"><h2 id="features-title">Key Features</h2><div class="divider"></div><ul class="feature-list"><li><span class="tick">✔</span><span>Fast editing: add, move, connect vertices with precise drag and drop</span></li><li><span class="tick">✔</span><span>Animated BFS/DFS with clear step‑through visuals</span></li><li><span class="tick">✔</span><span>Flexible styling: sizes, colors, shapes, labels, grid, themes</span></li><li><span class="tick">✔</span><span>Reorderable side panels to fit your workflow</span></li><li><span class="tick">✔</span><span>Autosave + one‑click export (JPG/PNG/JSON)</span></li></ul></section><section class="section" aria-labelledby="value-title"><h2 id="value-title">Why it helps</h2><div class="divider"></div><p>Create clear, compelling graph visuals in seconds—perfect for explaining ideas, teaching algorithms, and prototyping without setup or code.</p><p class="subtext">Less fiddling, more thinking. Focus on your concepts; the editor takes care of the rest.</p></section><section class="section" aria-labelledby="unique-title"><h2 id="unique-title">What’s unique</h2><div class="divider"></div><p>Sleek UX + pragmatic touches: zero setup, instant performance, smart defaults, draggable panels, and a guided overlay so you’re productive from minute one.</p></section><section class="section" aria-labelledby="audience-title"><h2 id="audience-title">Built for</h2><div class="divider"></div><p>Students, educators, interviewees, researchers, and engineers who sketch graphs, communicate algorithms, or prototype ideas—quickly and beautifully.</p><p class="subtext muted">Use it in classrooms, tech talks, interviews, or when designing systems.</p></section></div></div></body></html>
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cta:hover::before {
+            left: 100%;
+        }
+
+        .cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(99, 102, 241, 0.6);
+        }
+
+        .cta-secondary {
+            background: rgba(99, 102, 241, 0.1);
+            border: 2px solid #6366f1;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .feature-card:nth-child(1) .feature-icon { animation-delay: 0s; }
+        .feature-card:nth-child(2) .feature-icon { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) .feature-icon { animation-delay: 0.4s; }
+        .feature-card:nth-child(4) .feature-icon { animation-delay: 0.6s; }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #e2e8f0;
+        }
+
+        .feature-card p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Demo Section */
+        .demo-section {
+            padding: 80px 24px;
+            background: linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.05) 100%);
+        }
+
+        .demo-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .demo-visual {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            margin-top: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-canvas {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        /* Editor Interface Section */
+        .editor-interface {
+            padding: 80px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .interface-diagram {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .diagram-placeholder {
+            width: 100%;
+            height: 500px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .editor-labels {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .label-point {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .label-dot {
+            width: 12px;
+            height: 12px;
+            background: #6366f1;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        .label-line {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, transparent);
+        }
+
+        .label-text {
+            background: rgba(99, 102, 241, 0.9);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Screenshots Gallery */
+        .screenshots {
+            padding: 80px 24px;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.03) 0%, transparent 100%);
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 60px auto 0;
+        }
+
+        .screenshot-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .screenshot-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+        }
+
+        .screenshot-img {
+            width: 100%;
+            height: 200px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            overflow: hidden;
+        }
+
+        .screenshot-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+
+        .screenshot-card p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* How-To Sections */
+        .how-to {
+            padding: 80px 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .how-to-grid {
+            display: grid;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .how-to-item {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .how-to-item h3 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .how-to-icon {
+            font-size: 2rem;
+        }
+
+        .how-to-steps {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .how-to-steps li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .how-to-steps li:before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #6366f1;
+            font-weight: bold;
+        }
+
+        .tip-box {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid #6366f1;
+            padding: 16px;
+            margin-top: 16px;
+            border-radius: 8px;
+        }
+
+        .tip-box strong {
+            color: #a855f7;
+        }
+
+        /* Stats Section */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+            padding: 60px 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        /* Footer CTA */
+        .footer-cta {
+            padding: 80px 24px;
+            text-align: center;
+        }
+
+        .footer-cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                gap: 40px;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Scroll Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .slide-in-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(60px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .slide-in-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .scale-in.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .stagger-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Use Cases Section */
+        .use-cases {
+            padding: 80px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .use-case {
+            text-align: left;
+        }
+
+        .use-case-number {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .use-case h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #e2e8f0;
+        }
+
+        .use-case p {
+            color: #94a3b8;
+            line-height: 1.7;
+        }
+
+        /* Benefits Section */
+        .benefits {
+            padding: 80px 24px;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+        }
+
+        .benefits-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .benefit-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+
+        .benefit-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .benefit-content h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .benefit-content p {
+            color: #cbd5e1;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .benefit-visual {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        @media (max-width: 900px) {
+            .benefit-row {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .benefit-row:nth-child(even) .benefit-content {
+                order: 1;
+            }
+            
+            .benefit-row:nth-child(even) .benefit-visual {
+                order: 2;
+            }
+        }
+
+        /* Quick Start Section */
+        .quick-start {
+            padding: 80px 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+            position: relative;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .step h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #e2e8f0;
+        }
+
+        .step p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        /* Smooth transitions for all dynamic elements */
+        .parallax-slow {
+            will-change: transform, opacity;
+        }
+
+        .parallax-fast {
+            will-change: transform, opacity;
+        }
+
+        .feature-card, .use-case, .step {
+            will-change: transform, opacity;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .benefit-content, .benefit-visual {
+            will-change: transform, opacity;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .demo-visual {
+            will-change: transform, opacity;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                        opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }</style><script defer="defer" src="landing.9f4aff917e01533f896a.js"></script></head><body><canvas class="bg-canvas" id="bgCanvas"></canvas><div class="content"><section class="hero" id="hero"><div class="logo-container parallax-fast"><img class="logo" src="/logo.png" alt="Graph Visualizer"/></div><h1 class="parallax-slow" id="heroTitle">Graph Visualizer</h1><p class="parallax-slow" id="heroSubtitle">Create beautiful graph visualizations in seconds. Drag, drop, connect — no code required.</p><div class="cta-group parallax-slow"><a class="cta" href="/editor" id="enterEditorBtn">Launch Editor → </a><a class="cta cta-secondary" href="#features">See Features</a></div></section><section class="features fade-in" id="features"><h2 class="section-title">Powerful Features</h2><div class="feature-grid"><div class="feature-card stagger-item"><span class="feature-icon">⚡</span><h3>Lightning Fast</h3><p>Smooth 60fps performance with instant feedback</p></div><div class="feature-card stagger-item"><span class="feature-icon">🎨</span><h3>Fully Customizable</h3><p>Colors, shapes, sizes — style your graphs your way</p></div><div class="feature-card stagger-item"><span class="feature-icon">🔄</span><h3>Algorithm Visualizer</h3><p>Watch BFS & DFS algorithms animate in real-time</p></div><div class="feature-card stagger-item"><span class="feature-icon">💾</span><h3>Export Anywhere</h3><p>Save as PNG, JPG, or JSON — no account needed</p></div></div></section><section class="use-cases fade-in"><h2 class="section-title">Perfect For</h2><div class="use-case-grid"><div class="use-case stagger-item"><div class="use-case-number">📚</div><h3>Learning & Teaching</h3><p>Visualize data structures and algorithms. Perfect for students understanding graph theory or professors creating lecture materials.</p></div><div class="use-case stagger-item"><div class="use-case-number">💼</div><h3>Technical Interviews</h3><p>Sketch out solutions quickly during coding interviews. Show your thinking process visually and impress interviewers.</p></div><div class="use-case stagger-item"><div class="use-case-number">🔬</div><h3>Research & Analysis</h3><p>Model networks, relationships, and dependencies. Export high-quality diagrams for papers and presentations.</p></div></div></section><section class="demo-section fade-in"><div class="demo-container"><h2 class="section-title">See It In Action</h2><div class="demo-visual scale-in"><canvas class="demo-canvas" id="demoCanvas"></canvas></div></div></section><section class="editor-interface fade-in"><h2 class="section-title">Editor Interface Guide</h2><p style="text-align: center; color: #cbd5e1; max-width: 700px; margin: 0 auto 20px;">Get familiar with the main controls and features</p><div class="interface-diagram"><div class="diagram-placeholder" id="editorDiagram"><span>Editor Interface Preview</span><div class="editor-labels"><div class="label-point" style="top: 5%; left: 5%;"><div class="label-dot"></div><div class="label-line"></div><div class="label-text">Toolbar</div></div><div class="label-point" style="top: 5%; right: 5%; flex-direction: row-reverse;"><div class="label-text">Control Panels</div><div class="label-line" style="transform: scaleX(-1);"></div><div class="label-dot"></div></div><div class="label-point" style="top: 50%; left: 5%;"><div class="label-dot"></div><div class="label-line"></div><div class="label-text">Canvas Area</div></div><div class="label-point" style="bottom: 5%; left: 5%;"><div class="label-dot"></div><div class="label-line"></div><div class="label-text">Status Bar</div></div><div class="label-point" style="top: 30%; right: 5%; flex-direction: row-reverse;"><div class="label-text">Edit Panel</div><div class="label-line" style="transform: scaleX(-1);"></div><div class="label-dot"></div></div></div></div></div></section><section class="screenshots fade-in"><h2 class="section-title">See What You Can Create</h2><div class="screenshot-grid"><div class="screenshot-card stagger-item"><div class="screenshot-img">Creating Vertices</div><h4>Simple Graphs</h4><p>Click anywhere to add vertices. Drag to reposition them freely on the canvas.</p></div><div class="screenshot-card stagger-item"><div class="screenshot-img">Custom Styling</div><h4>Styled Graphs</h4><p>Customize colors, shapes, sizes, and labels. Make your graphs stand out.</p></div><div class="screenshot-card stagger-item"><div class="screenshot-img">BFS Visualization</div><h4>Algorithm Animations</h4><p>Watch BFS and DFS traverse your graph with smooth, color-coded animations.</p></div><div class="screenshot-card stagger-item"><div class="screenshot-img">Directed Edges</div><h4>Directed Graphs</h4><p>Create directed edges with arrows. Perfect for flow charts and dependencies.</p></div><div class="screenshot-card stagger-item"><div class="screenshot-img">Complex Networks</div><h4>Complex Networks</h4><p>Build intricate graph structures with multiple connections and properties.</p></div><div class="screenshot-card stagger-item"><div class="screenshot-img">Export Options</div><h4>Export & Share</h4><p>Export as PNG, JPG, or JSON. Share your creations anywhere.</p></div></div></section><section class="how-to fade-in"><h2 class="section-title">How-To Guides</h2><div class="how-to-grid"><div class="how-to-item slide-in-left"><h3><span class="how-to-icon">🎯</span> Creating Your First Graph</h3><ul class="how-to-steps"><li>Click anywhere on the canvas to create your first vertex</li><li>Click and drag from one vertex to another to create an edge</li><li>Double-click a vertex to edit its label</li><li>Drag vertices to reposition them</li><li>Right-click for quick actions and context menu</li></ul><div class="tip-box"><strong>Pro Tip:</strong> Hold and drag a vertex for 1.5 seconds to enter edit mode for advanced customization!</div></div><div class="how-to-item slide-in-right"><h3><span class="how-to-icon">🎨</span> Customizing Vertices & Edges</h3><ul class="how-to-steps"><li>Hold-click a vertex for 1.5 seconds to open the edit panel</li><li>Change colors, shapes (circle, square, diamond, star, cloud, etc.)</li><li>Adjust size and border thickness</li><li>Set custom labels and font colors</li><li>Toggle edge direction (undirected ↔ directed)</li><li>Apply changes to all vertices at once or individually</li></ul><div class="tip-box"><strong>Pro Tip:</strong> Use the "Apply to All" button to quickly style your entire graph!</div></div><div class="how-to-item slide-in-left"><h3><span class="how-to-icon">🔄</span> Running Algorithms</h3><ul class="how-to-steps"><li>Click "Algo" in the toolbar to open the algorithm panel</li><li>Select BFS (Breadth-First Search) or DFS (Depth-First Search)</li><li>Choose a starting vertex</li><li>Watch the animation as the algorithm explores your graph</li><li>Pause, resume, or reset the animation anytime</li></ul><div class="tip-box"><strong>Pro Tip:</strong> Colors show the algorithm's progress - green for visited, yellow for frontier!</div></div><div class="how-to-item slide-in-right"><h3><span class="how-to-icon">💾</span> Saving & Exporting</h3><ul class="how-to-steps"><li>Click "Save" to create a new graph or update existing one</li><li>Use "Load" to open previously saved graphs</li><li>Export as PNG/JPG for presentations and documents</li><li>Export as JSON to backup or share your graph structure</li><li>Import JSON files to restore saved graphs</li></ul><div class="tip-box"><strong>Pro Tip:</strong> Graphs auto-save to your browser! Your work is safe even if you close the tab.</div></div><div class="how-to-item slide-in-left"><h3><span class="how-to-icon">⚡</span> Keyboard Shortcuts</h3><ul class="how-to-steps"><li><strong>Delete/Backspace:</strong> Delete selected vertex or edge</li><li><strong>Ctrl/Cmd + Z:</strong> Undo last action</li><li><strong>Ctrl/Cmd + Y:</strong> Redo action</li><li><strong>Ctrl/Cmd + S:</strong> Quick save</li><li><strong>Escape:</strong> Cancel current action</li></ul><div class="tip-box"><strong>Pro Tip:</strong> Use the grid toggle for perfect alignment when creating structured graphs!</div></div><div class="how-to-item slide-in-right"><h3><span class="how-to-icon">🔧</span> Advanced Features</h3><ul class="how-to-steps"><li><strong>Edge Reconfiguration:</strong> Drag edges to reconnect them to different vertices</li><li><strong>Multiple Edges:</strong> Create multiple edges between the same pair of vertices</li><li><strong>Self-Loops:</strong> Create edges that connect a vertex to itself</li><li><strong>Weighted Edges:</strong> Add weights to edges for algorithm visualization</li><li><strong>AI Generation:</strong> Use AI to generate hierarchical graph structures</li></ul><div class="tip-box"><strong>Pro Tip:</strong> Click an edge to highlight it, making it easier to work with complex graphs!</div></div></div></section><section class="benefits"><div class="benefits-container"><div class="benefit-row"><div class="benefit-content slide-in-left"><h3>Intuitive Drag & Drop</h3><p>Creating graphs has never been easier. Simply click to add vertices, drag to move them, and click between vertices to create edges. No complicated menus or confusing interfaces — just pure creative flow.</p></div><div class="benefit-visual slide-in-right">🖱️</div></div><div class="benefit-row"><div class="benefit-visual slide-in-left">🎯</div><div class="benefit-content slide-in-right"><h3>Real-Time Algorithm Visualization</h3><p>Watch algorithms come to life. Run BFS or DFS and see each step animated in real-time with color-coded visualization. Perfect for understanding how graph traversal algorithms actually work.</p></div></div><div class="benefit-row"><div class="benefit-content slide-in-left"><h3>Professional Quality Exports</h3><p>Create beautiful, publication-ready diagrams in seconds. Export as high-resolution PNG or JPG for presentations, or as JSON to save and reload your work later. Your graphs, your way.</p></div><div class="benefit-visual slide-in-right">📸</div></div></div></section><section class="quick-start fade-in"><h2 class="section-title">Get Started in Seconds</h2><div class="steps"><div class="step stagger-item"><div class="step-icon">1</div><h4>Click Anywhere</h4><p>Add your first vertex</p></div><div class="step stagger-item"><div class="step-icon">2</div><h4>Click & Drag</h4><p>Connect vertices with edges</p></div><div class="step stagger-item"><div class="step-icon">3</div><h4>Customize</h4><p>Style colors, shapes & more</p></div><div class="step stagger-item"><div class="step-icon">4</div><h4>Export</h4><p>Save or share your creation</p></div></div></section><section class="stats fade-in"><div class="stat-item scale-in"><span class="stat-number">100%</span> <span class="stat-label">Free</span></div><div class="stat-item scale-in"><span class="stat-number">0</span> <span class="stat-label">Sign-ups Required</span></div><div class="stat-item scale-in"><span class="stat-number">∞</span> <span class="stat-label">Graphs You Can Make</span></div></section><section class="footer-cta fade-in"><h2>Ready to visualize?</h2><a class="cta" href="/editor">Start Creating →</a></section></div></body></html>
