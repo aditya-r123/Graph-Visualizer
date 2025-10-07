@@ -1,7 +1,7 @@
 import { EMAILJS_CONFIG, isProduction, OPENAI_API_KEY } from './config.js';
 
 // AI API Control - Set to true to enable OpenAI API calls
-const ai_usage = false;
+const ai_usage = false; 
 
 export class GraphCreator {
     constructor() {
