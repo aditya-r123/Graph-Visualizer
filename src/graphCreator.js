@@ -1,4 +1,4 @@
-import { EMAILJS_CONFIG, isProduction } from './config.js';
+import { EMAILJS_CONFIG, isProduction, OPENAI_API_KEY } from './config.js';
 
 // AI API Control - Set to true to enable OpenAI API calls
 const ai_usage = false;
@@ -43,6 +43,11 @@ export class GraphCreator {
         this.draggedEdge = null;
         this.isDraggingEdge = false;
         this.edgeControlPointSize = 8;
+        
+        // Edge reconfiguration properties
+        this.isReconfiguringEdge = false;
+        this.reconfiguredEdge = null;
+        this.reconfiguredEndpoint = null; // 'from' or 'to' - which endpoint is being dragged
         
         // Edit mode variables
         this.editModeElement = null;
@@ -2534,7 +2539,12 @@ export class GraphCreator {
             
             return hierarchyText;
         } catch (error) {
-            console.error('Error generating hierarchy', error);
+            console.error('=== ERROR in generateHierarchyWithAI ===');
+            console.error('Error type:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Full error:', error);
+            console.error('Stack trace:', error.stack);
+            console.error('======================================');
             return "Error generating hierarchy. Please try again.";
         }
     }
@@ -2566,15 +2576,25 @@ export class GraphCreator {
     // ChatGPT API call
     async callChatGPTAPI(imageDataUrl) {
         const prompt = `Generate text-based file tree from the image using "|", "_", and spaces Rules: Indent childs with "|___", align under the parent's vertical "|".Place labels right after underscores. Put unconnected nodes on new line at root lvl. Output only diagram`;
+        console.log('=== OpenAI API Debug ===');
+        console.log('OPENAI_API_KEY type:', typeof OPENAI_API_KEY);
+        console.log('OPENAI_API_KEY value:', OPENAI_API_KEY);
+        console.log('OPENAI_API_KEY length:', OPENAI_API_KEY ? OPENAI_API_KEY.length : 0);
+        console.log('First 30 chars:', OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 30) : 'N/A');
+        console.log('========================');
         console.log('Calling ChatGPT API with image data URL length:', imageDataUrl.length);
         console.log('Image data URL preview:', imageDataUrl.substring(0, 100) + '...');
+        
+        if (!OPENAI_API_KEY || OPENAI_API_KEY === 'undefined' || OPENAI_API_KEY.trim() === '') {
+            throw new Error('OpenAI API key is not configured. Please add OPENAI_API_KEY to your .env file.');
+        }
         
         try {
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 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' // Replace with your actual API key
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
                 },
                 body: JSON.stringify({
                     model: 'gpt-4o', // or 'gpt-4-vision-preview' for vision capabilities
@@ -2601,14 +2621,24 @@ export class GraphCreator {
             });
 
             if (!response.ok) {
+                // Try to get error details from response body
+                let errorDetails = '';
+                try {
+                    const errorBody = await response.json();
+                    errorDetails = JSON.stringify(errorBody, null, 2);
+                    console.error('API Error Response Body:', errorDetails);
+                } catch (e) {
+                    console.error('Could not parse error response body');
+                }
+                
                 if (response.status === 429) {
                     throw new Error(`Rate limit exceeded. Please wait a moment and try again. (${response.status} ${response.statusText})`);
                 } else if (response.status === 401) {
-                    throw new Error(`Invalid API key. Please check your OpenAI API key. (${response.status} ${response.statusText})`);
+                    throw new Error(`Invalid API key. Please check your OpenAI API key. (${response.status} ${response.statusText})\n${errorDetails}`);
                 } else if (response.status === 400) {
-                    throw new Error(`Bad request. Please check your API configuration. (${response.status} ${response.statusText})`);
+                    throw new Error(`Bad request. Please check your API configuration. (${response.status} ${response.statusText})\n${errorDetails}`);
                 } else {
-                    throw new Error(`ChatGPT API error: ${response.status} ${response.statusText}`);
+                    throw new Error(`ChatGPT API error: ${response.status} ${response.statusText}\n${errorDetails}`);
                 }
             }
 
@@ -3329,6 +3359,37 @@ export class GraphCreator {
             this.startEditModeTimer(vertex);
             // Prevent default to avoid text selection
             e.preventDefault();
+        } else {
+            // No vertex clicked - check for edge click (for reconfiguration)
+            if (!this.editModeElement && !this.isDeleteMode && !this.isSearching && e.button === 0) {
+                const edge = this.getEdgeAt(pos.x, pos.y);
+                if (edge && edge.type !== 'self-loop') {
+                    // Determine which endpoint to drag based on click position
+                    const draggedEndpoint = this.getCloserEndpoint(edge, pos.x, pos.y);
+                    
+                    // Clear any edit mode timer that might be running
+                    if (this.longPressTimer) {
+                        clearTimeout(this.longPressTimer);
+                        this.longPressTimer = null;
+                    }
+                    this.clearHoldProgress();
+                    
+                    // Start edge reconfiguration mode
+                    this.isReconfiguringEdge = true;
+                    this.reconfiguredEdge = edge;
+                    this.reconfiguredEndpoint = draggedEndpoint;
+                    this.canvas.style.cursor = 'crosshair';
+                    
+                    // Add global mouse event listeners
+                    this.globalMouseMoveHandler = (e) => this.handleMouseMove(e);
+                    this.globalMouseUpHandler = (e) => this.handleMouseUp(e);
+                    document.addEventListener('mousemove', this.globalMouseMoveHandler);
+                    document.addEventListener('mouseup', this.globalMouseUpHandler);
+                    
+                    e.preventDefault();
+                    return;
+                }
+            }
         }
     }
     
@@ -3353,6 +3414,21 @@ export class GraphCreator {
         if (this.isSearching) {
             return;
         }
+        
+        // Handle edge reconfiguration dragging
+        if (this.isReconfiguringEdge && this.reconfiguredEdge) {
+            const pos = this.getMousePos(e);
+            
+            // Store temporary endpoint position for visual feedback
+            this.tempEdgeEndpoint = { x: pos.x, y: pos.y };
+            
+            // Highlight the closest vertex as potential target
+            this.potentialTargetVertex = this.getVertexAt(pos.x, pos.y);
+            
+            this.draw();
+            return;
+        }
+        
         if (this.draggedVertex) {
             const pos = this.getMousePos(e); // Now in CSS pixels
             // Calculate drag distance
@@ -3453,6 +3529,65 @@ export class GraphCreator {
         }
     }
     handleMouseUp(e) {
+        // Handle edge reconfiguration completion
+        if (this.isReconfiguringEdge && this.reconfiguredEdge) {
+            // Use the potential target vertex that was being highlighted during drag
+            // This provides better UX since the user sees what they're connecting to
+            const targetVertex = this.potentialTargetVertex;
+            
+            if (targetVertex) {
+                // Get the anchored (non-dragged) endpoint
+                const anchoredEndpoint = this.reconfiguredEndpoint === 'from' ? 'to' : 'from';
+                const anchoredVertex = this.reconfiguredEdge[anchoredEndpoint];
+                
+                // Prevent self-loops (unless that's the intent)
+                if (targetVertex.id === anchoredVertex.id) {
+                    this.updateStatus('Cannot create self-loop this way');
+                } else {
+                    // Save for undo
+                    this.saveState();
+                    
+                    // Update the edge endpoint
+                    this.reconfiguredEdge[this.reconfiguredEndpoint] = targetVertex;
+                    
+                    // Update edge type if needed (detect parallel edges)
+                    this.updateEdgeTypes();
+                    
+                    this.updateStatus(`Edge reconnected to ${targetVertex.label}`);
+                }
+            } else {
+                this.updateStatus('Edge reconfiguration cancelled - no target vertex');
+            }
+            
+            // Clean up reconfiguration state
+            this.isReconfiguringEdge = false;
+            this.reconfiguredEdge = null;
+            this.reconfiguredEndpoint = null;
+            this.tempEdgeEndpoint = null;
+            this.potentialTargetVertex = null;
+            this.canvas.style.cursor = 'crosshair';
+            
+            // Ensure edit mode timer is cleared
+            if (this.longPressTimer) {
+                clearTimeout(this.longPressTimer);
+                this.longPressTimer = null;
+            }
+            this.clearHoldProgress();
+            
+            // Remove global mouse event listeners
+            if (this.globalMouseMoveHandler) {
+                document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                this.globalMouseMoveHandler = null;
+            }
+            if (this.globalMouseUpHandler) {
+                document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                this.globalMouseUpHandler = null;
+            }
+            
+            this.draw();
+            return;
+        }
+        
         // Check if hold timer was active (user held long enough to potentially enter edit mode)
         const wasHoldTimerActive = this.holdTimerWasActive;
         const holdStartTime = this.holdStartTime; // Store before clearing
@@ -4090,6 +4225,15 @@ export class GraphCreator {
         });
     }
     
+    // Determine which endpoint to drag based on click position on edge
+    getCloserEndpoint(edge, clickX, clickY) {
+        const distToFrom = Math.sqrt((edge.from.x - clickX) ** 2 + (edge.from.y - clickY) ** 2);
+        const distToTo = Math.sqrt((edge.to.x - clickX) ** 2 + (edge.to.y - clickY) ** 2);
+        
+        // Return the closer endpoint (this will be the one we drag)
+        return distToFrom < distToTo ? 'from' : 'to';
+    }
+    
     isPointNearLine(px, py, x1, y1, x2, y2, tolerance) {
         // Calculate the distance from point (px, py) to line segment (x1, y1) to (x2, y2)
         const A = px - x1;
@@ -4206,6 +4350,48 @@ export class GraphCreator {
         }
         
         return nextLabel.toString();
+    }
+    
+    // Update edge types and indices after edges have been modified
+    updateEdgeTypes() {
+        // Group edges by their vertex pairs
+        const edgeGroups = {};
+        
+        this.edges.forEach(edge => {
+            // Skip self-loops
+            if (edge.type === 'self-loop') {
+                return;
+            }
+            
+            // Create a consistent key for edges between the same two vertices
+            const key = [edge.from.id, edge.to.id].sort().join('-');
+            
+            if (!edgeGroups[key]) {
+                edgeGroups[key] = [];
+            }
+            edgeGroups[key].push(edge);
+        });
+        
+        // Update each edge's type and index based on how many edges are in its group
+        Object.values(edgeGroups).forEach(group => {
+            if (group.length > 1) {
+                // Multiple edges between same vertices - make them curved
+                group.forEach((edge, index) => {
+                    edge.type = 'curved';
+                    edge.edgeIndex = index;
+                    // Clear control point to force recalculation with new index
+                    delete edge.controlPoint;
+                });
+            } else if (group.length === 1) {
+                // Only one edge - make it straight
+                const edge = group[0];
+                if (edge.type !== 'straight') {
+                    edge.type = 'straight';
+                    delete edge.edgeIndex;
+                    delete edge.controlPoint;
+                }
+            }
+        });
     }
     
     addEdge(vertex1, vertex2, weight = null) {
@@ -5302,6 +5488,45 @@ export class GraphCreator {
                 }
                 this.drawVertex(vertex);
             });
+        }
+        
+        // Draw edge reconfiguration visual feedback
+        if (this.isReconfiguringEdge && this.reconfiguredEdge && this.tempEdgeEndpoint) {
+            const anchoredEndpoint = this.reconfiguredEndpoint === 'from' ? 'to' : 'from';
+            const anchoredVertex = this.reconfiguredEdge[anchoredEndpoint];
+            
+            // Draw temporary edge from anchored vertex to mouse position
+            this.ctx.save();
+            this.ctx.strokeStyle = '#fbbf24'; // Yellow
+            this.ctx.lineWidth = 3;
+            this.ctx.setLineDash([5, 5]); // Dashed line
+            this.ctx.beginPath();
+            this.ctx.moveTo(anchoredVertex.x, anchoredVertex.y);
+            this.ctx.lineTo(this.tempEdgeEndpoint.x, this.tempEdgeEndpoint.y);
+            this.ctx.stroke();
+            this.ctx.restore();
+            
+            // Highlight the potential target vertex if hovering over one
+            if (this.potentialTargetVertex) {
+                this.ctx.save();
+                this.ctx.strokeStyle = '#10b981'; // Green
+                this.ctx.lineWidth = 4;
+                this.ctx.beginPath();
+                const size = this.potentialTargetVertex.size || this.vertexSize;
+                this.ctx.arc(this.potentialTargetVertex.x, this.potentialTargetVertex.y, size + 5, 0, 2 * Math.PI);
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
+            
+            // Highlight the anchored vertex
+            this.ctx.save();
+            this.ctx.strokeStyle = '#3b82f6'; // Blue
+            this.ctx.lineWidth = 4;
+            this.ctx.beginPath();
+            const anchoredSize = anchoredVertex.size || this.vertexSize;
+            this.ctx.arc(anchoredVertex.x, anchoredVertex.y, anchoredSize + 5, 0, 2 * Math.PI);
+            this.ctx.stroke();
+            this.ctx.restore();
         }
         
         // Draw delete buttons if in delete mode and vertices are visible

@@ -6,6 +6,9 @@ export const EMAILJS_CONFIG = {
     TEMPLATE_ID: process.env.EMAILJS_TEMPLATE_ID
 };
 
+// OpenAI Configuration
+export const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+
 // Environment detection
 export const isProduction = () => {
     return window.location.hostname !== 'localhost' && 

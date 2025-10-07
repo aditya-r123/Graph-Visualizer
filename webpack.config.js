@@ -3,6 +3,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
   
@@ -76,6 +79,7 @@ module.exports = (env, argv) => {
         'process.env.EMAILJS_PUBLIC_KEY': JSON.stringify(process.env.EMAILJS_PUBLIC_KEY),
         'process.env.EMAILJS_SERVICE_ID': JSON.stringify(process.env.EMAILJS_SERVICE_ID),
         'process.env.EMAILJS_TEMPLATE_ID': JSON.stringify(process.env.EMAILJS_TEMPLATE_ID),
+        'process.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY),
       }),
     ],
     devServer: {
