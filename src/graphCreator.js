@@ -2682,7 +2682,7 @@ export class GraphCreator {
                 return;
             }
             
-            this.updateStatus('Generating hierarchy');
+            this.updateStatus('Generating hierarchy with AI...');
             
             const txtContent = await this.exportGraphAsTxt();
             const currentGraphName = this.getCurrentGraphName();
