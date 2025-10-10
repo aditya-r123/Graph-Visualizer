@@ -6171,3 +6171,12 @@ input:-webkit-autofill {
 .contact-form-section .form-label {
     /* ... existing code ... */
 }
+
+/* Added for logo hover animation */
+.logo {
+    transition: transform 0.5s ease-in-out;
+}
+
+.logo:hover {
+    transform: rotate(360deg);
+}

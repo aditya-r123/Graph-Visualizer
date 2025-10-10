@@ -49,21 +49,38 @@
             position: relative;
         }
 
-        .logo-container {
+        .hero-main-content {
             position: relative;
             margin-bottom: 30px;
+        }
+
+        .logo-container {
+            position: relative;
+        }
+
+        .logo-floater {
+            animation: float 3s ease-in-out infinite;
         }
 
         .logo {
             width: 120px;
             height: 120px;
-            animation: float 3s ease-in-out infinite;
             filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.5));
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .logo-floater:hover .logo {
+            animation: spin 2s linear infinite;
         }
 
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .hero h1 {
@@ -786,10 +803,14 @@
     <div class="content">
         <!-- Hero Section -->
         <section class="hero" id="hero">
-            <div class="logo-container parallax-fast">
-                <img class="logo" src="/logo.png" alt="Graph Visualizer" />
+            <div class="hero-main-content parallax-slow">
+                <div class="logo-container">
+                    <div class="logo-floater">
+                        <img class="logo" src="/logo.png" alt="Graph Visualizer" />
+                    </div>
+                </div>
+                <h1 id="heroTitle">Graph Visualizer</h1>
             </div>
-            <h1 class="parallax-slow" id="heroTitle">Graph Visualizer</h1>
             <p class="parallax-slow" id="heroSubtitle">Create beautiful graph visualizations in seconds. Drag, drop, connect — no code required.</p>
             <div class="cta-group parallax-slow">
                 <a class="cta" href="/editor" id="enterEditorBtn">

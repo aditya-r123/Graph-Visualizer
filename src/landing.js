@@ -3,17 +3,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Animated background canvas
     const bgCanvas = document.getElementById('bgCanvas');
     const bgCtx = bgCanvas.getContext('2d');
+    let time = 0;
+
+    // Debounce function
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
     
     // Set canvas size
     function resizeCanvas() {
         bgCanvas.width = window.innerWidth;
         bgCanvas.height = window.innerHeight;
+        initParticles(); // Re-initialize particles on resize
     }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
+    
     // Animated particles with prominent connections
-    const particles = [];
+    let particles = [];
     const particleCount = 50;
     
     class Particle {
@@ -22,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
             this.y = Math.random() * bgCanvas.height;
             this.vx = (Math.random() - 0.5) * 0.5;
             this.vy = (Math.random() - 0.5) * 0.5;
-            this.radius = Math.random() * 2.5 + 1.5;
+            this.radius = Math.random() * 3 + 2; // Increased radius
+            this.baseHue = 240 + Math.random() * 100; // Indigo (240) to Red (340)
         }
         
         update() {
@@ -34,16 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         draw() {
+            const hue = (this.baseHue + time * 10) % 360;
             bgCtx.beginPath();
             bgCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            bgCtx.fillStyle = 'rgba(99, 102, 241, 0.6)';
+            bgCtx.fillStyle = `hsla(${hue}, 80%, 70%, 0.8)`; // Brighter, more visible
             bgCtx.fill();
         }
     }
     
-    // Initialize particles
-    for (let i = 0; i < particleCount; i++) {
-        particles.push(new Particle());
+    // Function to initialize particles
+    function initParticles() {
+        particles = [];
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
     }
     
     // Draw prominent connections between nearby particles
@@ -55,14 +69,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance < 150) {
-                    const opacity = 0.5 * (1 - distance / 150); // Increased from 0.2 to 0.5
+                    const opacity = 0.8 * (1 - distance / 150); // Increased opacity
                     
+                    const hueI = (particles[i].baseHue + time * 10) % 360;
+                    const hueJ = (particles[j].baseHue + time * 10) % 360;
+                    const avgHue = (hueI + hueJ) / 2;
+
                     // Draw thicker, more prominent line
                     bgCtx.beginPath();
                     bgCtx.moveTo(particles[i].x, particles[i].y);
                     bgCtx.lineTo(particles[j].x, particles[j].y);
-                    bgCtx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
-                    bgCtx.lineWidth = 2; // Increased from 1 to 2
+                    bgCtx.strokeStyle = `hsla(${avgHue}, 80%, 70%, ${opacity})`;
+                    bgCtx.lineWidth = 3; // Increased line width
                     bgCtx.stroke();
                 }
             }
@@ -73,6 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function animateBg() {
         bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
         
+        time += 0.005;
+
         drawConnections();
         
         particles.forEach(p => {
@@ -82,6 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         requestAnimationFrame(animateBg);
     }
+
+    resizeCanvas();
+    window.addEventListener('resize', debounce(resizeCanvas, 250));
     animateBg();
 
     // Demo canvas animation
@@ -108,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
         [0, 1], [1, 2], [0, 3], [1, 3], [1, 4], [2, 4], [3, 4]
     ];
 
-    let time = 0;
     const nodeRadius = 20;
 
     function drawDemoGraph() {
@@ -369,5 +391,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
-

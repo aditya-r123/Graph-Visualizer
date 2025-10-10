@@ -3821,7 +3821,6 @@ export class GraphCreator {
             this.updateStatus('No vertices to edit. Add a vertex first.');
         }
     }
-
     _updateEditPanelForPendingDelete(isPending) {
         const labelInput = document.getElementById('editVertexLabel');
         const sizeInput = document.getElementById('editVertexSize');
@@ -4599,7 +4598,6 @@ export class GraphCreator {
         
         return false; // Target not reachable
     }
-    
     async runBFS() {
         if (!this.selectedTargetVertex) {
             this.updateStatus('Please select a target vertex first');
@@ -5388,7 +5386,6 @@ export class GraphCreator {
         // Save preference to localStorage
         localStorage.setItem('statusMessageVisible', visible.toString());
     }
-    
     updateTime() {
         const now = new Date();
         // Use 24-hour format for digital clock
@@ -6162,7 +6159,6 @@ export class GraphCreator {
                 return { width: defaultSide * 0.8, height: defaultSide * 0.8 };
         }
     }
-
     // Wrap text to fit within bounds with hyphenation for long words
     wrapText(text, maxWidth, ctx) {
         const words = text.split(' ');
@@ -7494,9 +7490,21 @@ export class GraphCreator {
         // Size slider: immediate update with apply-to-all support
         document.getElementById('editVertexSize').addEventListener('input', (e) => {
             if (this.editModeElement && this._editPreview && !this._editPreview.pendingDelete) {
-            const newSize = parseInt(e.target.value);
-            document.getElementById('editVertexSizeValue').textContent = newSize;
+                const newSize = parseInt(e.target.value);
+                document.getElementById('editVertexSizeValue').textContent = newSize;
                 this._editPreview.size = newSize;
+                this.editModeElement.size = newSize; // Also update the current vertex immediately
+        
+                // Apply to all vertices if the toggle is checked
+                const applyToAllToggle = document.getElementById('applyToAllToggle');
+                if (applyToAllToggle && applyToAllToggle.checked) {
+                    this.vertices.forEach(vertex => {
+                        if (vertex !== this.editModeElement) {
+                            vertex.size = newSize;
+                        }
+                    });
+                }
+        
                 this.draw();
             }
         });
@@ -7507,6 +7515,18 @@ export class GraphCreator {
                 const newLabelSize = parseInt(e.target.value);
                 document.getElementById('editVertexLabelSizeValue').textContent = newLabelSize;
                 this._editPreview.labelSize = newLabelSize;
+                this.editModeElement.labelSize = newLabelSize; // Also update the current vertex immediately
+        
+                // Apply to all vertices if the toggle is checked
+                const applyToAllToggle = document.getElementById('applyToAllToggle');
+                if (applyToAllToggle && applyToAllToggle.checked) {
+                    this.vertices.forEach(vertex => {
+                        if (vertex !== this.editModeElement) {
+                            vertex.labelSize = newLabelSize;
+                        }
+                    });
+                }
+        
                 this.draw();
             }
         });
@@ -8257,7 +8277,6 @@ export class GraphCreator {
             this.pendingAction = null;
         }
     }
-    
     // Confirm pending action
     confirmPendingAction() {
         if (this.pendingAction === 'deleteAllGraphs') {

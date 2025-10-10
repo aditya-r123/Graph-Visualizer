@@ -1,8 +1,8 @@
 {
   "name": "graph-creator",
-  "version": "2.0.0",
-  "description": "A modern, interactive graph creation tool with beautiful UI/UX",
-  "main": "server.js",
+  "version": "3.0.1",
+  "description": "A modern, intuitive, and real-time graph visualization tool designed to create, edit, and share beautiful graph diagrams with ease. No sign-ups, no hassle—just a powerful, open-source editor for all your graph visualization needs.",
+  "main": "graphCreator.js",
   "scripts": {
     "start": "node server.js",
     "dev": "npm run build:dev & nodemon server.js",
