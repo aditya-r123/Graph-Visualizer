@@ -1,3 +1,8 @@
+import { inject } from '@vercel/analytics';
+
+// Initialize Vercel Analytics
+inject();
+
 // Landing page animations and interactions
 document.addEventListener('DOMContentLoaded', () => {
     // Animated background canvas
