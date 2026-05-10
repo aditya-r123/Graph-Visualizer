@@ -1,6 +1,10 @@
 import './styles.css';
 import { GraphCreator } from './graphCreator.js';
 import './assets/logo.png';
+import { inject } from '@vercel/analytics';
+
+// Initialize Vercel Analytics
+inject();
 
 // FOUC Prevention: Hide content until styles are fully loaded
 document.addEventListener('DOMContentLoaded', () => {
