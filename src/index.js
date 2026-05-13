@@ -2,11 +2,15 @@ import './styles.css';
 import { GraphCreator } from './graphCreator.js';
 import './assets/logo.png';
 import { inject } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import * as auth from './auth.js';
 import { mountEditorBadge, bindEditorAiPanel } from './authUi.js';
 
 // Initialize Vercel Analytics
 inject();
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 // Kick off auth as early as possible so the badge + AI panel state are
 // populated before the user starts interacting with controls.
