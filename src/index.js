@@ -2,9 +2,28 @@ import './styles.css';
 import { GraphCreator } from './graphCreator.js';
 import './assets/logo.png';
 import { inject } from '@vercel/analytics';
+import * as auth from './auth.js';
+import { mountEditorBadge, bindEditorAiPanel } from './authUi.js';
 
 // Initialize Vercel Analytics
 inject();
+
+// Kick off auth as early as possible so the badge + AI panel state are
+// populated before the user starts interacting with controls.
+auth.init();
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Read-only PRO/FREE badge fixed in the top-right of the editor. Clicking
+    // it routes home — all account management lives there.
+    mountEditorBadge(document.getElementById('editorAccountBadge'));
+
+    // Toggle the AI panel between its locked (Pro-upsell) and unlocked
+    // (prompt + Generate) views based on the user's plan.
+    bindEditorAiPanel({
+        lockedEl: document.getElementById('aiGenerateLocked'),
+        unlockedEl: document.getElementById('aiGenerateUnlocked')
+    });
+});
 
 // FOUC Prevention: Hide content until styles are fully loaded
 document.addEventListener('DOMContentLoaded', () => {

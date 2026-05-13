@@ -74,12 +74,14 @@ module.exports = (env, argv) => {
       ...(isProduction ? [new MiniCssExtractPlugin({
         filename: isProduction ? 'styles.[contenthash].css' : 'styles.css',
       })] : []),
-      // Inject environment variables at build time
+      // Inject PUBLIC env vars at build time. OPENAI_API_KEY is intentionally
+      // NOT injected — the client now goes through /api/ai/* on the server.
       new webpack.DefinePlugin({
         'process.env.EMAILJS_PUBLIC_KEY': JSON.stringify(process.env.EMAILJS_PUBLIC_KEY),
         'process.env.EMAILJS_SERVICE_ID': JSON.stringify(process.env.EMAILJS_SERVICE_ID),
         'process.env.EMAILJS_TEMPLATE_ID': JSON.stringify(process.env.EMAILJS_TEMPLATE_ID),
-        'process.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY),
+        'process.env.SUPABASE_URL': JSON.stringify(process.env.SUPABASE_URL),
+        'process.env.SUPABASE_ANON_KEY': JSON.stringify(process.env.SUPABASE_ANON_KEY),
       }),
     ],
     devServer: {

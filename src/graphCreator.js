@@ -1,7 +1,18 @@
-import { EMAILJS_CONFIG, isProduction, OPENAI_API_KEY } from './config.js';
+import { EMAILJS_CONFIG, isProduction } from './config.js';
+import * as auth from './auth.js';
 
-// AI API Control - Set to true to enable OpenAI API calls
-const ai_usage = true; 
+// AI features are gated on the user's subscription plan. This is a UX hint
+// only — the actual enforcement lives in /api/ai/* on the server, which
+// verifies the Supabase session and checks profiles.plan === 'pro'.
+const ai_usage = () => auth.isPro();
+
+// If a non-Pro action somehow triggers an AI flow (e.g. via a keyboard
+// shortcut), route the user to the account section on the landing page
+// where they can sign in or upgrade. The editor itself never opens an
+// auth form.
+function routeToAccount() {
+    window.location.href = '/#account';
+}
 
 export class GraphCreator {
     constructor() {
@@ -670,18 +681,13 @@ export class GraphCreator {
             console.error('Take Screenshot button not found!');
         }
 
-        // AI Generate button
+        // AI Generate button. Gating is enforced server-side; the click
+        // handler just shunts non-Pro users to the sign-in / upgrade flow
+        // before making the request.
         const aiGenerateBtn = document.getElementById('aiGenerateBtn');
         const aiPromptInput = document.getElementById('aiPromptInput');
         const aiPromptCounter = document.getElementById('aiPromptCounter');
-        const aiPasswordPanel = document.getElementById('aiPasswordPanel');
-        const aiPasswordInput = document.getElementById('aiPasswordInput');
-        const aiPasswordError = document.getElementById('aiPasswordError');
-        const aiPasswordSubmit = document.getElementById('aiPasswordSubmit');
-        const aiPasswordCancel = document.getElementById('aiPasswordCancel');
         const AI_PROMPT_MAX = 200;
-        const AI_PASSWORD = 'adityarao4';
-        this.aiUnlocked = false;
 
         const updateAiCounter = () => {
             if (!aiPromptInput || !aiPromptCounter) return;
@@ -694,51 +700,12 @@ export class GraphCreator {
             updateAiCounter();
         }
 
-        const runGeneration = () => {
-            this.generateGraphFromPrompt(aiPromptInput.value.slice(0, AI_PROMPT_MAX));
-        };
-
-        const openPasswordPanel = () => {
-            if (!aiPasswordPanel) return;
-            aiPasswordPanel.style.display = '';
-            if (aiPasswordError) aiPasswordError.style.display = 'none';
-            if (aiPasswordInput) {
-                aiPasswordInput.value = '';
-                aiPasswordInput.focus();
-            }
-        };
-
-        const closePasswordPanel = () => {
-            if (!aiPasswordPanel) return;
-            aiPasswordPanel.style.display = 'none';
-            if (aiPasswordInput) aiPasswordInput.value = '';
-            if (aiPasswordError) aiPasswordError.style.display = 'none';
-        };
-
-        const trySubmitPassword = () => {
-            if (!aiPasswordInput) return;
-            if (aiPasswordInput.value === AI_PASSWORD) {
-                this.aiUnlocked = true;
-                closePasswordPanel();
-                this.updateStatus('AI unlocked for this session');
-                runGeneration();
-            } else {
-                if (aiPasswordError) aiPasswordError.style.display = '';
-                aiPasswordInput.value = '';
-                aiPasswordInput.focus();
-            }
-        };
-
         const requestGeneration = () => {
             if (!aiPromptInput.value.trim()) {
                 this.updateStatus('Enter a description first');
                 return;
             }
-            if (this.aiUnlocked) {
-                runGeneration();
-            } else {
-                openPasswordPanel();
-            }
+            this.generateGraphFromPrompt(aiPromptInput.value.slice(0, AI_PROMPT_MAX));
         };
 
         if (aiGenerateBtn && aiPromptInput) {
@@ -747,23 +714,6 @@ export class GraphCreator {
                 if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                     e.preventDefault();
                     requestGeneration();
-                }
-            });
-        }
-        if (aiPasswordSubmit) {
-            aiPasswordSubmit.addEventListener('click', trySubmitPassword);
-        }
-        if (aiPasswordCancel) {
-            aiPasswordCancel.addEventListener('click', closePasswordPanel);
-        }
-        if (aiPasswordInput) {
-            aiPasswordInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    trySubmitPassword();
-                } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    closePasswordPanel();
                 }
             });
         }
@@ -2671,112 +2621,41 @@ export class GraphCreator {
         return tempCanvas.toDataURL('image/jpeg', 0.9);
     }
 
-    // ChatGPT API call
+    // Hierarchy text from image — proxied through /api/ai/hierarchy.
+    // Server enforces sign-in + Pro plan and holds the OpenAI key.
     async callChatGPTAPI(imageDataUrl) {
-        const prompt = `Generate text-based file tree from the image using "|", "_", and spaces Rules: Indent childs with "|___", align under the parent's vertical "|".Place labels right after underscores. Put unconnected nodes on new line at root lvl. Output only diagram`;
-        console.log('=== OpenAI API Debug ===');
-        console.log('OPENAI_API_KEY type:', typeof OPENAI_API_KEY);
-        console.log('OPENAI_API_KEY value:', OPENAI_API_KEY);
-        console.log('OPENAI_API_KEY length:', OPENAI_API_KEY ? OPENAI_API_KEY.length : 0);
-        console.log('First 30 chars:', OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 30) : 'N/A');
-        console.log('========================');
-        console.log('Calling ChatGPT API with image data URL length:', imageDataUrl.length);
-        console.log('Image data URL preview:', imageDataUrl.substring(0, 100) + '...');
-        
-        if (!OPENAI_API_KEY || OPENAI_API_KEY === 'undefined' || OPENAI_API_KEY.trim() === '') {
-            throw new Error('OpenAI API key is not configured. Please add OPENAI_API_KEY to your .env file.');
-        }
-        
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            const response = await auth.authedFetch('/api/ai/hierarchy', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${OPENAI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o', // or 'gpt-4-vision-preview' for vision capabilities
-                    messages: [
-                        {
-                            role: 'user',
-                            content: [
-                                {
-                                    type: 'text',
-                                    text: prompt
-                                },
-                                {
-                                    type: 'image_url',
-                                    image_url: {
-                                        url: imageDataUrl
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    max_tokens: 500,
-                    temperature: 0.1
-                })
+                body: JSON.stringify({ imageDataUrl })
             });
 
+            if (response.status === 401) {
+                routeToAccount();
+                return '⚠️ Sign in required.';
+            }
+            if (response.status === 402) {
+                routeToAccount();
+                return '⚠️ Upgrade to Pro to use AI features.';
+            }
             if (!response.ok) {
-                // Try to get error details from response body
-                let errorDetails = '';
-                try {
-                    const errorBody = await response.json();
-                    errorDetails = JSON.stringify(errorBody, null, 2);
-                    console.error('API Error Response Body:', errorDetails);
-                } catch (e) {
-                    console.error('Could not parse error response body');
-                }
-                
-                if (response.status === 429) {
-                    throw new Error(`Rate limit exceeded. Please wait a moment and try again. (${response.status} ${response.statusText})`);
-                } else if (response.status === 401) {
-                    throw new Error(`Invalid API key. Please check your OpenAI API key. (${response.status} ${response.statusText})\n${errorDetails}`);
-                } else if (response.status === 400) {
-                    throw new Error(`Bad request. Please check your API configuration. (${response.status} ${response.statusText})\n${errorDetails}`);
-                } else {
-                    throw new Error(`ChatGPT API error: ${response.status} ${response.statusText}\n${errorDetails}`);
-                }
+                const body = await response.json().catch(() => ({}));
+                throw new Error(body.message || `Hierarchy API error: ${response.status}`);
             }
-
-            const result = await response.json();
-            console.log('ChatGPT API response:', result);
-            
-            if (result.choices && result.choices[0] && result.choices[0].message) {
-                let content = result.choices[0].message.content.trim();
-                console.log('ChatGPT API content (raw):', content);
-                
-                // Process the content: remove backticks and replace underscores
-                content = content.replace(/`/g, ''); // Remove all backticks
-                content = content.replace(/_/g, '_'); // Replace all "_" with "_"
-                
-                console.log('ChatGPT API content (processed):', content);
-                return content;
-            } else {
-                console.error('Invalid response format:', result);
-                throw new Error('Invalid response format from ChatGPT API');
-            }
+            const { content } = await response.json();
+            return (content || '').replace(/`/g, '');
         } catch (error) {
-            console.error('ChatGPT API call failed:', error);
-            
-            // Check if it's a rate limit error
-            if (error.message.includes('Rate limit exceeded')) {
-                return "⚠️ Rate limit exceeded. Please wait a moment and try again.\n\nFallback hierarchy:\n1\n|__2\n|  |__5\n|  |__6\n|__3\n|  |__4\n7\n8";
-            } else if (error.message.includes('Invalid API key')) {
-                return "⚠️ Invalid API key. Please check your OpenAI API key configuration.\n\nFallback hierarchy:\n1\n|__2\n|  |__5\n|  |__6\n|__3\n|  |__4\n7\n8";
-            } else {
-                return `⚠️ API Error: ${error.message}\n\nFallback hierarchy:\n1\n|__2\n|  |__5\n|  |__6\n|__3\n|  |__4\n7\n8`;
-            }
+            console.error('hierarchy call failed:', error);
+            return `⚠️ API Error: ${error.message}\n\nFallback hierarchy:\n1\n|__2\n|  |__5\n|  |__6\n|__3\n|  |__4\n7\n8`;
         }
     }
 
     // Async TXT export method
     async exportTxtAsync() {
         try {
-            // Check if AI usage is enabled
-            if (!ai_usage) {
-                this.updateStatus('ERROR');
+            if (!ai_usage()) {
+                this.updateStatus('AI hierarchy is a Pro feature');
+                routeToAccount();
                 return;
             }
             
@@ -2821,9 +2700,9 @@ export class GraphCreator {
     // Async TXT sharing method
     async shareTxtAsync() {
         try {
-            // Check if AI usage is enabled
-            if (!ai_usage) {
-                this.updateStatus('ERROR');
+            if (!ai_usage()) {
+                this.updateStatus('AI hierarchy is a Pro feature');
+                routeToAccount();
                 return;
             }
             
@@ -2859,18 +2738,17 @@ export class GraphCreator {
         }
     }
 
-    // Generate a graph from a natural-language prompt via OpenAI and load it
+    // Generate a graph from a natural-language prompt via our /api/ai/* proxy
+    // and load the result. The server holds the OpenAI key and verifies that
+    // the caller is signed in and on the Pro plan.
     async generateGraphFromPrompt(userPrompt) {
-        if (!ai_usage) {
-            this.updateStatus('AI is disabled');
-            return;
-        }
         if (!userPrompt || !userPrompt.trim()) {
             this.updateStatus('Enter a description first');
             return;
         }
-        if (!OPENAI_API_KEY || OPENAI_API_KEY === 'undefined' || OPENAI_API_KEY.trim() === '') {
-            this.updateStatus('OpenAI API key not configured');
+        if (!ai_usage()) {
+            this.updateStatus('AI generate is a Pro feature');
+            routeToAccount();
             return;
         }
 
@@ -2882,72 +2760,28 @@ export class GraphCreator {
         }
         this.updateStatus('Generating graph with AI...');
 
-        const systemPrompt = `You design graph structures. Output ONLY valid JSON matching this schema:
-{
-  "vertices": [{
-    "id": <int>, "x": <int>, "y": <int>, "label": "<string>",
-    "shape": "circle|square|triangle|diamond|star|pentagon|hexagon",
-    "size": <int 15-60>,
-    "color": "<hex #rrggbb>",
-    "borderColor": "<hex #rrggbb>",
-    "fontColor": "<hex #rrggbb>"
-  }],
-  "edges": [{
-    "from": <vertex id>, "to": <vertex id>,
-    "directed": <true|false>,
-    "type": "straight|curved",
-    "lineStyle": "solid|dashed",
-    "weight": "<string, optional>"
-  }],
-  "globals": {
-    "vertexColor": "<hex>", "vertexBorderColor": "<hex>", "vertexFontColor": "<hex>",
-    "edgeColor": "<hex>", "edgeFontColor": "<hex>",
-    "edgeType": "straight|curved", "edgeDirection": "directed|undirected"
-  }
-}
-Layout rules:
-- Canvas is 2000x2000. Keep x,y within [100, 1900].
-- Minimum 120px spacing between any two vertices.
-- Layered structures (neural nets, pipelines): arrange layers left-to-right by x, distribute vertices vertically by y.
-- Trees: root at low y, children spread below.
-- Cycles/rings: distribute around a circle.
-Styling rules:
-- All styling fields are OPTIONAL. Only include fields the user explicitly requests or that the description strongly implies (e.g. "red nodes" -> color, "dashed edges" -> lineStyle:"dashed"). Omit fields otherwise so defaults apply.
-- Per-vertex/edge fields override "globals". Use "globals" when ALL vertices/edges share the same styling.
-- "directed" on an edge defaults to false. Use true when the description implies direction (forward pass, dependency, flow).
-- For colors: translate natural-language colors to hex (red->#ef4444, blue->#3b82f6, green->#22c55e, yellow->#eab308, purple->#a855f7, orange->#f97316, black->#000000, white->#ffffff, gray->#6b7280).
-General rules:
-- Labels: 1-3 words.
-- ids: unique positive integers starting at 1.
-- Every edge's from/to must reference an existing vertex id.
-- No commentary, no markdown, no code fences. JSON only.`;
-
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            const response = await auth.authedFetch('/api/ai/generate-graph', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${OPENAI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o',
-                    response_format: { type: 'json_object' },
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: userPrompt }
-                    ],
-                    temperature: 0.3,
-                    max_tokens: 2000
-                })
+                body: JSON.stringify({ prompt: userPrompt })
             });
 
+            if (response.status === 401) {
+                this.updateStatus('Sign in to use AI');
+                routeToAccount();
+                return;
+            }
+            if (response.status === 402) {
+                this.updateStatus('Upgrade to Pro for AI');
+                routeToAccount();
+                return;
+            }
             if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`OpenAI API error ${response.status}: ${errorBody.slice(0, 200)}`);
+                const body = await response.json().catch(() => ({}));
+                throw new Error(body.message || `AI API error: ${response.status}`);
             }
 
-            const result = await response.json();
-            const content = result?.choices?.[0]?.message?.content;
+            const { content } = await response.json();
             if (!content) throw new Error('Empty AI response');
 
             const parsed = JSON.parse(content);

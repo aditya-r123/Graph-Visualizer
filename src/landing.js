@@ -1,10 +1,20 @@
 import { inject } from '@vercel/analytics';
+import * as auth from './auth.js';
+import { mountLandingHeader, mountLandingAccountPanel } from './authUi.js';
 
 // Initialize Vercel Analytics
 inject();
 
+// Bring auth state online before DOMContentLoaded so the header widget
+// renders with the right state on first paint.
+auth.init();
+
 // Landing page animations and interactions
 document.addEventListener('DOMContentLoaded', () => {
+    // Account UI: top-right widget + inline forms in the #account section.
+    mountLandingHeader(document.getElementById('landingAccountHeader'));
+    mountLandingAccountPanel(document.getElementById('landingAccountPanel'));
+
     // Animated background canvas
     const bgCanvas = document.getElementById('bgCanvas');
     const bgCtx = bgCanvas.getContext('2d');

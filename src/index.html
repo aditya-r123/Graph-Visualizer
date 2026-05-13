@@ -79,6 +79,10 @@
         <div class="loading-spinner"></div>
     </div>
     
+    <!-- Read-only account badge fixed in the top-right. All account management
+         lives on the landing page (/); clicking the badge routes there. -->
+    <div id="editorAccountBadge" style="position: fixed; top: 12px; right: 16px; z-index: 1500;"></div>
+
     <div class="app-container" id="appContainer">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -564,40 +568,48 @@
                         </h3>
                     </div>
                     <div class="expandable-content show" id="aiGenerateContent">
-                        <div class="control-group mb-2">
-                            <label for="aiPromptInput" style="font-size: 0.85rem;">
-                                <i class="fas fa-wand-magic-sparkles"></i>
-                                Describe your graph
-                            </label>
-                            <textarea id="aiPromptInput" rows="3"
-                                maxlength="200"
-                                placeholder="e.g. 2-layer neural network with input, hidden, and output nodes (red squares, dashed edges)"></textarea>
-                            <div class="d-flex justify-content-end" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-                                <span id="aiPromptCounter">0 / 200</span>
+                        <!-- Locked view: shown to anonymous and Free users.
+                             Account management lives on the landing page. -->
+                        <div id="aiGenerateLocked">
+                            <div style="text-align:center; padding:0.5rem 0 0.25rem;">
+                                <i class="fas fa-lock" style="font-size:1.8rem; color:#a855f7; opacity:0.85; display:block; margin-bottom:0.5rem;"></i>
+                                <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.35rem;">Pro feature</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted, #9ca3af); margin-bottom:0.85rem; line-height:1.4;">
+                                    AI graph generation requires a Pro account. Sign in or upgrade on the home page.
+                                </div>
+                                <a href="/#account" class="btn btn-magenta w-100" style="font-size:0.8rem; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;">
+                                    <i class="fas fa-arrow-left"></i>
+                                    Go to home
+                                </a>
+                            </div>
+                            <!-- Disabled-looking preview of the Generate button so
+                                 users see the feature exists. -->
+                            <div class="button-group" style="margin-top:0.85rem; pointer-events:none; opacity:0.4; filter:grayscale(0.4);">
+                                <button class="btn btn-magenta w-100" disabled aria-disabled="true" tabindex="-1">
+                                    <i class="fas fa-bolt"></i>
+                                    Generate
+                                </button>
                             </div>
                         </div>
-                        <div class="button-group">
-                            <button id="aiGenerateBtn" class="btn btn-magenta w-100">
-                                <i class="fas fa-bolt"></i>
-                                Generate
-                            </button>
-                        </div>
-                        <div id="aiPasswordPanel" class="control-group" style="display: none; margin-top: 0.75rem;">
-                            <label for="aiPasswordInput" style="font-size: 0.85rem;">
-                                <i class="fas fa-lock"></i>
-                                Enter password to unlock AI
-                            </label>
-                            <input type="password" id="aiPasswordInput"
-                                placeholder="Password"
-                                autocomplete="off">
-                            <div id="aiPasswordError" style="display: none; font-size: 0.75rem; color: #ef4444; margin-top: 0.35rem;">Incorrect password.</div>
-                            <div class="d-flex gap-2" style="margin-top: 0.5rem;">
-                                <button id="aiPasswordSubmit" type="button" class="btn btn-success flex-fill">
-                                    <i class="fas fa-unlock"></i>
-                                    Unlock
-                                </button>
-                                <button id="aiPasswordCancel" type="button" class="btn btn-secondary flex-fill">
-                                    Cancel
+
+                        <!-- Unlocked view: full prompt UI for Pro users. -->
+                        <div id="aiGenerateUnlocked" style="display:none;">
+                            <div class="control-group mb-2">
+                                <label for="aiPromptInput" style="font-size: 0.85rem;">
+                                    <i class="fas fa-wand-magic-sparkles"></i>
+                                    Describe your graph
+                                </label>
+                                <textarea id="aiPromptInput" rows="3"
+                                    maxlength="200"
+                                    placeholder="e.g. 2-layer neural network with input, hidden, and output nodes (red squares, dashed edges)"></textarea>
+                                <div class="d-flex justify-content-end" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                    <span id="aiPromptCounter">0 / 200</span>
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button id="aiGenerateBtn" class="btn btn-magenta w-100">
+                                    <i class="fas fa-bolt"></i>
+                                    Generate
                                 </button>
                             </div>
                         </div>
