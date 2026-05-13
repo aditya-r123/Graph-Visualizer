@@ -225,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         
         const rightSidebarPanels = [
+            { id: 'aiGenerateSection', title: 'AI Generate (beta)', sidebar: 'right' },
             { id: 'saveExportSection', title: 'Save & Export', sidebar: 'right' },
             { id: 'canvasManagementSection', title: 'Canvas Management', sidebar: 'right' },
             { id: 'utilitiesSection', title: 'Settings', sidebar: 'right' }
@@ -642,12 +643,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedRightOrder) {
             try {
                 const rightPanelOrder = JSON.parse(savedRightOrder);
+                // Backfill new panels added in later versions so they don't disappear for existing users
+                if (!rightPanelOrder.includes('aiGenerateSection')) {
+                    rightPanelOrder.unshift('aiGenerateSection');
+                    localStorage.setItem('rightSidebarPanelOrder', JSON.stringify(rightPanelOrder));
+                }
                 const rightSidebarContent = document.querySelector('.right-sidebar-content');
                 const rightPanels = rightPanelOrder.map(id => document.getElementById(id)).filter(Boolean);
-                
+
                 const existingRightPanels = rightSidebarContent.querySelectorAll('.draggable-panel[data-sidebar="right"]');
                 existingRightPanels.forEach(panel => panel.remove());
-                
+
                 rightPanels.forEach(panel => {
                     rightSidebarContent.appendChild(panel);
                 });

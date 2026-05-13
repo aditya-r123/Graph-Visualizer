@@ -49,6 +49,37 @@
             position: relative;
         }
 
+        /* Scroll-down indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.75;
+            transition: opacity 0.4s ease;
+            text-decoration: none;
+            will-change: opacity;
+        }
+        .scroll-indicator:hover {
+            opacity: 1;
+        }
+        .scroll-chevron {
+            width: 18px;
+            height: 18px;
+            border-right: 2px solid #cbd5e1;
+            border-bottom: 2px solid #cbd5e1;
+            animation: scroll-bounce 2s ease-in-out infinite;
+        }
+        @keyframes scroll-bounce {
+            0%, 100% { transform: rotate(45deg) translate(-6px, -6px); }
+            50% { transform: rotate(45deg) translate(4px, 4px); }
+        }
+
         .hero-main-content {
             position: relative;
             margin-bottom: 30px;
@@ -734,10 +765,15 @@
 
         .steps {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
             margin-top: 60px;
             position: relative;
+        }
+        @media (max-width: 600px) {
+            .steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         .step {
@@ -811,62 +847,65 @@
                 </div>
                 <h1 id="heroTitle">Graph Visualizer</h1>
             </div>
-            <p class="parallax-slow" id="heroSubtitle">Describe a graph in plain English and the AI builds it — or sketch one yourself and watch BFS and DFS animate across it, vertex by vertex.</p>
+            <p class="parallax-slow" id="heroSubtitle">Prompt a graph in plain English, or sketch one yourself, then watch BFS &amp; DFS animate across it.</p>
             <div class="cta-group parallax-slow">
                 <a class="cta" href="/editor" id="enterEditorBtn">
                     Launch Editor →
                 </a>
                 <a class="cta cta-secondary" href="#features">
-                    See Features
+                    Features
                 </a>
             </div>
+            <a class="scroll-indicator" id="scrollIndicator" href="#features" aria-label="Scroll to features">
+                <span class="scroll-chevron"></span>
+            </a>
         </section>
 
         <!-- Features Section -->
         <section class="features fade-in" id="features">
-            <h2 class="section-title">What's in the editor</h2>
+            <h2 class="section-title">Features</h2>
             <div class="feature-grid">
                 <div class="feature-card stagger-item">
                     <span class="feature-icon">🤖</span>
                     <h3>Prompt → Graph</h3>
-                    <p>Type "5-node ring, blue hexagons, directed edges" and the AI lays it out and drops it onto the canvas.</p>
+                    <p>Describe a graph in plain English. The AI lays it out and loads it.</p>
                 </div>
                 <div class="feature-card stagger-item">
                     <span class="feature-icon">🔍</span>
-                    <h3>BFS & DFS, animated</h3>
-                    <p>Pick a start vertex and watch the traversal step through your graph with color-coded frontier and visited states.</p>
+                    <h3>BFS &amp; DFS</h3>
+                    <p>Pick a start vertex. Watch the traversal step through your graph.</p>
                 </div>
                 <div class="feature-card stagger-item">
                     <span class="feature-icon">✏️</span>
                     <h3>Hold-to-edit</h3>
-                    <p>Press any vertex or edge for 1.5s to open the styling panel — 7 shapes, hex colors, dashed/solid, directed/undirected, weights.</p>
+                    <p>Press 1.5s on anything. 7 shapes, hex colors, dashed, directed.</p>
                 </div>
                 <div class="feature-card stagger-item">
                     <span class="feature-icon">💾</span>
-                    <h3>Lives in your browser</h3>
-                    <p>Auto-saves your last 10 canvases to local storage. Export PNG, JPG, or JSON. No account, nothing uploaded.</p>
+                    <h3>Local-first</h3>
+                    <p>Auto-saves your last 10 canvases. PNG, JPG, and JSON exports.</p>
                 </div>
             </div>
         </section>
 
         <!-- Use Cases Section -->
         <section class="use-cases fade-in">
-            <h2 class="section-title">What people actually use it for</h2>
+            <h2 class="section-title">Built for</h2>
             <div class="use-case-grid">
                 <div class="use-case stagger-item">
                     <div class="use-case-number">📐</div>
                     <h3>Algorithm coursework</h3>
-                    <p>Build the example from your DSA textbook, then run BFS or DFS on it. See exactly which vertex enters the frontier next instead of tracing it on paper.</p>
+                    <p>Build the textbook example, then watch BFS or DFS actually run on it.</p>
                 </div>
                 <div class="use-case stagger-item">
                     <div class="use-case-number">📄</div>
-                    <h3>Diagrams for papers & slides</h3>
-                    <p>Stars, hexagons, dashed edges, weighted labels — produce a clean PNG or JPG without opening a vector editor. JSON export means the diagram is editable later.</p>
+                    <h3>Paper &amp; slide diagrams</h3>
+                    <p>Stars, hexagons, dashed edges. Export a clean PNG or JPG in seconds.</p>
                 </div>
                 <div class="use-case stagger-item">
                     <div class="use-case-number">⚡</div>
-                    <h3>AI-assisted sketching</h3>
-                    <p>Prompt "binary tree depth 3" or "feedforward network: 4 input, 6 hidden, 2 output" and start from the AI's layout instead of a blank canvas.</p>
+                    <h3>Quick prototypes</h3>
+                    <p>Prompt the AI for a starting layout, tweak from there.</p>
                 </div>
             </div>
         </section>
@@ -874,188 +913,8 @@
         <!-- Demo Section -->
         <section class="demo-section fade-in">
             <div class="demo-container">
-                <h2 class="section-title">See It In Action</h2>
                 <div class="demo-visual scale-in">
                     <canvas class="demo-canvas" id="demoCanvas"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- Editor Interface Diagram -->
-        <section class="editor-interface fade-in">
-            <h2 class="section-title">Editor Interface Guide</h2>
-            <p style="text-align: center; color: #cbd5e1; max-width: 700px; margin: 0 auto 20px;">Get familiar with the main controls and features</p>
-            <div class="interface-diagram">
-                <div class="diagram-placeholder" id="editorDiagram">
-                    <span>Editor Interface Preview</span>
-                    <div class="editor-labels">
-                        <div class="label-point" style="top: 5%; left: 5%;">
-                            <div class="label-dot"></div>
-                            <div class="label-line"></div>
-                            <div class="label-text">Toolbar</div>
-                        </div>
-                        <div class="label-point" style="top: 5%; right: 5%; flex-direction: row-reverse;">
-                            <div class="label-text">Control Panels</div>
-                            <div class="label-line" style="transform: scaleX(-1);"></div>
-                            <div class="label-dot"></div>
-                        </div>
-                        <div class="label-point" style="top: 50%; left: 5%;">
-                            <div class="label-dot"></div>
-                            <div class="label-line"></div>
-                            <div class="label-text">Canvas Area</div>
-                        </div>
-                        <div class="label-point" style="bottom: 5%; left: 5%;">
-                            <div class="label-dot"></div>
-                            <div class="label-line"></div>
-                            <div class="label-text">Status Bar</div>
-                        </div>
-                        <div class="label-point" style="top: 30%; right: 5%; flex-direction: row-reverse;">
-                            <div class="label-text">AI Prompt + Edit Panel</div>
-                            <div class="label-line" style="transform: scaleX(-1);"></div>
-                            <div class="label-dot"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Screenshots Gallery -->
-        <section class="screenshots fade-in">
-            <h2 class="section-title">See What You Can Create</h2>
-            <div class="screenshot-grid">
-                <div class="screenshot-card stagger-item">
-                    <div class="screenshot-img">Creating Vertices</div>
-                    <h4>Simple Graphs</h4>
-                    <p>Click anywhere to add vertices. Drag to reposition them freely on the canvas.</p>
-                </div>
-                <div class="screenshot-card stagger-item">
-                    <div class="screenshot-img">Custom Styling</div>
-                    <h4>Styled Graphs</h4>
-                    <p>Customize colors, shapes, sizes, and labels. Make your graphs stand out.</p>
-                </div>
-                <div class="screenshot-card stagger-item">
-                    <div class="screenshot-img">BFS Visualization</div>
-                    <h4>Algorithm Animations</h4>
-                    <p>Watch BFS and DFS traverse your graph with smooth, color-coded animations.</p>
-                </div>
-                <div class="screenshot-card stagger-item">
-                    <div class="screenshot-img">Directed Edges</div>
-                    <h4>Directed Graphs</h4>
-                    <p>Create directed edges with arrows. Perfect for flow charts and dependencies.</p>
-                </div>
-                <div class="screenshot-card stagger-item">
-                    <div class="screenshot-img">AI Prompt → Graph</div>
-                    <h4>Generated from text</h4>
-                    <p>Describe the graph you want — shape, color, direction, layout — and the AI builds it on the canvas in one click.</p>
-                </div>
-                <div class="screenshot-card stagger-item">
-                    <div class="screenshot-img">Export Options</div>
-                    <h4>Export & Share</h4>
-                    <p>Export as PNG, JPG, or JSON. Share your creations anywhere.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- How-To Guides -->
-        <section class="how-to fade-in">
-            <h2 class="section-title">How-To Guides</h2>
-            <div class="how-to-grid">
-                <div class="how-to-item slide-in-left">
-                    <h3><span class="how-to-icon">🤖</span> Generating a Graph with AI</h3>
-                    <ul class="how-to-steps">
-                        <li>Open the <strong>AI Generate</strong> panel in the right sidebar</li>
-                        <li>Describe your graph in plain English — up to 200 characters</li>
-                        <li>Be as specific as you want: shape, color, edge style, direction</li>
-                        <li>Hit <strong>Generate</strong> (or ⌘/Ctrl + Enter) and the canvas fills in</li>
-                        <li>The result auto-saves as a new canvas you can edit further</li>
-                    </ul>
-                    <div class="tip-box">
-                        <strong>Try:</strong> "binary tree depth 3, root red square, leaves yellow circles, dashed edges" or "5-node ring, blue hexagons, directed".
-                    </div>
-                </div>
-
-                <div class="how-to-item slide-in-right">
-                    <h3><span class="how-to-icon">🎯</span> Creating Your First Graph</h3>
-                    <ul class="how-to-steps">
-                        <li>Click anywhere on the canvas to create your first vertex</li>
-                        <li>Click and drag from one vertex to another to create an edge</li>
-                        <li>Double-click a vertex to edit its label</li>
-                        <li>Drag vertices to reposition them</li>
-                        <li>Right-click for quick actions and context menu</li>
-                    </ul>
-                    <div class="tip-box">
-                        <strong>Pro Tip:</strong> Hold and drag a vertex for 1.5 seconds to enter edit mode for advanced customization!
-                    </div>
-                </div>
-
-                <div class="how-to-item slide-in-left">
-                    <h3><span class="how-to-icon">🎨</span> Customizing Vertices & Edges</h3>
-                    <ul class="how-to-steps">
-                        <li>Hold-click a vertex for 1.5 seconds to open the edit panel</li>
-                        <li>Pick a shape: circle, square, triangle, diamond, star, pentagon, hexagon</li>
-                        <li>Set hex colors for fill, border, and label, plus size and border thickness</li>
-                        <li>Edges: toggle solid/dashed, straight/curved, directed/undirected, add weights</li>
-                        <li>Apply to a single element or sweep across the whole graph</li>
-                    </ul>
-                    <div class="tip-box">
-                        <strong>Pro Tip:</strong> Use the "Apply to All" button to quickly style your entire graph!
-                    </div>
-                </div>
-
-                <div class="how-to-item slide-in-right">
-                    <h3><span class="how-to-icon">🔄</span> Running Algorithms</h3>
-                    <ul class="how-to-steps">
-                        <li>Click "Algo" in the toolbar to open the algorithm panel</li>
-                        <li>Select BFS (Breadth-First Search) or DFS (Depth-First Search)</li>
-                        <li>Choose a starting vertex</li>
-                        <li>Watch the animation as the algorithm explores your graph</li>
-                        <li>Pause, resume, or reset the animation anytime</li>
-                    </ul>
-                    <div class="tip-box">
-                        <strong>Pro Tip:</strong> Colors show the algorithm's progress - green for visited, yellow for frontier!
-                    </div>
-                </div>
-
-                <div class="how-to-item slide-in-left">
-                    <h3><span class="how-to-icon">💾</span> Saving & Exporting</h3>
-                    <ul class="how-to-steps">
-                        <li>Click "Save" to create a new graph or update existing one</li>
-                        <li>Use "Load" to open previously saved graphs</li>
-                        <li>Export as PNG/JPG for presentations and documents</li>
-                        <li>Export as JSON to backup or share your graph structure</li>
-                        <li>Import JSON files to restore saved graphs</li>
-                    </ul>
-                    <div class="tip-box">
-                        <strong>Pro Tip:</strong> Graphs auto-save to your browser! Your work is safe even if you close the tab.
-                    </div>
-                </div>
-
-                <div class="how-to-item slide-in-right">
-                    <h3><span class="how-to-icon">⚡</span> Keyboard Shortcuts</h3>
-                    <ul class="how-to-steps">
-                        <li><strong>Delete/Backspace:</strong> Delete selected vertex or edge</li>
-                        <li><strong>Ctrl/Cmd + Z:</strong> Undo last action</li>
-                        <li><strong>Ctrl/Cmd + Y:</strong> Redo action</li>
-                        <li><strong>Ctrl/Cmd + S:</strong> Quick save</li>
-                        <li><strong>Escape:</strong> Cancel current action</li>
-                    </ul>
-                    <div class="tip-box">
-                        <strong>Pro Tip:</strong> Use the grid toggle for perfect alignment when creating structured graphs!
-                    </div>
-                </div>
-
-                <div class="how-to-item slide-in-left">
-                    <h3><span class="how-to-icon">🔧</span> Advanced Features</h3>
-                    <ul class="how-to-steps">
-                        <li><strong>Edge reconfiguration:</strong> drag an edge's endpoint onto another vertex to reconnect it</li>
-                        <li><strong>Parallel edges:</strong> create multiple edges between the same pair of vertices</li>
-                        <li><strong>Self-loops:</strong> connect a vertex back to itself</li>
-                        <li><strong>Weighted edges:</strong> add numeric labels for use in algorithm runs</li>
-                        <li><strong>Drag-and-drop import:</strong> drop a saved JSON file anywhere on the canvas to load it</li>
-                    </ul>
-                    <div class="tip-box">
-                        <strong>Pro Tip:</strong> Click an edge to highlight it, making it easier to work with complex graphs!
-                    </div>
                 </div>
             </div>
         </section>
@@ -1066,28 +925,15 @@
                 <div class="benefit-row">
                     <div class="benefit-content slide-in-left">
                         <h3>From sentence to canvas</h3>
-                        <p>The AI Generate panel in the right sidebar takes up to 200 characters of description — structure, colors, shapes, direction — and returns a laid-out graph that auto-saves as a new canvas. Tweak from there instead of starting from zero.</p>
+                        <p>Up to 200 characters of description in, a laid-out graph out — auto-saved as a new canvas.</p>
                     </div>
-                    <div class="benefit-visual slide-in-right">
-                        🤖
-                    </div>
+                    <div class="benefit-visual slide-in-right">🤖</div>
                 </div>
                 <div class="benefit-row">
-                    <div class="benefit-visual slide-in-left">
-                        🔍
-                    </div>
+                    <div class="benefit-visual slide-in-left">🔍</div>
                     <div class="benefit-content slide-in-right">
-                        <h3>Algorithms that actually move</h3>
-                        <p>Run BFS or DFS from any vertex and the canvas animates each step: frontier highlighted, visited vertices recolored, the discovered path traced. The same graph theory you've seen in textbooks, but you can pause it and replay.</p>
-                    </div>
-                </div>
-                <div class="benefit-row">
-                    <div class="benefit-content slide-in-left">
-                        <h3>Every vertex, every edge, tunable</h3>
-                        <p>Press-and-hold for 1.5 seconds on anything to open the edit panel. Swap between 7 shapes, set hex colors, toggle dashed/solid, flip direction, add weights, drop self-loops. Apply per-element or sweep across the whole graph.</p>
-                    </div>
-                    <div class="benefit-visual slide-in-right">
-                        ✏️
+                        <h3>Algorithms that move</h3>
+                        <p>Run BFS or DFS from any vertex. Frontier, visited, and path states animate step by step.</p>
                     </div>
                 </div>
             </div>
@@ -1095,54 +941,33 @@
 
         <!-- Quick Start Section -->
         <section class="quick-start fade-in">
-            <h2 class="section-title">Two ways to start</h2>
+            <h2 class="section-title">Get started</h2>
             <div class="steps">
                 <div class="step stagger-item">
                     <div class="step-icon">1</div>
-                    <h4>Prompt the AI</h4>
-                    <p>Type a description in the AI Generate panel</p>
+                    <h4>Prompt</h4>
+                    <p>or click the canvas</p>
                 </div>
                 <div class="step stagger-item">
                     <div class="step-icon">2</div>
-                    <h4>...or click the canvas</h4>
-                    <p>Each click drops a vertex, drag between two to connect</p>
+                    <h4>Connect</h4>
+                    <p>drag between vertices</p>
                 </div>
                 <div class="step stagger-item">
                     <div class="step-icon">3</div>
-                    <h4>Hold to style</h4>
-                    <p>1.5s press on any vertex or edge opens the edit panel</p>
+                    <h4>Style</h4>
+                    <p>hold to edit</p>
                 </div>
                 <div class="step stagger-item">
                     <div class="step-icon">4</div>
-                    <h4>Run an algorithm</h4>
-                    <p>Pick BFS or DFS and watch it traverse</p>
+                    <h4>Run</h4>
+                    <p>BFS or DFS</p>
                 </div>
-            </div>
-        </section>
-
-        <!-- Stats Section -->
-        <section class="stats fade-in">
-            <div class="stat-item scale-in">
-                <span class="stat-number">7</span>
-                <span class="stat-label">Vertex shapes</span>
-            </div>
-            <div class="stat-item scale-in">
-                <span class="stat-number">2</span>
-                <span class="stat-label">Traversal algorithms (BFS, DFS)</span>
-            </div>
-            <div class="stat-item scale-in">
-                <span class="stat-number">4</span>
-                <span class="stat-label">Export formats (PNG, JPG, JSON, TXT)</span>
-            </div>
-            <div class="stat-item scale-in">
-                <span class="stat-number">10</span>
-                <span class="stat-label">Canvases auto-saved locally</span>
             </div>
         </section>
 
         <!-- Footer CTA -->
         <section class="footer-cta fade-in">
-            <h2>Open the editor and prompt your first graph.</h2>
             <a class="cta" href="/editor">
                 Launch Editor →
             </a>

@@ -6180,3 +6180,66 @@ input:-webkit-autofill {
 .logo:hover {
     transform: rotate(360deg);
 }
+
+/* AI Generate panel — match editor input theme with an animated gradient border */
+#aiPromptInput {
+    width: 100%;
+    padding: 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.45;
+    font-family: inherit;
+    resize: vertical;
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    background:
+        linear-gradient(var(--bg-tertiary), var(--bg-tertiary)) padding-box,
+        linear-gradient(90deg,
+            #6366f1, #8b5cf6, #a855f7, #ec4899, #f59e0b, #10b981, #3b82f6, #6366f1
+        ) border-box;
+    background-size: 100% 100%, 300% 100%;
+    background-position: 0 0, 0 0;
+    animation: ai-border-shift 8s linear infinite;
+    transition: box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#aiPromptInput:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.22);
+}
+
+#aiPromptInput::placeholder {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+@keyframes ai-border-shift {
+    to { background-position: 0 0, 200% 0; }
+}
+
+#aiPasswordInput {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: var(--transition);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#aiPasswordInput:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+#aiPasswordInput::placeholder {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}

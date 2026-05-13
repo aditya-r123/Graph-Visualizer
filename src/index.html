@@ -559,7 +559,7 @@
                             <span class="drag-handle-icon">⋮⋮</span>
                         </div>
                         <h3 class="expandable-header" data-target="aiGenerateContent" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                            AI Generate
+                            AI Generate (beta)
                             <i class="fas fa-chevron-down expand-icon"></i>
                         </h3>
                     </div>
@@ -569,10 +569,9 @@
                                 <i class="fas fa-wand-magic-sparkles"></i>
                                 Describe your graph
                             </label>
-                            <textarea id="aiPromptInput" class="form-control" rows="3"
+                            <textarea id="aiPromptInput" rows="3"
                                 maxlength="200"
-                                placeholder="e.g. 2-layer neural network with input, hidden, and output nodes (red squares, dashed edges)"
-                                style="resize: vertical; font-size: 0.85rem;"></textarea>
+                                placeholder="e.g. 2-layer neural network with input, hidden, and output nodes (red squares, dashed edges)"></textarea>
                             <div class="d-flex justify-content-end" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
                                 <span id="aiPromptCounter">0 / 200</span>
                             </div>
@@ -588,10 +587,9 @@
                                 <i class="fas fa-lock"></i>
                                 Enter password to unlock AI
                             </label>
-                            <input type="password" id="aiPasswordInput" class="form-control"
+                            <input type="password" id="aiPasswordInput"
                                 placeholder="Password"
-                                autocomplete="off"
-                                style="font-size: 0.85rem;">
+                                autocomplete="off">
                             <div id="aiPasswordError" style="display: none; font-size: 0.75rem; color: #ef4444; margin-top: 0.35rem;">Incorrect password.</div>
                             <div class="d-flex gap-2" style="margin-top: 0.5rem;">
                                 <button id="aiPasswordSubmit" type="button" class="btn btn-success flex-fill">

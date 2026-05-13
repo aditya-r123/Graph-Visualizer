@@ -123,74 +123,150 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeDemoCanvas();
     window.addEventListener('resize', resizeDemoCanvas);
 
-    // Demo graph nodes
-    const nodes = [
-        { x: 150, y: 150, vx: 0, vy: 0, color: '#6366f1' },
-        { x: 350, y: 100, vx: 0, vy: 0, color: '#8b5cf6' },
-        { x: 550, y: 150, vx: 0, vy: 0, color: '#a855f7' },
-        { x: 250, y: 300, vx: 0, vy: 0, color: '#ec4899' },
-        { x: 450, y: 300, vx: 0, vy: 0, color: '#f472b6' },
-    ];
+    // Editor-faithful demo graph + BFS sweep (matches the actual editor's defaults)
+    // Coordinates are normalized (0..1) so the layout adapts to the canvas size.
+    const demoGraph = {
+        vertices: [
+            { id: 0, nx: 0.50, ny: 0.20, label: '1' },
+            { id: 1, nx: 0.25, ny: 0.50, label: '2' },
+            { id: 2, nx: 0.75, ny: 0.50, label: '3' },
+            { id: 3, nx: 0.13, ny: 0.82, label: '4' },
+            { id: 4, nx: 0.50, ny: 0.82, label: '5' },
+            { id: 5, nx: 0.87, ny: 0.82, label: '6' }
+        ],
+        edges: [
+            [0, 1], [0, 2], [1, 3], [1, 4], [2, 4], [2, 5]
+        ]
+    };
 
-    const edges = [
-        [0, 1], [1, 2], [0, 3], [1, 3], [1, 4], [2, 4], [3, 4]
-    ];
+    const DEMO_COLORS = {
+        vertexFill: '#1f2937',        // editor default
+        vertexBorder: '#475569',      // editor default loaded
+        vertexLabel: '#ffffff',
+        edge: '#8b5cf6',              // editor default loaded
+        visitedFill: '#10b981',       // editor BFS green
+        visitedBorder: '#34d399',
+        frontierGlow: 'rgba(16, 185, 129, 0.55)'
+    };
 
-    const nodeRadius = 20;
+    const bfsState = {
+        visited: new Set(),
+        frontier: new Set(),
+        edgeVisited: new Set(),
+        pendingStart: true,
+        completedAt: null,
+        nextTickAt: 0
+    };
+    const BFS_TICK_MS = 750;
+    const BFS_HOLD_MS = 1800;
 
-    function drawDemoGraph() {
-        if (!demoCanvas.offsetParent) return; // Skip if not visible
-        
-        demoCtx.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
-        
-        // Update node positions with smooth animation
-        nodes.forEach((node, i) => {
-            const centerX = demoCanvas.width / 2;
-            const centerY = demoCanvas.height / 2;
-            const angle = (time + i * (Math.PI * 2 / nodes.length)) * 0.3;
-            const radius = 120;
-            
-            node.x = centerX + Math.cos(angle) * radius;
-            node.y = centerY + Math.sin(angle) * radius;
+    function edgeKey(a, b) {
+        return a < b ? `${a}-${b}` : `${b}-${a}`;
+    }
+
+    function resetBfs(now) {
+        bfsState.visited.clear();
+        bfsState.frontier.clear();
+        bfsState.edgeVisited.clear();
+        bfsState.pendingStart = true;
+        bfsState.completedAt = null;
+        bfsState.nextTickAt = now + 500;
+    }
+
+    function tickBfs(now) {
+        if (bfsState.completedAt !== null) {
+            if (now - bfsState.completedAt >= BFS_HOLD_MS) resetBfs(now);
+            return;
+        }
+        if (now < bfsState.nextTickAt) return;
+
+        if (bfsState.pendingStart) {
+            bfsState.visited.add(0);
+            bfsState.frontier = new Set([0]);
+            bfsState.pendingStart = false;
+            bfsState.nextTickAt = now + BFS_TICK_MS;
+            return;
+        }
+
+        const nextFrontier = new Set();
+        bfsState.frontier.forEach(v => {
+            demoGraph.edges.forEach(([from, to]) => {
+                const other = from === v ? to : (to === v ? from : null);
+                if (other === null || bfsState.visited.has(other)) return;
+                nextFrontier.add(other);
+                bfsState.visited.add(other);
+                bfsState.edgeVisited.add(edgeKey(from, to));
+            });
+        });
+        bfsState.frontier = nextFrontier;
+
+        if (nextFrontier.size === 0) {
+            bfsState.completedAt = now;
+        } else {
+            bfsState.nextTickAt = now + BFS_TICK_MS;
+        }
+    }
+
+    function drawDemoGraph(now) {
+        if (!demoCanvas.offsetParent) {
+            requestAnimationFrame(drawDemoGraph);
+            return;
+        }
+
+        const w = demoCanvas.width;
+        const h = demoCanvas.height;
+        demoCtx.clearRect(0, 0, w, h);
+        tickBfs(now || performance.now());
+
+        const vertexRadius = Math.max(22, Math.min(30, w * 0.035));
+
+        // edges first, under the vertices
+        demoGraph.edges.forEach(([from, to]) => {
+            const a = demoGraph.vertices[from];
+            const b = demoGraph.vertices[to];
+            const visited = bfsState.edgeVisited.has(edgeKey(from, to));
+            demoCtx.beginPath();
+            demoCtx.moveTo(a.nx * w, a.ny * h);
+            demoCtx.lineTo(b.nx * w, b.ny * h);
+            demoCtx.strokeStyle = visited ? DEMO_COLORS.visitedFill : DEMO_COLORS.edge;
+            demoCtx.lineWidth = visited ? 3.5 : 2.5;
+            demoCtx.globalAlpha = visited ? 1 : 0.85;
+            demoCtx.stroke();
+            demoCtx.globalAlpha = 1;
         });
 
-        // Draw edges
-        edges.forEach(([from, to]) => {
+        // vertices
+        demoGraph.vertices.forEach(v => {
+            const px = v.nx * w;
+            const py = v.ny * h;
+            const isVisited = bfsState.visited.has(v.id);
+            const isFrontier = bfsState.frontier.has(v.id);
+
+            if (isFrontier) {
+                const glow = demoCtx.createRadialGradient(px, py, vertexRadius, px, py, vertexRadius + 14);
+                glow.addColorStop(0, DEMO_COLORS.frontierGlow);
+                glow.addColorStop(1, 'rgba(16, 185, 129, 0)');
+                demoCtx.beginPath();
+                demoCtx.arc(px, py, vertexRadius + 14, 0, Math.PI * 2);
+                demoCtx.fillStyle = glow;
+                demoCtx.fill();
+            }
+
             demoCtx.beginPath();
-            demoCtx.moveTo(nodes[from].x, nodes[from].y);
-            demoCtx.lineTo(nodes[to].x, nodes[to].y);
-            demoCtx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
+            demoCtx.arc(px, py, vertexRadius, 0, Math.PI * 2);
+            demoCtx.fillStyle = isVisited ? DEMO_COLORS.visitedFill : DEMO_COLORS.vertexFill;
+            demoCtx.fill();
+            demoCtx.strokeStyle = isVisited ? DEMO_COLORS.visitedBorder : DEMO_COLORS.vertexBorder;
             demoCtx.lineWidth = 2;
             demoCtx.stroke();
+
+            demoCtx.fillStyle = DEMO_COLORS.vertexLabel;
+            demoCtx.font = `600 ${Math.round(vertexRadius * 0.6)}px Inter, -apple-system, BlinkMacSystemFont, sans-serif`;
+            demoCtx.textAlign = 'center';
+            demoCtx.textBaseline = 'middle';
+            demoCtx.fillText(v.label, px, py);
         });
 
-        // Draw nodes
-        nodes.forEach((node, i) => {
-            const pulse = Math.sin(time * 2 + i) * 3;
-            
-            // Glow effect
-            demoCtx.beginPath();
-            demoCtx.arc(node.x, node.y, nodeRadius + pulse + 10, 0, Math.PI * 2);
-            const gradient = demoCtx.createRadialGradient(
-                node.x, node.y, nodeRadius + pulse,
-                node.x, node.y, nodeRadius + pulse + 10
-            );
-            gradient.addColorStop(0, node.color + '40');
-            gradient.addColorStop(1, node.color + '00');
-            demoCtx.fillStyle = gradient;
-            demoCtx.fill();
-
-            // Node
-            demoCtx.beginPath();
-            demoCtx.arc(node.x, node.y, nodeRadius + pulse, 0, Math.PI * 2);
-            demoCtx.fillStyle = node.color;
-            demoCtx.fill();
-            demoCtx.strokeStyle = '#fff';
-            demoCtx.lineWidth = 2;
-            demoCtx.stroke();
-        });
-
-        time += 0.02;
         requestAnimationFrame(drawDemoGraph);
     }
     
@@ -268,6 +344,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Dim background smoothly based on scroll - BIDIRECTIONAL
                 const bgOpacity = scrollY > 100 ? 0.2 : 0.4 - (scrollY / 100) * 0.2;
                 bgCanvas.style.opacity = bgOpacity;
+
+                // Fade out the scroll-down chevron as soon as the user starts scrolling
+                const scrollIndicator = document.getElementById('scrollIndicator');
+                if (scrollIndicator) {
+                    const indicatorOpacity = Math.max(0, 0.75 - scrollY / 200);
+                    scrollIndicator.style.opacity = indicatorOpacity;
+                    scrollIndicator.style.pointerEvents = indicatorOpacity < 0.1 ? 'none' : '';
+                }
                 
                 // Progressive reveal - works both directions
                 const threshold = windowHeight * 0.70;
