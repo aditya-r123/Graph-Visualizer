@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         
         const rightSidebarPanels = [
-            { id: 'aiGenerateSection', title: 'AI Generate (beta)', sidebar: 'right' },
+            { id: 'aiGenerateSection', title: 'AI GENERATION', sidebar: 'right' },
             { id: 'saveExportSection', title: 'Save & Export', sidebar: 'right' },
             { id: 'canvasManagementSection', title: 'Canvas Management', sidebar: 'right' },
             { id: 'utilitiesSection', title: 'Settings', sidebar: 'right' }

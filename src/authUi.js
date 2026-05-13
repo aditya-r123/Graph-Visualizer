@@ -36,15 +36,8 @@ export function mountEditorBadge(container) {
         if (!auth.isConfigured()) return;
 
         if (!user) {
-            // Anonymous → small "Sign in" link that routes home.
-            const link = el('a', {
-                href: '/#account',
-                style: 'font-size:0.75rem; color:#cbd5e1; text-decoration:none; padding:0.35rem 0.6rem; background:rgba(30,41,59,0.7); border:1px solid rgba(99,102,241,0.3); border-radius:6px; backdrop-filter:blur(4px);'
-            }, [
-                el('i', { class: 'fas fa-user', style: 'margin-right:0.35rem;' }),
-                'Sign in'
-            ]);
-            container.appendChild(link);
+            // Anonymous: no badge in the editor. Account is reached from
+            // the landing page.
             return;
         }
 
