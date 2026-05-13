@@ -670,6 +670,104 @@ export class GraphCreator {
             console.error('Take Screenshot button not found!');
         }
 
+        // AI Generate button
+        const aiGenerateBtn = document.getElementById('aiGenerateBtn');
+        const aiPromptInput = document.getElementById('aiPromptInput');
+        const aiPromptCounter = document.getElementById('aiPromptCounter');
+        const aiPasswordPanel = document.getElementById('aiPasswordPanel');
+        const aiPasswordInput = document.getElementById('aiPasswordInput');
+        const aiPasswordError = document.getElementById('aiPasswordError');
+        const aiPasswordSubmit = document.getElementById('aiPasswordSubmit');
+        const aiPasswordCancel = document.getElementById('aiPasswordCancel');
+        const AI_PROMPT_MAX = 200;
+        const AI_PASSWORD = 'adityarao4';
+        this.aiUnlocked = false;
+
+        const updateAiCounter = () => {
+            if (!aiPromptInput || !aiPromptCounter) return;
+            const len = aiPromptInput.value.length;
+            aiPromptCounter.textContent = `${len} / ${AI_PROMPT_MAX}`;
+            aiPromptCounter.style.color = len >= AI_PROMPT_MAX ? 'var(--danger, #ef4444)' : '';
+        };
+        if (aiPromptInput) {
+            aiPromptInput.addEventListener('input', updateAiCounter);
+            updateAiCounter();
+        }
+
+        const runGeneration = () => {
+            this.generateGraphFromPrompt(aiPromptInput.value.slice(0, AI_PROMPT_MAX));
+        };
+
+        const openPasswordPanel = () => {
+            if (!aiPasswordPanel) return;
+            aiPasswordPanel.style.display = '';
+            if (aiPasswordError) aiPasswordError.style.display = 'none';
+            if (aiPasswordInput) {
+                aiPasswordInput.value = '';
+                aiPasswordInput.focus();
+            }
+        };
+
+        const closePasswordPanel = () => {
+            if (!aiPasswordPanel) return;
+            aiPasswordPanel.style.display = 'none';
+            if (aiPasswordInput) aiPasswordInput.value = '';
+            if (aiPasswordError) aiPasswordError.style.display = 'none';
+        };
+
+        const trySubmitPassword = () => {
+            if (!aiPasswordInput) return;
+            if (aiPasswordInput.value === AI_PASSWORD) {
+                this.aiUnlocked = true;
+                closePasswordPanel();
+                this.updateStatus('AI unlocked for this session');
+                runGeneration();
+            } else {
+                if (aiPasswordError) aiPasswordError.style.display = '';
+                aiPasswordInput.value = '';
+                aiPasswordInput.focus();
+            }
+        };
+
+        const requestGeneration = () => {
+            if (!aiPromptInput.value.trim()) {
+                this.updateStatus('Enter a description first');
+                return;
+            }
+            if (this.aiUnlocked) {
+                runGeneration();
+            } else {
+                openPasswordPanel();
+            }
+        };
+
+        if (aiGenerateBtn && aiPromptInput) {
+            aiGenerateBtn.addEventListener('click', requestGeneration);
+            aiPromptInput.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    requestGeneration();
+                }
+            });
+        }
+        if (aiPasswordSubmit) {
+            aiPasswordSubmit.addEventListener('click', trySubmitPassword);
+        }
+        if (aiPasswordCancel) {
+            aiPasswordCancel.addEventListener('click', closePasswordPanel);
+        }
+        if (aiPasswordInput) {
+            aiPasswordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    trySubmitPassword();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closePasswordPanel();
+                }
+            });
+        }
+
         // Share Graph button
         const shareGraphBtn = document.getElementById('shareGraph');
         if (shareGraphBtn) {
@@ -2761,6 +2859,198 @@ export class GraphCreator {
         }
     }
 
+    // Generate a graph from a natural-language prompt via OpenAI and load it
+    async generateGraphFromPrompt(userPrompt) {
+        if (!ai_usage) {
+            this.updateStatus('AI is disabled');
+            return;
+        }
+        if (!userPrompt || !userPrompt.trim()) {
+            this.updateStatus('Enter a description first');
+            return;
+        }
+        if (!OPENAI_API_KEY || OPENAI_API_KEY === 'undefined' || OPENAI_API_KEY.trim() === '') {
+            this.updateStatus('OpenAI API key not configured');
+            return;
+        }
+
+        const btn = document.getElementById('aiGenerateBtn');
+        const originalBtnHtml = btn ? btn.innerHTML : null;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        }
+        this.updateStatus('Generating graph with AI...');
+
+        const systemPrompt = `You design graph structures. Output ONLY valid JSON matching this schema:
+{
+  "vertices": [{
+    "id": <int>, "x": <int>, "y": <int>, "label": "<string>",
+    "shape": "circle|square|triangle|diamond|star|pentagon|hexagon",
+    "size": <int 15-60>,
+    "color": "<hex #rrggbb>",
+    "borderColor": "<hex #rrggbb>",
+    "fontColor": "<hex #rrggbb>"
+  }],
+  "edges": [{
+    "from": <vertex id>, "to": <vertex id>,
+    "directed": <true|false>,
+    "type": "straight|curved",
+    "lineStyle": "solid|dashed",
+    "weight": "<string, optional>"
+  }],
+  "globals": {
+    "vertexColor": "<hex>", "vertexBorderColor": "<hex>", "vertexFontColor": "<hex>",
+    "edgeColor": "<hex>", "edgeFontColor": "<hex>",
+    "edgeType": "straight|curved", "edgeDirection": "directed|undirected"
+  }
+}
+Layout rules:
+- Canvas is 2000x2000. Keep x,y within [100, 1900].
+- Minimum 120px spacing between any two vertices.
+- Layered structures (neural nets, pipelines): arrange layers left-to-right by x, distribute vertices vertically by y.
+- Trees: root at low y, children spread below.
+- Cycles/rings: distribute around a circle.
+Styling rules:
+- All styling fields are OPTIONAL. Only include fields the user explicitly requests or that the description strongly implies (e.g. "red nodes" -> color, "dashed edges" -> lineStyle:"dashed"). Omit fields otherwise so defaults apply.
+- Per-vertex/edge fields override "globals". Use "globals" when ALL vertices/edges share the same styling.
+- "directed" on an edge defaults to false. Use true when the description implies direction (forward pass, dependency, flow).
+- For colors: translate natural-language colors to hex (red->#ef4444, blue->#3b82f6, green->#22c55e, yellow->#eab308, purple->#a855f7, orange->#f97316, black->#000000, white->#ffffff, gray->#6b7280).
+General rules:
+- Labels: 1-3 words.
+- ids: unique positive integers starting at 1.
+- Every edge's from/to must reference an existing vertex id.
+- No commentary, no markdown, no code fences. JSON only.`;
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o',
+                    response_format: { type: 'json_object' },
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userPrompt }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 2000
+                })
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`OpenAI API error ${response.status}: ${errorBody.slice(0, 200)}`);
+            }
+
+            const result = await response.json();
+            const content = result?.choices?.[0]?.message?.content;
+            if (!content) throw new Error('Empty AI response');
+
+            const parsed = JSON.parse(content);
+            const graphData = this.buildGraphDataFromAIResponse(parsed);
+
+            this.currentGraphId = null;
+            this.importGraph(graphData);
+            this.saveGraph(true);
+            this.updateStatus(`Generated graph with ${graphData.vertices.length} vertices and ${graphData.edges.length} edges`);
+        } catch (error) {
+            console.error('generateGraphFromPrompt failed:', error);
+            this.updateStatus(`AI generation failed: ${error.message}`);
+        } finally {
+            if (btn && originalBtnHtml !== null) {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+        }
+    }
+
+    // Translate the AI's minimal JSON into the importGraph-compatible structure
+    buildGraphDataFromAIResponse(parsed) {
+        if (!parsed || !Array.isArray(parsed.vertices) || !Array.isArray(parsed.edges)) {
+            throw new Error('AI response missing vertices or edges array');
+        }
+
+        const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+        const HEX = /^#[0-9a-fA-F]{6}$/;
+        const validHex = (c) => typeof c === 'string' && HEX.test(c) ? c : null;
+        const VALID_SHAPES = new Set(['circle', 'square', 'triangle', 'diamond', 'star', 'pentagon', 'hexagon']);
+        const VALID_EDGE_TYPES = new Set(['straight', 'curved']);
+        const VALID_LINE_STYLES = new Set(['solid', 'dashed']);
+
+        const globals = parsed.globals && typeof parsed.globals === 'object' ? parsed.globals : {};
+        const gVertexColor = validHex(globals.vertexColor) || this.vertexColor || '#1e293b';
+        const gVertexBorderColor = validHex(globals.vertexBorderColor) || this.vertexBorderColor || '#475569';
+        const gVertexFontColor = validHex(globals.vertexFontColor) || this.vertexFontColor || '#ffffff';
+        const gEdgeColor = validHex(globals.edgeColor) || this.edgeColor || '#8b5cf6';
+        const gEdgeFontColor = validHex(globals.edgeFontColor) || this.edgeFontColor || '#3b82f6';
+        const gEdgeType = VALID_EDGE_TYPES.has(globals.edgeType) ? globals.edgeType : (this.edgeType || 'straight');
+        const gEdgeDirection = (globals.edgeDirection === 'directed' || globals.edgeDirection === 'undirected')
+            ? globals.edgeDirection
+            : (this.edgeDirection || 'undirected');
+
+        const vertexIds = new Set();
+        const vertices = parsed.vertices.map((v, i) => {
+            const id = Number.isInteger(v.id) ? v.id : i + 1;
+            vertexIds.add(id);
+            const size = Number.isFinite(Number(v.size)) ? clamp(Math.round(Number(v.size)), 10, 100) : (this.vertexSize || 25);
+            return {
+                id,
+                x: clamp(Math.round(Number(v.x) || 1000), 50, 1950),
+                y: clamp(Math.round(Number(v.y) || 1000), 50, 1950),
+                label: String(v.label ?? id),
+                size,
+                color: validHex(v.color) || gVertexColor,
+                borderColor: validHex(v.borderColor) || gVertexBorderColor,
+                borderThickness: 2,
+                fontSize: this.vertexFontSize || 14,
+                labelSize: this.vertexLabelSize || 14,
+                fontFamily: this.vertexFontFamily || 'Inter',
+                fontColor: validHex(v.fontColor) || gVertexFontColor,
+                shape: VALID_SHAPES.has(v.shape) ? v.shape : 'circle'
+            };
+        });
+
+        const edges = parsed.edges
+            .filter(e => vertexIds.has(e.from) && vertexIds.has(e.to) && e.from !== e.to)
+            .map(e => ({
+                from: e.from,
+                to: e.to,
+                weight: typeof e.weight === 'string' || typeof e.weight === 'number' ? String(e.weight) : '',
+                type: VALID_EDGE_TYPES.has(e.type) ? e.type : gEdgeType,
+                direction: e.directed === true ? 'directed' : (e.directed === false ? 'undirected' : gEdgeDirection),
+                edgeIndex: 0,
+                style: undefined,
+                controlPoint: undefined,
+                lineStyle: VALID_LINE_STYLES.has(e.lineStyle) ? e.lineStyle : 'solid'
+            }));
+
+        const maxId = vertices.reduce((m, v) => Math.max(m, v.id), 0);
+
+        return {
+            vertices,
+            edges,
+            nextVertexId: maxId + 1,
+            vertexSize: this.vertexSize,
+            edgeType: gEdgeType,
+            edgeDirection: gEdgeDirection,
+            theme: this.currentTheme,
+            vertexColor: gVertexColor,
+            vertexBorderColor: gVertexBorderColor,
+            vertexFontSize: this.vertexFontSize,
+            vertexLabelSize: this.vertexLabelSize,
+            vertexFontFamily: this.vertexFontFamily,
+            vertexFontColor: gVertexFontColor,
+            edgeColor: gEdgeColor,
+            edgeWidth: this.edgeWidth,
+            edgeFontSize: this.edgeFontSize,
+            edgeFontFamily: this.edgeFontFamily,
+            edgeFontColor: gEdgeFontColor
+        };
+    }
 
 
     // Find all connected components in the graph
