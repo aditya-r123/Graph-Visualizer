@@ -1,9 +1,13 @@
 import { inject } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import * as auth from './auth.js';
 import { mountLandingHeader, mountLandingAccountPanel } from './authUi.js';
 
 // Initialize Vercel Analytics
 inject();
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 // Bring auth state online before DOMContentLoaded so the header widget
 // renders with the right state on first paint.
