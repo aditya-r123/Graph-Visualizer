@@ -403,8 +403,8 @@ export function mountLandingAccountPanel(container) {
             ]),
             el('div', { style: 'font-size:0.85rem; color:#94a3b8; margin-bottom:0.85rem;' }, 'Full editor, no sign-up required'),
             planFeature('Unlimited graphs, local-first auto-save'),
-            planFeature('BFS & DFS animations'),
             planFeature('PNG, JPG, JSON export'),
+            planFeature('BFS & DFS animations', false),
             planFeature('AI graph generation', false),
             planFeature('AI hierarchy export', false),
             freeCta
@@ -460,6 +460,7 @@ export function mountLandingAccountPanel(container) {
                 el('div', { style: `font-size:0.95rem; font-weight:600; color:${isPro ? '#a855f7' : '#e2e8f0'};` }, isPro ? 'Current plan' : proPriceLabel)
             ]),
             el('div', { style: 'font-size:0.85rem; color:#94a3b8; margin-bottom:0.85rem;' }, 'Everything in Free, plus:'),
+            planFeature('BFS & DFS animations'),
             planFeature('AI graph generation from plain English'),
             planFeature('AI hierarchy export (image → tree)'),
             planFeature('Priority OpenAI access'),
@@ -494,7 +495,7 @@ export function mountLandingAccountPanel(container) {
         // Default to signup mode if user clicked "Subscribe to Pro" first.
         if (wantsPro) mode = 'signup';
 
-        const emailInput = el('input', { type: 'email', placeholder: 'example.username', autocomplete: 'email', style: inputStyle() });
+        const emailInput = el('input', { type: 'email', placeholder: 'you@example.com', autocomplete: 'email', style: inputStyle() });
         const passInput = el('input', { type: 'password', placeholder: 'Password (min 8 chars)', autocomplete: wantsPro ? 'new-password' : 'current-password', style: inputStyle() + ' padding-right: 2.75rem;' });
 
         // Eye-icon toggle for password visibility. Sits over the right edge of
