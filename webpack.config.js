@@ -6,6 +6,31 @@ const webpack = require('webpack');
 // Load environment variables from .env file
 require('dotenv').config();
 
+const adsenseClient = process.env.ADSENSE_CLIENT || '';
+const adsenseHomeSlot = process.env.ADSENSE_HOME_SLOT || '';
+
+class AdsTxtPlugin {
+  apply(compiler) {
+    compiler.hooks.thisCompilation.tap('AdsTxtPlugin', (compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: 'AdsTxtPlugin',
+          stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        },
+        () => {
+          if (!adsenseClient) {
+            return;
+          }
+
+          const publisherId = adsenseClient.replace(/^ca-pub-/, '');
+          const content = `google.com, pub-${publisherId}, DIRECT, f08c47fec0942fa0\n`;
+          compilation.emitAsset('ads.txt', new webpack.sources.RawSource(content));
+        }
+      );
+    });
+  }
+}
+
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
   
@@ -69,6 +94,10 @@ module.exports = (env, argv) => {
         filename: 'index.html',
         chunks: ['landing'],
         minify: true,
+        templateParameters: {
+          adsenseClient,
+          adsenseHomeSlot,
+        },
       }),
       // Extract CSS for production builds
       ...(isProduction ? [new MiniCssExtractPlugin({
@@ -82,7 +111,10 @@ module.exports = (env, argv) => {
         'process.env.EMAILJS_TEMPLATE_ID': JSON.stringify(process.env.EMAILJS_TEMPLATE_ID),
         'process.env.SUPABASE_URL': JSON.stringify(process.env.SUPABASE_URL),
         'process.env.SUPABASE_ANON_KEY': JSON.stringify(process.env.SUPABASE_ANON_KEY),
+        'process.env.ADSENSE_CLIENT': JSON.stringify(adsenseClient),
+        'process.env.ADSENSE_HOME_SLOT': JSON.stringify(adsenseHomeSlot),
       }),
+      new AdsTxtPlugin(),
     ],
     devServer: {
       static: {

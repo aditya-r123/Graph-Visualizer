@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Graph Visualizer — Welcome</title>
     <link rel="icon" type="image/png" href="/logo.png">
+    <% if (adsenseClient) { %>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= adsenseClient %>" crossorigin="anonymous"></script>
+    <% } %>
     <style>
         * {
             margin: 0;
@@ -851,6 +854,29 @@
                 right: 12px !important;
             }
         }
+
+        .home-ad-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 8px 24px 56px;
+            text-align: center;
+        }
+
+        .home-ad-label {
+            margin: 0 0 12px;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        .home-ad-slot {
+            min-height: 100px;
+            border-radius: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            background: rgba(15, 23, 42, 0.45);
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -913,6 +939,20 @@
                 </div>
             </div>
         </section>
+
+        <% if (adsenseClient && adsenseHomeSlot) { %>
+        <section class="home-ad-section fade-in" aria-label="Advertisement">
+            <p class="home-ad-label">Advertisement</p>
+            <div class="home-ad-slot">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="<%= adsenseClient %>"
+                     data-ad-slot="<%= adsenseHomeSlot %>"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
+        </section>
+        <% } %>
 
         <!-- Use Cases Section -->
         <section class="use-cases fade-in">

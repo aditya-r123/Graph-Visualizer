@@ -2,6 +2,7 @@ import { inject } from '@vercel/analytics';
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import * as auth from './auth.js';
 import { mountLandingHeader, mountLandingAccountPanel } from './authUi.js';
+import { initLandingAds } from './adsense.js';
 
 // Initialize Vercel Analytics
 inject();
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Account UI: top-right widget + inline forms in the #account section.
     mountLandingHeader(document.getElementById('landingAccountHeader'));
     mountLandingAccountPanel(document.getElementById('landingAccountPanel'));
+    initLandingAds();
 
     // Animated background canvas
     const bgCanvas = document.getElementById('bgCanvas');

@@ -16,6 +16,9 @@ export const EMAILJS_CONFIG = {
     TEMPLATE_ID: process.env.EMAILJS_TEMPLATE_ID
 };
 
+export const ADSENSE_CLIENT = process.env.ADSENSE_CLIENT || '';
+export const ADSENSE_HOME_SLOT = process.env.ADSENSE_HOME_SLOT || '';
+
 export const isProduction = () => {
     return window.location.hostname !== 'localhost' &&
            window.location.hostname !== '127.0.0.1' &&
