@@ -494,8 +494,8 @@ export function mountLandingAccountPanel(container) {
         // Default to signup mode if user clicked "Subscribe to Pro" first.
         if (wantsPro) mode = 'signup';
 
-        const emailInput = el('input', { type: 'email', placeholder: 'you@example.com', autocomplete: 'email', style: inputStyle() });
-        const passInput = el('input', { type: 'password', placeholder: 'Password (min 6 chars)', autocomplete: wantsPro ? 'new-password' : 'current-password', style: inputStyle() + ' padding-right: 2.75rem;' });
+        const emailInput = el('input', { type: 'email', placeholder: 'example.username', autocomplete: 'email', style: inputStyle() });
+        const passInput = el('input', { type: 'password', placeholder: 'Password (min 8 chars)', autocomplete: wantsPro ? 'new-password' : 'current-password', style: inputStyle() + ' padding-right: 2.75rem;' });
 
         // Eye-icon toggle for password visibility. Sits over the right edge of
         // the password input via the wrapper's relative positioning below.
