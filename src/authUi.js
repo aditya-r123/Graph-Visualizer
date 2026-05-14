@@ -97,14 +97,19 @@ export function bindProGatedPanel({ lockedEl, unlockedEl }) {
     });
 }
 
-// Collapse a panel's expandable-content by default for non-Pro users so
-// locked panels don't take up sidebar space on first paint. Only runs once
-// — once we've made the initial decision based on plan, the user is free
-// to expand/collapse manually after.
+// Set the expanded/collapsed default for a Pro-gated panel based on the
+// current plan:
+//   - Pro     → expanded (so users see the controls / textbox immediately)
+//   - Free / anonymous → collapsed (locked-out feature shouldn't hog sidebar space)
 //
-// Mirrors what setupExpandableSections() does when a user clicks to
-// collapse: remove `show` from content, swap chevron icon down → right.
-export function collapsePanelForNonPro(sectionId) {
+// Applied on every plan transition, not on every onChange fire — so if the
+// user manually collapses after the default is applied, we don't keep
+// fighting them. When the plan flips (sign in, upgrade, sign out), we
+// re-apply the new default.
+//
+// Mirrors how setupExpandableSections() represents collapsed: remove
+// `show` from the content, swap chevron icon down ↔ right.
+export function setProGatedPanelDefault(sectionId) {
     const section = document.getElementById(sectionId);
     if (!section) return;
     const header = section.querySelector('.expandable-header');
@@ -112,19 +117,33 @@ export function collapsePanelForNonPro(sectionId) {
     const icon = header && header.querySelector('.expand-icon');
     if (!header || !content) return;
 
-    let applied = false;
-    auth.onChange(({ plan }) => {
-        if (applied) return;
-        applied = true;
-        if (plan !== 'pro') {
-            content.classList.remove('show');
-            if (icon) {
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-right');
-            }
+    const expand = () => {
+        content.classList.add('show');
+        if (icon) {
+            icon.classList.remove('fa-chevron-right');
+            icon.classList.add('fa-chevron-down');
         }
+    };
+    const collapse = () => {
+        content.classList.remove('show');
+        if (icon) {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-right');
+        }
+    };
+
+    let lastAppliedPlan = null; // null until first onChange fires
+    auth.onChange(({ plan }) => {
+        const next = plan === 'pro' ? 'pro' : 'free';
+        if (next === lastAppliedPlan) return;
+        lastAppliedPlan = next;
+        if (next === 'pro') expand();
+        else collapse();
     });
 }
+
+// Kept as an alias for callers using the previous name.
+export const collapsePanelForNonPro = setProGatedPanelDefault;
 
 // ============================================================
 // LANDING: small account widget in the top-right of the landing page.

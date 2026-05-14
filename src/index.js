@@ -4,7 +4,7 @@ import './assets/logo.png';
 import { inject } from '@vercel/analytics';
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import * as auth from './auth.js';
-import { mountEditorBadge, bindEditorAiPanel, bindProGatedPanel, collapsePanelForNonPro } from './authUi.js';
+import { mountEditorBadge, bindEditorAiPanel, bindProGatedPanel, setProGatedPanelDefault } from './authUi.js';
 
 // Initialize Vercel Analytics
 inject();
@@ -34,11 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
         unlockedEl: document.getElementById('algorithmsUnlocked')
     });
 
-    // Collapse both Pro-gated panels by default for non-Pro users so the
-    // sidebar isn't taken up by locked-out features on first paint. Users
-    // can still expand to see the lock state and Go-to-home CTA.
-    collapsePanelForNonPro('aiGenerateSection');
-    collapsePanelForNonPro('searchSection');
+    // Pro-gated panels: expanded by default for Pro, collapsed for
+    // anonymous/Free. Re-applied on plan transitions so a cached "free"
+    // state at first paint doesn't strand the panels collapsed for Pro
+    // users once /api/me resolves.
+    setProGatedPanelDefault('aiGenerateSection');
+    setProGatedPanelDefault('searchSection');
 
     // Gate the TXT export format on plan. TXT uses the AI hierarchy endpoint
     // under the hood, so it's a Pro-only feature:
