@@ -32,6 +32,9 @@ module.exports = async (req, res) => {
     sendJson(res, 200, {
         supabaseUrl: process.env.SUPABASE_URL || '',
         supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+        // Stripe publishable key is safe to expose — it's designed for
+        // client-side use to initialize Stripe.js for embedded checkout.
+        stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
         proPrice, // null if Stripe isn't configured
         emailjs: {
             publicKey: process.env.EMAILJS_PUBLIC_KEY || '',

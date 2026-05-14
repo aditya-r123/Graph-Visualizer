@@ -36,8 +36,20 @@ export function mountEditorBadge(container) {
         if (!auth.isConfigured()) return;
 
         if (!user) {
-            // Anonymous: no badge in the editor. Account is reached from
-            // the landing page.
+            // Anonymous: a small "Not signed in" chip linking to the
+            // landing-page account section. Same visual slot as FREE/PRO
+            // so the badge spot is always populated.
+            const chip = el('a', {
+                href: '/#account',
+                title: 'Sign in on the home page',
+                style: `display:inline-flex; align-items:center; font-size:0.7rem; font-weight:700;
+                        letter-spacing:0.08em; padding:0.3rem 0.6rem; line-height:1;
+                        background:rgba(30,41,59,0.7); color:#94a3b8;
+                        border:1px solid rgba(148,163,184,0.3);
+                        border-radius:6px; text-decoration:none;
+                        text-transform:uppercase;`
+            }, 'Not Signed In');
+            container.appendChild(chip);
             return;
         }
 
@@ -65,7 +77,13 @@ export function mountEditorBadge(container) {
 // EDITOR: toggle the AI panel between "locked" and "unlocked" views.
 // The locked view replaces the prompt UI with a Pro-upsell pointing home.
 // ============================================================
+// Generic locked/unlocked toggle keyed on Pro plan. Used by both the AI
+// Generation panel and the Algorithms panel — same UX in both spots.
 export function bindEditorAiPanel({ lockedEl, unlockedEl }) {
+    bindProGatedPanel({ lockedEl, unlockedEl });
+}
+
+export function bindProGatedPanel({ lockedEl, unlockedEl }) {
     if (!lockedEl || !unlockedEl) return;
     // Default to locked while we're waiting on the auth check so anonymous
     // users don't see a flash of the unlocked controls.
@@ -76,6 +94,35 @@ export function bindEditorAiPanel({ lockedEl, unlockedEl }) {
         const pro = plan === 'pro';
         lockedEl.style.display = pro ? 'none' : '';
         unlockedEl.style.display = pro ? '' : 'none';
+    });
+}
+
+// Collapse a panel's expandable-content by default for non-Pro users so
+// locked panels don't take up sidebar space on first paint. Only runs once
+// — once we've made the initial decision based on plan, the user is free
+// to expand/collapse manually after.
+//
+// Mirrors what setupExpandableSections() does when a user clicks to
+// collapse: remove `show` from content, swap chevron icon down → right.
+export function collapsePanelForNonPro(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    const header = section.querySelector('.expandable-header');
+    const content = section.querySelector('.expandable-content');
+    const icon = header && header.querySelector('.expand-icon');
+    if (!header || !content) return;
+
+    let applied = false;
+    auth.onChange(({ plan }) => {
+        if (applied) return;
+        applied = true;
+        if (plan !== 'pro') {
+            content.classList.remove('show');
+            if (icon) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
+            }
+        }
     });
 }
 
@@ -178,6 +225,60 @@ const PENDING_CHECKOUT_KEY = 'pending_checkout_after_signup';
 let publicConfig = null;
 let publicConfigPromise = null;
 
+// Open the Stripe Embedded Checkout in a modal overlay. Keeps the user on
+// graphvisualizer.com throughout — no redirect to checkout.stripe.com.
+// On successful payment, Stripe redirects the entire page to the session's
+// return_url (`/editor?checkout=success`) and our auth.init() polling
+// handles the plan-flip detection from there.
+async function openCheckoutModal() {
+    const overlay = el('div', {
+        style: 'position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:flex-start; justify-content:center; padding:2rem 1rem; overflow-y:auto;'
+    });
+    const card = el('div', {
+        style: 'background:#fff; color:#111827; border-radius:14px; width:100%; max-width:560px; position:relative; padding:1.5rem; box-shadow:0 25px 60px rgba(0,0,0,0.45); margin:auto 0;'
+    });
+    const closeBtn = el('button', {
+        type: 'button',
+        'aria-label': 'Close checkout',
+        style: 'position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:50%; background:#f3f4f6; border:none; cursor:pointer; font-size:1.2rem; line-height:1; color:#374151; display:flex; align-items:center; justify-content:center; z-index:1;'
+    }, '×');
+    const statusMsg = el('div', {
+        style: 'padding:3rem 1rem; text-align:center; color:#6b7280; font-size:0.95rem;'
+    }, 'Loading secure checkout…');
+    const checkoutTarget = el('div');
+
+    card.appendChild(closeBtn);
+    card.appendChild(statusMsg);
+    card.appendChild(checkoutTarget);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    let checkout = null;
+    let destroyed = false;
+    const onKey = (e) => { if (e.key === 'Escape') destroy(); };
+    const destroy = () => {
+        if (destroyed) return;
+        destroyed = true;
+        document.removeEventListener('keydown', onKey);
+        if (checkout) {
+            try { checkout.destroy(); } catch (e) { /* noop */ }
+        }
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    };
+    closeBtn.addEventListener('click', destroy);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) destroy(); });
+    document.addEventListener('keydown', onKey);
+
+    try {
+        checkout = await auth.mountStripeCheckout(checkoutTarget);
+        statusMsg.style.display = 'none';
+    } catch (err) {
+        statusMsg.style.color = '#ef4444';
+        statusMsg.textContent = err?.message || 'Could not load checkout.';
+    }
+    return destroy;
+}
+
 function loadPublicConfig() {
     if (publicConfig) return Promise.resolve(publicConfig);
     if (publicConfigPromise) return publicConfigPromise;
@@ -214,12 +315,9 @@ export function mountLandingAccountPanel(container) {
         const uid = user?.id || null;
         if (uid && uid !== lastUserId && sessionStorage.getItem(PENDING_CHECKOUT_KEY)) {
             sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
-            try {
-                const url = await auth.startCheckout();
-                window.location.href = url;
-            } catch (err) {
-                console.error('Pending checkout failed:', err);
-            }
+            // Defer so the just-signed-up render pass finishes before the
+            // modal overlay appears on top of it.
+            setTimeout(() => openCheckoutModal(), 100);
         }
         lastUserId = uid;
     });
@@ -309,13 +407,16 @@ export function mountLandingAccountPanel(container) {
             proCta.disabled = true;
             try {
                 if (isPro) {
+                    // Customer Portal can't be embedded (Stripe doesn't
+                    // offer that), so we still redirect for management.
                     proCta.innerHTML = 'Opening portal…';
                     const url = await auth.openPortal();
                     window.location.href = url;
                 } else if (isSignedIn) {
-                    proCta.innerHTML = 'Opening Stripe…';
-                    const url = await auth.startCheckout();
-                    window.location.href = url;
+                    // Embedded checkout keeps the user on graphvisualizer.com.
+                    openCheckoutModal();
+                    proCta.disabled = false;
+                    proCta.innerHTML = original;
                 } else {
                     sessionStorage.setItem(PENDING_CHECKOUT_KEY, '1');
                     focusAuthForm('signup');
@@ -511,10 +612,18 @@ export function mountLandingAccountPanel(container) {
         primaryBtn.addEventListener('click', async () => {
             primaryBtn.disabled = true;
             const original = primaryBtn.innerHTML;
-            primaryBtn.innerHTML = isPro ? 'Opening portal…' : 'Opening Stripe…';
             try {
-                const url = isPro ? await auth.openPortal() : await auth.startCheckout();
-                window.location.href = url;
+                if (isPro) {
+                    // Customer Portal still requires a redirect (not embeddable).
+                    primaryBtn.innerHTML = 'Opening portal…';
+                    const url = await auth.openPortal();
+                    window.location.href = url;
+                } else {
+                    // Embedded checkout — opens a modal over the landing page.
+                    openCheckoutModal();
+                    primaryBtn.disabled = false;
+                    primaryBtn.innerHTML = original;
+                }
             } catch (err) {
                 alert(err?.message || 'Could not open billing');
                 primaryBtn.disabled = false;

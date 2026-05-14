@@ -42,7 +42,9 @@ hint.
    - Pricing model: **Recurring**, monthly, e.g. $5.00/mo
    - Save and copy the `Price ID` (starts with `price_...`) → goes into
      `STRIPE_PRICE_ID`.
-3. **Developers → API keys**: copy the **Secret key** → `STRIPE_SECRET_KEY`.
+3. **Developers → API keys**: copy both keys:
+   - **Secret key** (`sk_test_...`) → `STRIPE_SECRET_KEY`. Server-only, keep secret.
+   - **Publishable key** (`pk_test_...`) → `STRIPE_PUBLISHABLE_KEY`. Safe to expose to browser; used by Stripe.js to mount the embedded checkout form inline.
 4. **Customer portal** ([dashboard.stripe.com/test/settings/billing/portal](https://dashboard.stripe.com/test/settings/billing/portal)):
    click "Activate test link" so the `/api/stripe/portal` route works.
 

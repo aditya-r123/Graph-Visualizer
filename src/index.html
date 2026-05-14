@@ -417,66 +417,99 @@
                         </h3>
                     </div>
                     <div class="expandable-content show" id="searchSectionContent">
-                        <div class="d-flex gap-2">
-                            <div class="control-group flex-fill">
-                                <label for="searchRoot">
-                                    <i class="fas fa-arrow-up"></i>
-                                    Root
-                                </label>
-                                <div class="root-vertex-display">
-                                    <div id="rootVertexDisplay" class="root-display">
-                                        <span class="root-placeholder">Unselected</span>
+                        <!-- Locked view for anonymous + Free users. Same Pro-upsell
+                             pattern as the AI panel. -->
+                        <div id="algorithmsLocked">
+                            <div style="text-align:center; padding:0.5rem 0 0.25rem;">
+                                <i class="fas fa-lock" style="font-size:1.8rem; color:#a855f7; opacity:0.85; display:block; margin-bottom:0.5rem;"></i>
+                                <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.35rem;">Pro feature</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted, #9ca3af); margin-bottom:0.85rem; line-height:1.4;">
+                                    Graph algorithms (BFS, DFS) require a Pro account. Sign in or upgrade on the home page.
+                                </div>
+                                <a href="/#account" class="btn btn-magenta w-100" style="font-size:0.8rem; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;">
+                                    <i class="fas fa-arrow-left"></i>
+                                    Go to home
+                                </a>
+                            </div>
+                            <!-- Disabled-looking preview of the action buttons so
+                                 users see the feature exists. -->
+                            <div class="button-group" style="margin-top:0.85rem; pointer-events:none; opacity:0.4; filter:grayscale(0.4);">
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary flex-fill" disabled aria-disabled="true" tabindex="-1">
+                                        <i class="fas fa-bread-slice"></i>
+                                        BFS
+                                    </button>
+                                    <button class="btn btn-primary flex-fill" disabled aria-disabled="true" tabindex="-1">
+                                        <i class="fas fa-tree"></i>
+                                        DFS
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unlocked view: full algorithm controls for Pro users. -->
+                        <div id="algorithmsUnlocked" style="display:none;">
+                            <div class="d-flex gap-2">
+                                <div class="control-group flex-fill">
+                                    <label for="searchRoot">
+                                        <i class="fas fa-arrow-up"></i>
+                                        Root
+                                    </label>
+                                    <div class="root-vertex-display">
+                                        <div id="rootVertexDisplay" class="root-display">
+                                            <span class="root-placeholder">Unselected</span>
+                                        </div>
+                                        <div class="position-relative" style="display: none;" id="rootDropdownContainer">
+                                            <select id="searchRoot" class="form-select"></select>
+                                            <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);"></i>
+                                        </div>
                                     </div>
-                                    <div class="position-relative" style="display: none;" id="rootDropdownContainer">
-                                        <select id="searchRoot" class="form-select"></select>
-                                        <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);"></i>
+                                </div>
+                                <div class="control-group flex-fill">
+                                    <label for="searchTarget">
+                                        <i class="fas fa-bullseye"></i>
+                                        Target
+                                    </label>
+                                    <div class="target-vertex-display">
+                                        <div id="targetVertexDisplay" class="target-display">
+                                            <span class="target-placeholder">Right-click</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="control-group flex-fill">
-                                <label for="searchTarget">
-                                    <i class="fas fa-bullseye"></i>
-                                    Target
+
+                            <div class="control-group">
+                                <label for="animationSpeed">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    Animation Speed
                                 </label>
-                                <div class="target-vertex-display">
-                                    <div id="targetVertexDisplay" class="target-display">
-                                        <span class="target-placeholder">Right-click</span>
-                                    </div>
+                                <div class="slider-container">
+                                    <span class="slider-label-left">Slow</span>
+                                    <input type="range" id="animationSpeed" min="100" max="2000" value="500" step="100" class="slider">
+                                    <span class="slider-label-right">Fast</span>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="animationSpeed">
-                                <i class="fas fa-tachometer-alt"></i>
-                                Animation Speed
-                            </label>
-                            <div class="slider-container">
-                                <span class="slider-label-left">Slow</span>
-                                <input type="range" id="animationSpeed" min="100" max="2000" value="500" step="100" class="slider">
-                                <span class="slider-label-right">Fast</span>
-                            </div>
-                        </div>
-                        
-                        <div class="button-group">
-                            <div class="d-flex gap-2 mb-2">
-                                <button id="runBFS" class="btn btn-primary flex-fill">
-                                    <i class="fas fa-bread-slice"></i>
-                                    BFS
-                                </button>
-                                <button id="runDFS" class="btn btn-primary flex-fill">
-                                    <i class="fas fa-tree"></i>
-                                    DFS
+
+                            <div class="button-group">
+                                <div class="d-flex gap-2 mb-2">
+                                    <button id="runBFS" class="btn btn-primary flex-fill">
+                                        <i class="fas fa-bread-slice"></i>
+                                        BFS
+                                    </button>
+                                    <button id="runDFS" class="btn btn-primary flex-fill">
+                                        <i class="fas fa-tree"></i>
+                                        DFS
+                                    </button>
+                                </div>
+                                <button id="stopSearch" class="btn btn-warning w-100" disabled>
+                                    <i class="fas fa-stop"></i>
+                                    Stop Search
                                 </button>
                             </div>
-                            <button id="stopSearch" class="btn btn-warning w-100" disabled>
-                                <i class="fas fa-stop"></i>
-                                Stop Search
-                            </button>
+                            <div id="distanceInfo" class="distance-info"></div>
+                            <div id="pathInfo" class="path-info"></div>
+                            <div id="searchInfo" class="search-info"></div>
                         </div>
-                        <div id="distanceInfo" class="distance-info"></div>
-                        <div id="pathInfo" class="path-info"></div>
-                        <div id="searchInfo" class="search-info"></div>
                     </div>
                 </div>
                 

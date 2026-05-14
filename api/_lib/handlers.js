@@ -223,17 +223,21 @@ async function createCheckoutHandler(req, res) {
             await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id);
         }
 
+        // Embedded mode mounts Stripe Checkout inside our page (no redirect
+        // to stripe.com). After successful payment, Stripe sends the user
+        // to `return_url`. We use ?checkout=success so the polling in
+        // auth.init() detects the flip on the destination page.
         const session = await stripe.checkout.sessions.create({
+            ui_mode: 'embedded',
             mode: 'subscription',
             customer: customerId,
             line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
-            success_url: `${ORIGIN}/editor?checkout=success`,
-            cancel_url: `${ORIGIN}/editor?checkout=cancelled`,
+            return_url: `${ORIGIN}/editor?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
             allow_promotion_codes: true,
             client_reference_id: user.id,
             metadata: { supabase_user_id: user.id }
         });
-        return sendJson(res, 200, { url: session.url });
+        return sendJson(res, 200, { clientSecret: session.client_secret });
     } catch (err) {
         console.error('create-checkout failed:', err?.message || err);
         return sendJson(res, 500, { error: 'stripe_error', message: err?.message || 'unknown' });

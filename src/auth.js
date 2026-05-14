@@ -9,6 +9,7 @@
 // callback fires for: sign-in, sign-out, and post-checkout plan refreshes.
 
 import { createClient } from '@supabase/supabase-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 let supabase = null;
@@ -119,16 +120,47 @@ export async function signOut() {
     notify();
 }
 
-// Kick off Stripe Checkout. Resolves with the URL we should redirect to.
-export async function startCheckout() {
+// Lazy-init Stripe.js. Cached so subsequent checkouts skip the network
+// roundtrip. The publishable key comes from /api/public-config so the
+// same build can target different Stripe accounts (test vs live) without
+// rebuilding.
+let stripeJsPromise = null;
+async function getStripeJs() {
+    if (stripeJsPromise) return stripeJsPromise;
+    stripeJsPromise = (async () => {
+        const cfg = await fetch('/api/public-config').then(r => r.json()).catch(() => ({}));
+        if (!cfg.stripePublishableKey) {
+            throw new Error('Stripe publishable key not configured');
+        }
+        const stripe = await loadStripe(cfg.stripePublishableKey);
+        if (!stripe) {
+            throw new Error('Stripe.js failed to load (ad blocker?)');
+        }
+        return stripe;
+    })();
+    return stripeJsPromise;
+}
+
+// Mount Stripe's Embedded Checkout into `container`. Returns the
+// EmbeddedCheckout instance — caller is responsible for `.destroy()`
+// if the modal is dismissed before the user completes payment. On a
+// successful payment Stripe redirects the whole page to the session's
+// return_url, so destroy() doesn't need to be called on success.
+export async function mountStripeCheckout(container) {
     const res = await authedFetch('/api/stripe/create-checkout', { method: 'POST' });
     if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.message || body.error || `Checkout failed (${res.status})`);
     }
-    const { url } = await res.json();
-    if (!url) throw new Error('Checkout did not return a URL');
-    return url;
+    const { clientSecret } = await res.json();
+    if (!clientSecret) throw new Error('No client secret returned');
+
+    const stripe = await getStripeJs();
+    const checkout = await stripe.initEmbeddedCheckout({
+        fetchClientSecret: () => Promise.resolve(clientSecret)
+    });
+    checkout.mount(container);
+    return checkout;
 }
 
 // Permanently delete the signed-in user's account on the server, then

@@ -4,7 +4,7 @@ import './assets/logo.png';
 import { inject } from '@vercel/analytics';
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import * as auth from './auth.js';
-import { mountEditorBadge, bindEditorAiPanel } from './authUi.js';
+import { mountEditorBadge, bindEditorAiPanel, bindProGatedPanel, collapsePanelForNonPro } from './authUi.js';
 
 // Initialize Vercel Analytics
 inject();
@@ -27,6 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
         lockedEl: document.getElementById('aiGenerateLocked'),
         unlockedEl: document.getElementById('aiGenerateUnlocked')
     });
+
+    // Same lock pattern for the Algorithms panel (BFS/DFS).
+    bindProGatedPanel({
+        lockedEl: document.getElementById('algorithmsLocked'),
+        unlockedEl: document.getElementById('algorithmsUnlocked')
+    });
+
+    // Collapse both Pro-gated panels by default for non-Pro users so the
+    // sidebar isn't taken up by locked-out features on first paint. Users
+    // can still expand to see the lock state and Go-to-home CTA.
+    collapsePanelForNonPro('aiGenerateSection');
+    collapsePanelForNonPro('searchSection');
 
     // Gate the TXT export format on plan. TXT uses the AI hierarchy endpoint
     // under the hood, so it's a Pro-only feature:
