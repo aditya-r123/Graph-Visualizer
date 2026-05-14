@@ -79,22 +79,21 @@
         <div class="loading-spinner"></div>
     </div>
     
-    <!-- Read-only account badge fixed in the top-right. All account management
-         lives on the landing page (/); clicking the badge routes there. -->
-    <div id="editorAccountBadge" style="position: fixed; top: 12px; right: 16px; z-index: 1500;"></div>
-
     <div class="app-container" id="appContainer">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="d-flex align-items-center justify-content-between w-100">
-                    <i id="helpBtn" class="fas fa-question-circle help-btn" title="Show Help"></i>
-                    <div class="logo d-flex align-items-center" id="logoHome" style="margin-left: 8px; cursor: pointer;" title="Back to Home">
-                        <img src="/logo.png" alt="Graph Creator Logo" style="height: 48px; width: auto; margin-right: 12px;">
-                        <h1 style="cursor: pointer;">Graph Visualizer</h1>
-                    </div>
+                <!-- Top half: centered logo + wordmark -->
+                <div class="logo d-flex align-items-center justify-content-center w-100" id="logoHome" style="cursor: pointer;" title="Back to Home">
+                    <img src="/logo.png" alt="Graph Creator Logo" style="height: 40px; width: auto; margin-right: 10px;">
+                    <h1 style="cursor: pointer; font-size: 1.25rem; margin: 0;">Graph Visualizer</h1>
                 </div>
-
+                <!-- Bottom half: help button (left) + account badge (right).
+                     Account row is populated by src/authUi.js → mountEditorBadge. -->
+                <div class="d-flex align-items-center justify-content-between w-100" style="margin-top: 8px; min-height: 1.6rem;">
+                    <i id="helpBtn" class="fas fa-question-circle help-btn" title="Show Help"></i>
+                    <div id="editorAccountBadge"></div>
+                </div>
             </div>
             <!-- Utility controls - status -->
             <div class="d-flex gap-2 justify-content-center align-items-center mt-1 mb-1" id="savePanelUtilities">

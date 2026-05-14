@@ -25,8 +25,13 @@ hint.
    (e.g. `https://graphvisualizer.com`) and add `http://localhost:3005` as
    a Redirect URL for local dev.
 5. **SQL Editor** → paste the contents of `supabase/schema.sql` and run.
-   This creates the `profiles` table, the trigger that auto-creates a profile
-   on signup, and the RLS policies.
+   This creates:
+   - The `profiles` table + auto-create-on-signup trigger + RLS policies
+   - The `graphs` table for cross-device "Canvas Management" sync + RLS policies
+
+   If you already ran an older copy of this file, re-running is safe — every
+   statement uses `IF NOT EXISTS` / `CREATE OR REPLACE` / `DROP POLICY IF
+   EXISTS` so re-applying it just adds the new `graphs` table.
 
 ## 2. Stripe (payments)
 

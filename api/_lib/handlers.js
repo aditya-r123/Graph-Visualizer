@@ -6,7 +6,7 @@
 const OpenAI = require('openai');
 const Stripe = require('stripe');
 
-const { getUserFromRequest, getPlan, getAdminClient } = require('./supabase');
+const { getUserFromRequest, getPlan, getAdminClient, ensureProfile } = require('./supabase');
 
 const ORIGIN = process.env.APP_ORIGIN || 'http://localhost:3005';
 const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
@@ -47,6 +47,10 @@ async function requirePro(req, res) {
 async function meHandler(req, res) {
     const { user } = await getUserFromRequest(req);
     if (!user) return sendJson(res, 200, { user: null, plan: 'free' });
+    // Backfill the profile row if the SQL trigger didn't create one. Safe
+    // to call every time — it's an upsert with ON CONFLICT DO NOTHING-ish
+    // semantics for the new-row case.
+    await ensureProfile(user);
     const plan = await getPlan(user.id);
     return sendJson(res, 200, {
         user: { id: user.id, email: user.email },
@@ -343,6 +347,181 @@ async function readJsonBody(req) {
     return JSON.parse(buf.toString('utf8'));
 }
 
+// ---------------------------------------------------------------------------
+// Canvas Management sync ("/api/graphs/*")
+//
+// The editor's saved-graphs list (up to 10 entries) is mirrored here for
+// signed-in users so it follows them across devices. Anonymous users keep
+// using localStorage only — these endpoints all require a JWT.
+//
+// `client_id` is the Date.now() identifier the editor assigns at save time;
+// it's how local rows match server rows during the post-sign-in merge.
+// ---------------------------------------------------------------------------
+
+// Per-user history cap. 500 is effectively "all-time" for any realistic
+// usage while still bounding storage so a runaway client can't fill the
+// table. The sidebar widget separately slices to its own small display
+// limit; this only caps what gets persisted.
+const GRAPH_LIMIT = 500;
+const GRAPH_NAME_MAX = 200;
+// Hard cap on a single graph's JSON size so a runaway client can't blow up
+// the row. ~256 KiB is comfortably more than the largest realistic graph.
+const GRAPH_DATA_MAX_BYTES = 256 * 1024;
+
+async function listGraphsHandler(req, res) {
+    const { user } = await getUserFromRequest(req);
+    if (!user) return sendJson(res, 401, { error: 'sign_in_required' });
+
+    try {
+        const admin = getAdminClient();
+        const { data, error } = await admin
+            .from('graphs')
+            .select('client_id, name, data, vertex_count, edge_count, updated_at')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(GRAPH_LIMIT);
+        if (error) throw error;
+        return sendJson(res, 200, {
+            graphs: (data || []).map(row => ({
+                id: Number(row.client_id),
+                name: row.name,
+                data: row.data,
+                vertices: row.vertex_count,
+                edges: row.edge_count,
+                timestamp: row.updated_at
+            }))
+        });
+    } catch (err) {
+        console.error('list-graphs failed:', err?.message || err);
+        return sendJson(res, 500, { error: 'list_failed', message: err?.message });
+    }
+}
+
+// POST /api/graphs
+// Body: { graphs: [{ id, name, data, vertices, edges, timestamp }, ...] }
+// Upserts the list (replaces existing rows by client_id) and trims the
+// user's set to the top 10 most-recent rows.
+async function upsertGraphsHandler(req, res) {
+    const { user } = await getUserFromRequest(req);
+    if (!user) return sendJson(res, 401, { error: 'sign_in_required' });
+
+    // Under Express, express.json() has already parsed req.body. Under
+    // Vercel serverless, we need to read it from the stream.
+    let body = req.body;
+    if (!body) {
+        try { body = await readJsonBody(req); }
+        catch { return sendJson(res, 400, { error: 'bad_json' }); }
+    }
+
+    const incoming = Array.isArray(body?.graphs) ? body.graphs : [];
+    if (incoming.length === 0) return sendJson(res, 200, { upserted: 0 });
+    if (incoming.length > GRAPH_LIMIT * 2) {
+        return sendJson(res, 400, { error: 'too_many', message: `Send at most ${GRAPH_LIMIT * 2} at a time` });
+    }
+
+    // Validate + reshape each row.
+    const rows = [];
+    for (const g of incoming) {
+        const clientId = Number(g?.id);
+        if (!Number.isFinite(clientId)) {
+            return sendJson(res, 400, { error: 'invalid_id' });
+        }
+        const name = String(g?.name || 'Untitled').slice(0, GRAPH_NAME_MAX);
+        const data = g?.data;
+        if (!data || typeof data !== 'object') {
+            return sendJson(res, 400, { error: 'invalid_data' });
+        }
+        const dataStr = JSON.stringify(data);
+        if (dataStr.length > GRAPH_DATA_MAX_BYTES) {
+            return sendJson(res, 413, { error: 'graph_too_large', message: 'Graph exceeds 256 KiB' });
+        }
+        rows.push({
+            user_id: user.id,
+            client_id: clientId,
+            name,
+            data,
+            vertex_count: Number.isFinite(Number(g?.vertices)) ? Math.max(0, Math.floor(Number(g.vertices))) : 0,
+            edge_count: Number.isFinite(Number(g?.edges)) ? Math.max(0, Math.floor(Number(g.edges))) : 0,
+            updated_at: g?.timestamp ? new Date(g.timestamp).toISOString() : new Date().toISOString()
+        });
+    }
+
+    try {
+        const admin = getAdminClient();
+        const { error: upsertErr } = await admin
+            .from('graphs')
+            .upsert(rows, { onConflict: 'user_id,client_id' });
+        if (upsertErr) throw upsertErr;
+
+        // Trim to the latest 10 — drop everything older. Keeps storage tidy
+        // and matches the client-side cap.
+        const { data: keep, error: keepErr } = await admin
+            .from('graphs')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(GRAPH_LIMIT);
+        if (keepErr) throw keepErr;
+        if (keep && keep.length === GRAPH_LIMIT) {
+            const keepIds = keep.map(r => r.id);
+            await admin
+                .from('graphs')
+                .delete()
+                .eq('user_id', user.id)
+                .not('id', 'in', `(${keepIds.map(id => `"${id}"`).join(',')})`);
+        }
+
+        return sendJson(res, 200, { upserted: rows.length });
+    } catch (err) {
+        console.error('upsert-graphs failed:', err?.message || err);
+        return sendJson(res, 500, { error: 'upsert_failed', message: err?.message });
+    }
+}
+
+// POST /api/graphs/delete  Body: { id: <clientId> } | { clearAll: true }
+async function deleteGraphHandler(req, res) {
+    const { user } = await getUserFromRequest(req);
+    if (!user) return sendJson(res, 401, { error: 'sign_in_required' });
+
+    let body = req.body;
+    if (!body) {
+        try { body = await readJsonBody(req); }
+        catch { return sendJson(res, 400, { error: 'bad_json' }); }
+    }
+
+    const admin = getAdminClient();
+
+    if (body?.clearAll === true) {
+        try {
+            const { error } = await admin
+                .from('graphs')
+                .delete()
+                .eq('user_id', user.id);
+            if (error) throw error;
+            return sendJson(res, 200, { cleared: true });
+        } catch (err) {
+            console.error('clear-graphs failed:', err?.message || err);
+            return sendJson(res, 500, { error: 'clear_failed', message: err?.message });
+        }
+    }
+
+    const clientId = Number(body?.id);
+    if (!Number.isFinite(clientId)) return sendJson(res, 400, { error: 'invalid_id' });
+
+    try {
+        const { error } = await admin
+            .from('graphs')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('client_id', clientId);
+        if (error) throw error;
+        return sendJson(res, 200, { deleted: clientId });
+    } catch (err) {
+        console.error('delete-graph failed:', err?.message || err);
+        return sendJson(res, 500, { error: 'delete_failed', message: err?.message });
+    }
+}
+
 module.exports = {
     meHandler,
     generateGraphHandler,
@@ -350,5 +529,8 @@ module.exports = {
     createCheckoutHandler,
     portalHandler,
     webhookHandler,
+    listGraphsHandler,
+    upsertGraphsHandler,
+    deleteGraphHandler,
     sendJson
 };

@@ -76,3 +76,49 @@ create or replace view public.pro_users as
     select id, email, stripe_customer_id, current_period_end, updated_at
     from public.profiles
     where plan = 'pro';
+
+-- ---------------------------------------------------------------------------
+-- graphs: per-user "Canvas Management" rows. Mirrors what the editor stores
+-- in localStorage.savedGraphs so signed-in users get cross-device sync.
+--
+-- client_id is the Date.now() identifier the editor assigns at save time —
+-- preserving it lets us merge a user's local graphs into their account when
+-- they sign in for the first time.
+-- ---------------------------------------------------------------------------
+create table if not exists public.graphs (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    client_id bigint not null,
+    name text not null,
+    data jsonb not null,
+    vertex_count int not null default 0,
+    edge_count int not null default 0,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    unique (user_id, client_id)
+);
+
+create index if not exists graphs_user_updated_idx
+    on public.graphs(user_id, updated_at desc);
+
+create or replace function public.graphs_set_updated_at()
+returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end
+$$;
+
+drop trigger if exists graphs_set_updated_at on public.graphs;
+create trigger graphs_set_updated_at
+    before update on public.graphs
+    for each row execute function public.graphs_set_updated_at();
+
+alter table public.graphs enable row level security;
+
+drop policy if exists "graphs: self read"   on public.graphs;
+drop policy if exists "graphs: self insert" on public.graphs;
+drop policy if exists "graphs: self update" on public.graphs;
+drop policy if exists "graphs: self delete" on public.graphs;
+
+create policy "graphs: self read"   on public.graphs for select using (auth.uid() = user_id);
+create policy "graphs: self insert" on public.graphs for insert with check (auth.uid() = user_id);
+create policy "graphs: self update" on public.graphs for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "graphs: self delete" on public.graphs for delete using (auth.uid() = user_id);

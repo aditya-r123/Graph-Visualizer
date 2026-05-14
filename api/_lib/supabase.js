@@ -56,4 +56,20 @@ async function getPlan(userId) {
     return data.plan || 'free';
 }
 
-module.exports = { getAdminClient, getUserFromRequest, getPlan };
+// Ensure a profiles row exists for this user. The SQL trigger
+// `on_auth_user_created` should handle this at sign-up, but if the trigger
+// isn't installed (or silently failed), this is the safety net — called on
+// every /api/me hit so the row gets backfilled the first time a user comes
+// back to a server route.
+async function ensureProfile(user) {
+    if (!user?.id) return;
+    const admin = getAdminClient();
+    const { error } = await admin
+        .from('profiles')
+        .upsert({ id: user.id, email: user.email }, { onConflict: 'id', ignoreDuplicates: false });
+    if (error) {
+        console.warn('ensureProfile failed:', error.message);
+    }
+}
+
+module.exports = { getAdminClient, getUserFromRequest, getPlan, ensureProfile };

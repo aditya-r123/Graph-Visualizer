@@ -89,6 +89,15 @@ export async function signUp(email, password) {
     if (!sb) throw new Error('Auth not configured');
     const { data, error } = await sb.auth.signUp({ email, password });
     if (error) throw error;
+    // When Supabase has "Confirm email" enabled, signUp succeeds but no
+    // session is returned — the user has to click an email link first.
+    // Surface that explicitly so callers can show a useful message instead
+    // of silently leaving the UI in a signed-out state.
+    if (!data?.session) {
+        const err = new Error('Check your email to confirm your account before signing in. (To skip this in dev, disable "Confirm email" in Supabase → Authentication → Providers → Email.)');
+        err.code = 'email_confirmation_required';
+        throw err;
+    }
     await refresh();
     return data;
 }

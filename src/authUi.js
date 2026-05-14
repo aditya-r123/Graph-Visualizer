@@ -43,17 +43,19 @@ export function mountEditorBadge(container) {
 
         const isPro = plan === 'pro';
         const badge = el('a', {
-            href: '/',
+            href: '/#account',
             title: 'Account on home page',
-            style: `display:flex; align-items:center; gap:0.4rem; font-size:0.75rem; padding:0.35rem 0.65rem;
+            style: `display:inline-flex; align-items:center; gap:0.4rem; font-size:0.7rem; padding:0.25rem 0.55rem;
+                    max-width: 100%;
                     background:${isPro ? 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' : 'rgba(30,41,59,0.7)'};
                     color:${isPro ? '#fff' : '#cbd5e1'};
                     border:1px solid ${isPro ? 'rgba(168,85,247,0.6)' : 'rgba(99,102,241,0.3)'};
-                    border-radius:6px; text-decoration:none; backdrop-filter:blur(4px);
-                    box-shadow:${isPro ? '0 2px 12px rgba(168,85,247,0.35)' : 'none'};`
+                    border-radius:6px; text-decoration:none;
+                    box-shadow:${isPro ? '0 2px 10px rgba(168,85,247,0.3)' : 'none'};
+                    line-height: 1;`
         }, [
             el('span', { style: 'font-weight:700; letter-spacing:0.06em;' }, isPro ? 'PRO' : 'FREE'),
-            el('span', { style: 'opacity:0.8; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;' }, user.email || '')
+            el('span', { style: 'opacity:0.8; max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;' }, user.email || '')
         ]);
         container.appendChild(badge);
     };
@@ -164,11 +166,64 @@ export function mountLandingHeader(container) {
 
 // ============================================================
 // LANDING: rich account panel — two-column layout that mirrors the
-// other landing sections. Left column = plan comparison; right column =
-// auth form (signed out) or account actions (signed in).
+// other landing sections. Left column = plan comparison with per-plan
+// CTAs; right column = auth form (signed out) or account actions
+// (signed in).
+//
+// Pending-checkout flow: when an anonymous user clicks "Subscribe to
+// Pro" we drop a sessionStorage flag and steer them to the signup form;
+// once their auth state flips from anonymous → signed-in we auto-call
+// startCheckout() so the click feels like one continuous action.
 // ============================================================
+const PENDING_CHECKOUT_KEY = 'pending_checkout_after_signup';
+let publicConfig = null;
+let publicConfigPromise = null;
+
+function loadPublicConfig() {
+    if (publicConfig) return Promise.resolve(publicConfig);
+    if (publicConfigPromise) return publicConfigPromise;
+    publicConfigPromise = fetch('/api/public-config')
+        .then(r => r.ok ? r.json() : {})
+        .then(cfg => { publicConfig = cfg || {}; return publicConfig; })
+        .catch(() => { publicConfig = {}; return publicConfig; });
+    return publicConfigPromise;
+}
+
+function formatPrice(p) {
+    if (!p || typeof p.amount !== 'number') return null;
+    const dollars = p.amount / 100;
+    const symbol = p.currency === 'usd' ? '$' : (p.currency?.toUpperCase() + ' ');
+    const interval = p.intervalCount === 1
+        ? `/${p.interval}`
+        : `/${p.intervalCount} ${p.interval}s`;
+    // Avoid trailing .00 for whole-dollar prices.
+    const amountStr = dollars % 1 === 0 ? String(dollars) : dollars.toFixed(2);
+    return `${symbol}${amountStr}${interval}`;
+}
+
 export function mountLandingAccountPanel(container) {
     if (!container) return;
+
+    loadPublicConfig();
+
+    // Watch for the anonymous → signed-in transition. When it happens with
+    // PENDING_CHECKOUT_KEY set, auto-redirect to Stripe Checkout. The user
+    // clicked "Subscribe to Pro" earlier — completing the sign-up is the
+    // last barrier; from their perspective it's a single action.
+    let lastUserId = null;
+    auth.onChange(async ({ user }) => {
+        const uid = user?.id || null;
+        if (uid && uid !== lastUserId && sessionStorage.getItem(PENDING_CHECKOUT_KEY)) {
+            sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+            try {
+                const url = await auth.startCheckout();
+                window.location.href = url;
+            } catch (err) {
+                console.error('Pending checkout failed:', err);
+            }
+        }
+        lastUserId = uid;
+    });
 
     // ---------- shared visual primitives ----------
     const gridStyle = `
@@ -198,22 +253,82 @@ export function mountLandingAccountPanel(container) {
         el('span', null, text)
     ]);
 
-    // ---------- left column: plan comparison (same in every state) ----------
-    const planComparisonCol = () => {
+    // ---------- left column: plan comparison + per-plan CTAs ----------
+    const planComparisonCol = (user, plan) => {
+        const isPro = plan === 'pro';
+        const isSignedIn = !!user;
+        const proPriceLabel = formatPrice(publicConfig?.proPrice) || 'Monthly';
+
+        // --- Free card CTA -------------------------------------------------
+        // Signed out → focus the signup form.
+        // Signed in (any plan) → "Launch editor" (the free feature set is
+        // always available).
+        let freeCta;
+        if (!isSignedIn) {
+            freeCta = el('button', {
+                class: 'cta cta-secondary',
+                style: 'width:100%; justify-content:center; margin-top:1rem; font-size:0.95rem; padding:0.85rem 1rem;',
+                onclick: () => focusAuthForm('signup')
+            }, 'Start free →');
+        } else {
+            freeCta = el('a', {
+                href: '/editor',
+                class: 'cta cta-secondary',
+                style: 'width:100%; justify-content:center; margin-top:1rem; font-size:0.95rem; padding:0.85rem 1rem; text-decoration:none;'
+            }, 'Launch editor →');
+        }
+
         const freeCard = el('div', {
             style: `${cardStyle} flex:1; padding:24px;`
         }, [
             el('div', { style: 'display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.4rem;' }, [
                 el('div', { style: 'font-size:1.1rem; font-weight:600; color:#e2e8f0;' }, 'Free'),
-                el('div', { style: 'font-size:0.85rem; color:#94a3b8;' }, 'Always')
+                el('div', { style: 'font-size:0.85rem; color:#94a3b8;' }, isSignedIn && !isPro ? 'Current plan' : 'Always')
             ]),
             el('div', { style: 'font-size:0.85rem; color:#94a3b8; margin-bottom:0.85rem;' }, 'Full editor, no sign-up required'),
             planFeature('Unlimited graphs, local-first auto-save'),
             planFeature('BFS & DFS animations'),
             planFeature('PNG, JPG, JSON export'),
             planFeature('AI graph generation', false),
-            planFeature('AI hierarchy export', false)
+            planFeature('AI hierarchy export', false),
+            freeCta
         ]);
+
+        // --- Pro card CTA --------------------------------------------------
+        // Signed out → drop pending-checkout flag, scroll to signup. After
+        //   they sign up, the auth.onChange listener above triggers
+        //   startCheckout() automatically.
+        // Signed in free → straight to Stripe Checkout.
+        // Signed in pro → Manage subscription via portal.
+        const proCta = el('button', {
+            class: 'cta',
+            style: 'width:100%; justify-content:center; margin-top:1rem; font-size:0.95rem; padding:0.85rem 1rem;'
+        }, isPro ? 'Manage subscription' : 'Subscribe to Pro →');
+
+        proCta.addEventListener('click', async () => {
+            const original = proCta.innerHTML;
+            proCta.disabled = true;
+            try {
+                if (isPro) {
+                    proCta.innerHTML = 'Opening portal…';
+                    const url = await auth.openPortal();
+                    window.location.href = url;
+                } else if (isSignedIn) {
+                    proCta.innerHTML = 'Opening Stripe…';
+                    const url = await auth.startCheckout();
+                    window.location.href = url;
+                } else {
+                    sessionStorage.setItem(PENDING_CHECKOUT_KEY, '1');
+                    focusAuthForm('signup');
+                    proCta.disabled = false;
+                    proCta.innerHTML = original;
+                }
+            } catch (err) {
+                alert(err?.message || 'Could not start billing');
+                proCta.disabled = false;
+                proCta.innerHTML = original;
+            }
+        });
 
         const proCard = el('div', {
             style: `${cardStyle} flex:1; padding:24px; border-color: rgba(168, 85, 247, 0.4); background: linear-gradient(180deg, rgba(168,85,247,0.08) 0%, rgba(30,41,59,0.45) 100%);`
@@ -223,46 +338,82 @@ export function mountLandingAccountPanel(container) {
                     el('span', { style: 'font-size:1.1rem; font-weight:600; color:#e2e8f0;' }, 'Pro'),
                     el('span', { style: 'font-size:0.6rem; font-weight:700; letter-spacing:0.08em; padding:0.2rem 0.45rem; border-radius:4px; background:linear-gradient(135deg,#a855f7,#ec4899); color:#fff;' }, 'AI')
                 ]),
-                el('div', { style: 'font-size:0.85rem; color:#94a3b8;' }, 'Monthly')
+                el('div', { style: `font-size:0.95rem; font-weight:600; color:${isPro ? '#a855f7' : '#e2e8f0'};` }, isPro ? 'Current plan' : proPriceLabel)
             ]),
             el('div', { style: 'font-size:0.85rem; color:#94a3b8; margin-bottom:0.85rem;' }, 'Everything in Free, plus:'),
             planFeature('AI graph generation from plain English'),
             planFeature('AI hierarchy export (image → tree)'),
             planFeature('Priority OpenAI access'),
-            planFeature('Cancel anytime')
+            planFeature('Cancel anytime'),
+            proCta
         ]);
 
         return el('div', { style: 'display:flex; flex-direction:column; gap:16px;' }, [
-            sectionLabel('What you get', '#a855f7'),
+            sectionLabel('Choose a plan', '#a855f7'),
             freeCard,
             proCard
         ]);
     };
 
+    // Focus the signup/signin form on the right column. Scrolls into view
+    // and switches the form mode to whatever's requested.
+    function focusAuthForm(mode) {
+        const formEl = container.querySelector('[data-auth-form]');
+        if (!formEl) return;
+        formEl.dataset.requestedMode = mode;
+        formEl.dispatchEvent(new CustomEvent('setmode', { detail: mode }));
+        formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const emailInput = formEl.querySelector('input[type="email"]');
+        if (emailInput) setTimeout(() => emailInput.focus(), 300);
+    }
+
     // ---------- right column: signed-out auth form ----------
     const authFormCol = () => {
         let mode = 'signin';
+        const wantsPro = !!sessionStorage.getItem(PENDING_CHECKOUT_KEY);
+
+        // Default to signup mode if user clicked "Subscribe to Pro" first.
+        if (wantsPro) mode = 'signup';
+
         const emailInput = el('input', { type: 'email', placeholder: 'you@example.com', autocomplete: 'email', style: inputStyle() });
-        const passInput = el('input', { type: 'password', placeholder: 'Password (min 6 chars)', autocomplete: 'current-password', style: inputStyle() });
+        const passInput = el('input', { type: 'password', placeholder: 'Password (min 6 chars)', autocomplete: wantsPro ? 'new-password' : 'current-password', style: inputStyle() });
         const errorEl = el('div', { style: 'display:none; color:#ef4444; font-size:0.85rem; margin-top:0.5rem;' });
-        const submitBtn = el('button', { class: 'cta', style: 'width:100%; justify-content:center;' }, 'Sign in');
-        const toggleLink = el('a', { href: '#', style: 'color:#a855f7; cursor:pointer; font-size:0.9rem; text-decoration:none;' }, 'Need an account? Sign up');
-        const title = el('h3', { style: 'font-size:1.5rem; margin:0 0 0.4rem; color:#e2e8f0;' }, 'Sign in');
-        const sub = el('p', { style: 'color:#94a3b8; margin-bottom:1.75rem; font-size:0.95rem; line-height:1.5;' },
-            'Sign in to manage your account. AI features require a Pro plan.');
+        const submitBtn = el('button', { class: 'cta', style: 'width:100%; justify-content:center;' }, wantsPro ? 'Sign up & continue to checkout' : 'Sign in');
+        // Secondary CTA — visually subordinate to the Sign in button (outlined
+        // rather than filled) so it doesn't compete as a primary action, but
+        // big and clearly labeled so users without an account can find it.
+        const toggleBtn = el('button', {
+            class: 'cta cta-secondary',
+            style: 'width:100%; justify-content:center; margin-top:0.65rem; font-size:0.95rem; padding:0.85rem 1rem;'
+        }, mode === 'signup' ? 'Already have an account? Sign in' : "Don't have an account? Sign up");
+        const title = el('h3', { style: 'font-size:1.5rem; margin:0 0 0.4rem; color:#e2e8f0;' }, mode === 'signup' ? 'Create your account' : 'Sign in');
+        const sub = el('p', { style: 'color:#94a3b8; margin-bottom:1rem; font-size:0.95rem; line-height:1.5;' },
+            mode === 'signup'
+                ? 'Free to create. Choose a plan above to subscribe.'
+                : 'Sign in to manage your account. AI features require a Pro plan.');
+
+        const pendingBanner = el('div', {
+            style: `display:${wantsPro ? 'flex' : 'none'}; align-items:center; gap:0.5rem; padding:0.7rem 0.85rem; background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.3); border-radius:8px; margin-bottom:1rem; font-size:0.85rem; color:#e2e8f0; line-height:1.4;`
+        }, [
+            el('span', null, '⚡'),
+            el('span', null, "After signing up you'll go straight to Stripe Checkout to subscribe to Pro.")
+        ]);
 
         const setMode = (next) => {
             mode = next;
             title.textContent = next === 'signup' ? 'Create your account' : 'Sign in';
+            const stillWantsPro = !!sessionStorage.getItem(PENDING_CHECKOUT_KEY);
             sub.textContent = next === 'signup'
-                ? 'Free to create. Upgrade to Pro after sign-up to unlock AI features.'
+                ? 'Free to create. Choose a plan above to subscribe.'
                 : 'Sign in to manage your account. AI features require a Pro plan.';
-            submitBtn.textContent = next === 'signup' ? 'Sign up' : 'Sign in';
-            toggleLink.textContent = next === 'signup' ? 'Have an account? Sign in' : 'Need an account? Sign up';
+            submitBtn.textContent = next === 'signup'
+                ? (stillWantsPro ? 'Sign up & continue to checkout' : 'Sign up')
+                : 'Sign in';
+            toggleBtn.textContent = next === 'signup' ? 'Already have an account? Sign in' : "Don't have an account? Sign up";
             passInput.autocomplete = next === 'signup' ? 'new-password' : 'current-password';
             errorEl.style.display = 'none';
         };
-        toggleLink.addEventListener('click', (e) => { e.preventDefault(); setMode(mode === 'signin' ? 'signup' : 'signin'); });
+        toggleBtn.addEventListener('click', (e) => { e.preventDefault(); setMode(mode === 'signin' ? 'signup' : 'signin'); });
 
         const submit = async () => {
             errorEl.style.display = 'none';
@@ -272,6 +423,9 @@ export function mountLandingAccountPanel(container) {
             try {
                 if (mode === 'signup') await auth.signUp(emailInput.value.trim(), passInput.value);
                 else await auth.signIn(emailInput.value.trim(), passInput.value);
+                // On success, auth.onChange will either re-render to the
+                // account view OR (if pending-checkout was set) redirect to
+                // Stripe Checkout — handled at the top of mountLandingAccountPanel.
             } catch (err) {
                 errorEl.textContent = err?.message || 'Failed';
                 errorEl.style.display = '';
@@ -284,15 +438,21 @@ export function mountLandingAccountPanel(container) {
         emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') passInput.focus(); });
         passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
 
-        return el('div', { style: cardStyle }, [
+        const card = el('div', { style: cardStyle, 'data-auth-form': '' }, [
             sectionLabel('Get started', '#a855f7'),
             title, sub,
+            pendingBanner,
             el('div', { style: 'display:flex; flex-direction:column; gap:0.85rem; margin-bottom:1.25rem;' }, [emailInput, passInput]),
             submitBtn,
-            errorEl,
-            el('div', { style: 'flex:1;' }), // spacer to push toggle to bottom
-            el('div', { style: 'text-align:center; padding-top:1.25rem; border-top:1px solid rgba(148,163,184,0.12); margin-top:1.25rem;' }, [toggleLink])
+            toggleBtn,
+            errorEl
         ]);
+
+        // External callers (the Pro/Free CTAs on the plan cards) use this
+        // event to flip the form into signup mode and scroll into view.
+        card.addEventListener('setmode', (e) => setMode(e.detail || 'signup'));
+
+        return card;
     };
 
     // ---------- right column: signed-in account actions ----------
@@ -318,8 +478,15 @@ export function mountLandingAccountPanel(container) {
             ? 'You\'re on the Pro plan. AI features are unlocked in the editor.'
             : 'You\'re on the Free plan. Upgrade to unlock AI generation in the editor.');
 
+        // Pro users get a deliberately understated "Manage" link — we don't
+        // want to make unsubscribing feel like a primary action. Free users
+        // get the full-width upgrade CTA.
         const primaryBtn = isPro
-            ? el('button', { class: 'cta cta-secondary', style: 'width:100%; justify-content:center; margin-bottom:0.75rem;' }, '💳 Manage subscription')
+            ? el('button', {
+                style: `background:transparent; border:none; color:#94a3b8; cursor:pointer;
+                        font-size:0.8rem; padding:0.25rem 0; text-decoration:underline;
+                        text-underline-offset:3px; align-self:flex-start;`
+            }, 'Manage subscription')
             : el('button', { class: 'cta', style: 'width:100%; justify-content:center; margin-bottom:0.75rem;' }, '⚡ Upgrade to Pro');
 
         primaryBtn.addEventListener('click', async () => {
@@ -338,10 +505,20 @@ export function mountLandingAccountPanel(container) {
 
         const launchBtn = el('a', { href: '/editor', class: 'cta cta-secondary', style: 'width:100%; justify-content:center;' }, 'Launch editor →');
 
+        // Prominent sign-out so users can find it easily — styled as a
+        // proper secondary button rather than a buried text link.
         const signOutBtn = el('button', {
-            style: 'background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size:0.85rem; padding:0; text-decoration:underline; text-underline-offset:3px;',
+            class: 'cta cta-secondary',
+            style: 'width:100%; justify-content:center;',
             onclick: () => auth.signOut()
         }, 'Sign out');
+
+        // For Pro, the row order is: status, Launch editor, Sign out, then
+        // a small "Manage subscription" link tucked at the bottom.
+        // For Free, the row order is: status, Upgrade, Launch editor, Sign out.
+        const actions = isPro
+            ? [launchBtn, signOutBtn, el('div', { style: 'margin-top:1rem;' }, [primaryBtn])]
+            : [primaryBtn, launchBtn, el('div', { style: 'margin-top:0.75rem;' }, [signOutBtn])];
 
         return el('div', { style: cardStyle }, [
             el('div', { style: 'display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;' }, [
@@ -350,15 +527,14 @@ export function mountLandingAccountPanel(container) {
             ]),
             title, email,
             statusBox,
-            primaryBtn,
-            launchBtn,
-            el('div', { style: 'flex:1;' }),
-            el('div', { style: 'text-align:center; padding-top:1.25rem; border-top:1px solid rgba(148,163,184,0.12); margin-top:1.25rem;' }, [signOutBtn])
+            ...actions
         ]);
     };
 
     // ---------- render ----------
-    auth.onChange(({ user, plan }) => {
+    let lastState = { user: null, plan: 'free' };
+    const renderAll = () => {
+        const { user, plan } = lastState;
         if (!auth.isConfigured()) {
             container.innerHTML = '';
             container.appendChild(el('div', {
@@ -372,11 +548,17 @@ export function mountLandingAccountPanel(container) {
 
         container.innerHTML = '';
         const grid = el('div', { class: 'account-grid', style: gridStyle }, [
-            planComparisonCol(),
+            planComparisonCol(user, plan),
             user ? accountCol(user, plan) : authFormCol()
         ]);
         container.appendChild(grid);
-    });
+    };
+
+    auth.onChange((s) => { lastState = s; renderAll(); });
+
+    // Re-render once Stripe price resolves so the Pro card shows actual
+    // dollars instead of the "Monthly" fallback.
+    loadPublicConfig().then(() => renderAll());
 }
 
 function inputStyle() {

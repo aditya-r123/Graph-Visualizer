@@ -1,5 +1,6 @@
 import { EMAILJS_CONFIG, isProduction } from './config.js';
 import * as auth from './auth.js';
+import * as graphStorage from './graphStorage.js';
 
 // AI features are gated on the user's subscription plan. This is a UX hint
 // only — the actual enforcement lives in /api/ai/* on the server, which
@@ -179,6 +180,30 @@ export class GraphCreator {
         requestAnimationFrame(() => {
             this.startAutoSave();
             this.loadSavedGraphs();
+            // Re-sync the saved-graphs panel whenever auth state changes
+            // (sign-in pulls in cloud graphs; sign-out reverts to the
+            // local cache so the user keeps access). We only care about
+            // user-id transitions — refire on those, not on every plan
+            // refresh.
+            let lastUserId = null;
+            let unsubscribeRealtime = null;
+            auth.onChange(({ user }) => {
+                const uid = user?.id || null;
+                if (uid !== lastUserId) {
+                    lastUserId = uid;
+                    this.loadSavedGraphs();
+                    // Tear down any previous realtime subscription.
+                    if (unsubscribeRealtime) { unsubscribeRealtime(); unsubscribeRealtime = null; }
+                    // Subscribe to live updates on the user's graphs row so
+                    // changes from another tab/device appear here within ~1s
+                    // without a reload.
+                    if (uid) {
+                        unsubscribeRealtime = graphStorage.subscribeToChanges(() => {
+                            this.loadSavedGraphs();
+                        });
+                    }
+                }
+            });
             this.setupExpandableSections();
             this.setupMouseCoordinateTracking();
             this.setupMinimalEditModeEvents();
@@ -879,31 +904,15 @@ export class GraphCreator {
             console.error('Auto-save failed:', error);
         }
     }
-    loadSavedGraphs() {
+    async loadSavedGraphs() {
+        // graphStorage.load() returns cached localStorage immediately when
+        // anonymous, OR a merged local+cloud list when signed in. Re-renders
+        // the saved-graphs panel once the (possibly async) cloud fetch
+        // resolves.
         try {
-            const savedGraphsData = localStorage.getItem('savedGraphs');
-            if (savedGraphsData) {
-                const parsed = JSON.parse(savedGraphsData);
-                
-                // Handle migration from old format to new format
-                this.savedGraphs = parsed.map(graph => {
-                    if (graph.data) {
-                        // New format
-                        return graph;
-                    } else {
-                        // Old format - convert to new format
-                        return {
-                            name: graph.name || 'Unnamed Graph',
-                            data: graph,
-                            timestamp: graph.timestamp || new Date().toISOString(),
-                            vertices: graph.vertices || 0,
-                            edges: graph.edges || 0
-                        };
-                    }
-                });
-                
-                this.updateSavedGraphsList();
-            }
+            const list = await graphStorage.load();
+            this.savedGraphs = Array.isArray(list) ? list : [];
+            this.updateSavedGraphsList();
         } catch (error) {
             console.error('Failed to load saved graphs:', error);
         }
@@ -967,7 +976,7 @@ export class GraphCreator {
                             savedGraph.name = newName;
                             nameElement.innerHTML = newName;
                             this.updateStatus(`Graph renamed to "${newName}"`);
-                            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                            graphStorage.save(this.savedGraphs);
                             this.updateSavedGraphsList();
                         } else {
                             nameElement.innerHTML = originalContent;
@@ -978,7 +987,7 @@ export class GraphCreator {
                         savedGraph.name = originalName;
                         nameElement.innerHTML = originalName;
                         this.updateStatus(`Rename undone - reverted to "${originalName}"`);
-                        localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                        graphStorage.save(this.savedGraphs);
                         this.updateSavedGraphsList();
                     };
                     input.addEventListener('blur', saveName);
@@ -1004,8 +1013,10 @@ export class GraphCreator {
                     if (this.currentGraphId === savedGraph.id) {
                         this.currentGraphId = null;
                     }
+                    const deletedId = savedGraph.id;
                     this.savedGraphs.splice(index, 1);
-                    localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                    graphStorage.save(this.savedGraphs);
+                    graphStorage.remove(deletedId);
                     this.updateSavedGraphsList();
                     this.updateStatus('Graph deleted.');
                 });
@@ -1100,13 +1111,16 @@ export class GraphCreator {
         // Always add the graph to the top (most recent)
         this.savedGraphs.unshift(savedGraph);
         
-        // Keep only last 10 saved graphs
-        if (this.savedGraphs.length > 10) {
-            this.savedGraphs = this.savedGraphs.slice(0, 10);
+        // Trim to the storage cap (10 anonymous / 500 signed-in). The
+        // cloud and localStorage layers also enforce this; we mirror it
+        // here so the in-memory list stays consistent.
+        const cap = graphStorage.maxGraphs();
+        if (this.savedGraphs.length > cap) {
+            this.savedGraphs = this.savedGraphs.slice(0, cap);
         }
         
         try {
-            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            graphStorage.save(this.savedGraphs);
             this.updateSavedGraphsList();
             this.lastSavedState = JSON.stringify({
                 vertices: this.vertices.map(v => ({ id: v.id, x: v.x, y: v.y, label: v.label })),
@@ -1205,14 +1219,17 @@ export class GraphCreator {
         // Always add the graph to the top (most recent)
         this.savedGraphs.unshift(savedGraph);
         
-        // Keep only last 10 saved graphs
-        if (this.savedGraphs.length > 10) {
-            this.savedGraphs = this.savedGraphs.slice(0, 10);
+        // Trim to the storage cap (10 anonymous / 500 signed-in). The
+        // cloud and localStorage layers also enforce this; we mirror it
+        // here so the in-memory list stays consistent.
+        const cap = graphStorage.maxGraphs();
+        if (this.savedGraphs.length > cap) {
+            this.savedGraphs = this.savedGraphs.slice(0, cap);
         }
         
         // Save to localStorage
         try {
-            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            graphStorage.save(this.savedGraphs);
             this.updateSavedGraphsList();
             this.updateStatus(`Current graph saved before loading "${targetGraph.name}"`);
         } catch (error) {
@@ -5177,14 +5194,17 @@ export class GraphCreator {
         // Always add the graph to the top (most recent)
         this.savedGraphs.unshift(savedGraph);
         
-        // Keep only last 10 saved graphs
-        if (this.savedGraphs.length > 10) {
-            this.savedGraphs = this.savedGraphs.slice(0, 10);
+        // Trim to the storage cap (10 anonymous / 500 signed-in). The
+        // cloud and localStorage layers also enforce this; we mirror it
+        // here so the in-memory list stays consistent.
+        const cap = graphStorage.maxGraphs();
+        if (this.savedGraphs.length > cap) {
+            this.savedGraphs = this.savedGraphs.slice(0, cap);
         }
         
         // Save to localStorage
         try {
-            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            graphStorage.save(this.savedGraphs);
             this.updateSavedGraphsList();
             this.updateStatus('Current graph saved before loading new graph');
         } catch (error) {
@@ -5336,11 +5356,12 @@ export class GraphCreator {
                         this.currentGraphId = null;
                     }
                     // Actually delete the graph now
+                    const deletedId = savedGraph.id;
                     this.savedGraphs.splice(index, 1);
                     this.populateLoadRecentGraphs();
                     this.updateStatus('Graph deleted.');
-                    // Optionally, persist to localStorage here if you want immediate effect
-                    localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                    graphStorage.save(this.savedGraphs);
+                    graphStorage.remove(deletedId);
                 });
             }
             // Delete/Undo button
@@ -8302,7 +8323,7 @@ export class GraphCreator {
         
         // Save to localStorage
         try {
-            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            graphStorage.save(this.savedGraphs);
             this.updateSavedGraphsList();
             
             let message = '';
@@ -8345,7 +8366,7 @@ export class GraphCreator {
             }
             this.savedGraphs.splice(idx, 1);
             try {
-                localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+                graphStorage.save(this.savedGraphs);
                 this.updateSavedGraphsList();
                 this.updateStatus('Saved graph deleted');
             } catch (error) {
@@ -8419,7 +8440,7 @@ export class GraphCreator {
                 this.currentGraphId = null;
             }
             this.savedGraphs = [];
-            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            graphStorage.save(this.savedGraphs);
             this.updateSavedGraphsList();
             this.hideSharedConfirmation();
             this.updateStatus(`All ${graphCount} saved graphs deleted`);
@@ -8478,7 +8499,7 @@ export class GraphCreator {
                 this.currentGraphId = null;
             }
             this.savedGraphs = [];
-            localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+            graphStorage.save(this.savedGraphs);
             this.updateSavedGraphsList();
             this.updateStatus(`All ${graphCount} saved graphs deleted`);
         } catch (error) {
@@ -9018,7 +9039,7 @@ export class GraphCreator {
         // Implement your own logic to save changes
         // For now, just clear the pending flag and save to localStorage
         this._pendingRenameOrDelete = false;
-        localStorage.setItem('savedGraphs', JSON.stringify(this.savedGraphs));
+        graphStorage.save(this.savedGraphs);
         this.updateSavedGraphsList();
     }
 

@@ -14,13 +14,27 @@ const {
     hierarchyHandler,
     createCheckoutHandler,
     portalHandler,
-    webhookHandler
+    webhookHandler,
+    listGraphsHandler,
+    upsertGraphsHandler,
+    deleteGraphHandler
 } = require('./api/_lib/handlers');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
 
 app.use(cors());
+
+// Tiny request log so we can see what the client is hitting locally.
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        const started = Date.now();
+        res.on('finish', () => {
+            console.log(`[api] ${req.method} ${req.path} → ${res.statusCode} (${Date.now() - started}ms)`);
+        });
+    }
+    next();
+});
 
 // Stripe webhook MUST receive the raw body for signature verification — mount
 // it BEFORE express.json(), with the raw body parser.
@@ -63,19 +77,14 @@ app.post('/api/ai/generate-graph', wrap(generateGraphHandler));
 app.post('/api/ai/hierarchy', wrap(hierarchyHandler));
 app.post('/api/stripe/create-checkout', wrap(createCheckoutHandler));
 app.post('/api/stripe/portal', wrap(portalHandler));
+app.get('/api/graphs', wrap(listGraphsHandler));
+app.post('/api/graphs', wrap(upsertGraphsHandler));
+app.post('/api/graphs/delete', wrap(deleteGraphHandler));
 
-// Legacy public-config endpoint — returns the client-safe keys.
-app.get('/api/public-config', (req, res) => {
-    res.json({
-        supabaseUrl: process.env.SUPABASE_URL || '',
-        supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
-        emailjs: {
-            publicKey: process.env.EMAILJS_PUBLIC_KEY || '',
-            serviceId: process.env.EMAILJS_SERVICE_ID || '',
-            templateId: process.env.EMAILJS_TEMPLATE_ID || ''
-        }
-    });
-});
+// Legacy public-config endpoint — returns the client-safe keys + the Pro
+// plan's actual price (fetched from Stripe on first call, cached 5 min).
+const publicConfigHandler = require('./api/public-config');
+app.get('/api/public-config', wrap(publicConfigHandler));
 
 // Back-compat: old endpoint name some clients may still call.
 app.get('/api/emailjs-config', (req, res) => {
