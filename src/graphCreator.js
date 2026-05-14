@@ -720,9 +720,31 @@ export class GraphCreator {
             aiPromptCounter.textContent = `${len} / ${AI_PROMPT_MAX}`;
             aiPromptCounter.style.color = len >= AI_PROMPT_MAX ? 'var(--danger, #ef4444)' : '';
         };
+        // Auto-grow the textarea so the user never has to scroll inside it.
+        // Reset to 'auto' first so the box can also SHRINK when text is
+        // deleted — without that, height never goes back down. The 200-char
+        // maxlength implicitly caps how tall the box can ever get.
+        const autoGrowAiPrompt = () => {
+            if (!aiPromptInput) return;
+            aiPromptInput.style.height = 'auto';
+            aiPromptInput.style.height = aiPromptInput.scrollHeight + 'px';
+        };
         if (aiPromptInput) {
-            aiPromptInput.addEventListener('input', updateAiCounter);
+            aiPromptInput.addEventListener('input', () => {
+                updateAiCounter();
+                autoGrowAiPrompt();
+            });
+            // Focus also re-sizes — covers cases where the panel just
+            // became visible (going Free → Pro) and the initial paint had
+            // display:none, leaving scrollHeight stale.
+            aiPromptInput.addEventListener('focus', autoGrowAiPrompt);
             updateAiCounter();
+            requestAnimationFrame(autoGrowAiPrompt);
+            // Re-fit when the AI panel unlocks (plan → pro), since the
+            // textarea was display:none until that moment.
+            auth.onChange(({ plan }) => {
+                if (plan === 'pro') requestAnimationFrame(autoGrowAiPrompt);
+            });
         }
 
         const requestGeneration = () => {
