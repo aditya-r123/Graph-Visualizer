@@ -27,6 +27,29 @@ document.addEventListener('DOMContentLoaded', () => {
         lockedEl: document.getElementById('aiGenerateLocked'),
         unlockedEl: document.getElementById('aiGenerateUnlocked')
     });
+
+    // Gate the TXT export format on plan. TXT uses the AI hierarchy endpoint
+    // under the hood, so it's a Pro-only feature:
+    //   - Free / anonymous: option hidden entirely (so they don't see it
+    //     in the dropdown at all).
+    //   - Pro: relabeled to "TXT (Pro)" as a subtle perk indicator.
+    // If a stale "txt" value is somehow selected when the plan flips to
+    // free, we fall back to JPG.
+    const txtOption = document.querySelector('#fileFormatSelect option[value="txt"]');
+    const formatSelect = document.getElementById('fileFormatSelect');
+    if (txtOption && formatSelect) {
+        auth.onChange(({ plan }) => {
+            if (plan === 'pro') {
+                txtOption.textContent = 'TXT (Pro)';
+                txtOption.hidden = false;
+                txtOption.disabled = false;
+            } else {
+                txtOption.hidden = true;
+                txtOption.disabled = true;
+                if (formatSelect.value === 'txt') formatSelect.value = 'jpg';
+            }
+        });
+    }
 });
 
 // FOUC Prevention: Hide content until styles are fully loaded
