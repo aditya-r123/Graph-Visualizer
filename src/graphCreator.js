@@ -1832,23 +1832,31 @@ export class GraphCreator {
 
     shareGraph() {
         console.log('shareGraph function called');
-        
+
         try {
             // Create a temporary canvas for the screenshot
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
-            
+
             console.log('Created temporary canvas for sharing');
-            
+
             // Set canvas size to fixed canvas dimensions
             tempCanvas.width = this.whiteBoxWidth;
             tempCanvas.height = this.whiteBoxHeight;
-            
+
             console.log('Set temp canvas size to:', tempCanvas.width, 'x', tempCanvas.height);
-            
+
             // Get the selected format from dropdown
             const fileFormatSelect = document.getElementById('fileFormatSelect');
-            const format = fileFormatSelect ? fileFormatSelect.value : 'jpg';
+            let format = fileFormatSelect ? fileFormatSelect.value : 'jpg';
+            // Share-only override: text-based formats (JSON, TXT) aren't
+            // useful as a shareable preview — substitute PNG so the
+            // recipient gets a visual of the graph instead of a raw file.
+            // The Save/Export buttons still respect the original choice.
+            if (format === 'json' || format === 'txt') {
+                console.log(`shareGraph: substituting PNG for ${format}`);
+                format = 'png';
+            }
             
             // Handle different formats
             if (format === 'json') {
