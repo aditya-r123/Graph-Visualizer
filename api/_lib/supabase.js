@@ -72,4 +72,55 @@ async function ensureProfile(user) {
     }
 }
 
-module.exports = { getAdminClient, getUserFromRequest, getPlan, ensureProfile };
+// Server-side per-user, per-day AI generation cap. Applies to ALL plans
+// including Pro — a paid plan is not a license to drain unbounded OpenAI
+// credit. The cap value lives in this file (not env) so it can't be
+// inspected from the client, and the API error message intentionally
+// omits the number.
+//
+// Returns { allowed: boolean, count: number }.
+//
+// Note on concurrency: this is a read-modify-write, not an atomic
+// increment, so concurrent requests can race past the cap by a handful.
+// For 15/day that's acceptable; revisit with a single-statement UPDATE
+// RETURNING if abuse becomes a concern.
+const AI_DAILY_LIMIT = 15;
+
+async function checkAndIncrementAiUsage(userId) {
+    if (!userId) return { allowed: false, count: 0 };
+    const admin = getAdminClient();
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
+
+    const { data: profile, error: readErr } = await admin
+        .from('profiles')
+        .select('ai_usage_date, ai_usage_count')
+        .eq('id', userId)
+        .maybeSingle();
+    if (readErr) {
+        console.error('checkAndIncrementAiUsage read failed:', readErr.message);
+        // Fail-closed on DB error: deny rather than risk runaway cost.
+        return { allowed: false, count: 0 };
+    }
+
+    const isNewDay = !profile || profile.ai_usage_date !== today;
+    const currentCount = isNewDay ? 0 : (profile.ai_usage_count || 0);
+
+    if (currentCount >= AI_DAILY_LIMIT) {
+        return { allowed: false, count: currentCount };
+    }
+
+    const { error: writeErr } = await admin
+        .from('profiles')
+        .update({
+            ai_usage_date: today,
+            ai_usage_count: currentCount + 1
+        })
+        .eq('id', userId);
+    if (writeErr) {
+        console.error('checkAndIncrementAiUsage write failed:', writeErr.message);
+        return { allowed: false, count: currentCount };
+    }
+    return { allowed: true, count: currentCount + 1 };
+}
+
+module.exports = { getAdminClient, getUserFromRequest, getPlan, ensureProfile, checkAndIncrementAiUsage };

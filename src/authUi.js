@@ -42,21 +42,20 @@ export function mountEditorBadge(container) {
         }
 
         const isPro = plan === 'pro';
+        // Compact PRO/FREE chip only. Full account details (email, plan
+        // management) live on the landing page; clicking the chip routes
+        // there. `title` shows the email on hover for quick reference.
         const badge = el('a', {
             href: '/#account',
-            title: 'Account on home page',
-            style: `display:inline-flex; align-items:center; gap:0.4rem; font-size:0.7rem; padding:0.25rem 0.55rem;
-                    max-width: 100%;
+            title: `${isPro ? 'Pro' : 'Free'} plan — ${user.email || ''}`,
+            style: `display:inline-flex; align-items:center; font-size:0.7rem; font-weight:700;
+                    letter-spacing:0.08em; padding:0.3rem 0.6rem; line-height:1;
                     background:${isPro ? 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' : 'rgba(30,41,59,0.7)'};
                     color:${isPro ? '#fff' : '#cbd5e1'};
                     border:1px solid ${isPro ? 'rgba(168,85,247,0.6)' : 'rgba(99,102,241,0.3)'};
                     border-radius:6px; text-decoration:none;
-                    box-shadow:${isPro ? '0 2px 10px rgba(168,85,247,0.3)' : 'none'};
-                    line-height: 1;`
-        }, [
-            el('span', { style: 'font-weight:700; letter-spacing:0.06em;' }, isPro ? 'PRO' : 'FREE'),
-            el('span', { style: 'opacity:0.8; max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;' }, user.email || '')
-        ]);
+                    box-shadow:${isPro ? '0 2px 10px rgba(168,85,247,0.3)' : 'none'};`
+        }, isPro ? 'PRO' : 'FREE');
         container.appendChild(badge);
     };
     auth.onChange(render);
@@ -376,7 +375,27 @@ export function mountLandingAccountPanel(container) {
         if (wantsPro) mode = 'signup';
 
         const emailInput = el('input', { type: 'email', placeholder: 'you@example.com', autocomplete: 'email', style: inputStyle() });
-        const passInput = el('input', { type: 'password', placeholder: 'Password (min 6 chars)', autocomplete: wantsPro ? 'new-password' : 'current-password', style: inputStyle() });
+        const passInput = el('input', { type: 'password', placeholder: 'Password (min 6 chars)', autocomplete: wantsPro ? 'new-password' : 'current-password', style: inputStyle() + ' padding-right: 2.75rem;' });
+
+        // Eye-icon toggle for password visibility. Sits over the right edge of
+        // the password input via the wrapper's relative positioning below.
+        const EYE_OPEN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        const EYE_OFF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+        const passToggle = el('button', {
+            type: 'button',
+            'aria-label': 'Show password',
+            style: 'position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); background:transparent; border:none; cursor:pointer; padding:0.25rem; color:#94a3b8; display:flex; align-items:center; transition:color 0.15s;',
+            onmouseenter: function() { this.style.color = '#e2e8f0'; },
+            onmouseleave: function() { this.style.color = '#94a3b8'; },
+            html: EYE_OFF
+        });
+        passToggle.addEventListener('click', () => {
+            const visible = passInput.type === 'text';
+            passInput.type = visible ? 'password' : 'text';
+            passToggle.innerHTML = visible ? EYE_OFF : EYE_OPEN;
+            passToggle.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+        });
+        const passWrapper = el('div', { style: 'position:relative;' }, [passInput, passToggle]);
         const errorEl = el('div', { style: 'display:none; color:#ef4444; font-size:0.85rem; margin-top:0.5rem;' });
         const submitBtn = el('button', { class: 'cta', style: 'width:100%; justify-content:center;' }, wantsPro ? 'Sign up & continue to checkout' : 'Sign in');
         // Secondary CTA — visually subordinate to the Sign in button (outlined
@@ -442,7 +461,7 @@ export function mountLandingAccountPanel(container) {
             sectionLabel('Get started', '#a855f7'),
             title, sub,
             pendingBanner,
-            el('div', { style: 'display:flex; flex-direction:column; gap:0.85rem; margin-bottom:1.25rem;' }, [emailInput, passInput]),
+            el('div', { style: 'display:flex; flex-direction:column; gap:0.85rem; margin-bottom:1.25rem;' }, [emailInput, passWrapper]),
             submitBtn,
             toggleBtn,
             errorEl
@@ -513,12 +532,45 @@ export function mountLandingAccountPanel(container) {
             onclick: () => auth.signOut()
         }, 'Sign out');
 
-        // For Pro, the row order is: status, Launch editor, Sign out, then
-        // a small "Manage subscription" link tucked at the bottom.
-        // For Free, the row order is: status, Upgrade, Launch editor, Sign out.
+        // Delete account — destructive, so styled as a small understated
+        // red link at the very bottom. Two-step confirmation: prompt
+        // requires the user to type their email to proceed.
+        const deleteBtn = el('button', {
+            style: `background:transparent; border:none; color:#ef4444; cursor:pointer;
+                    font-size:0.8rem; padding:0.25rem 0; text-decoration:underline;
+                    text-underline-offset:3px;`
+        }, 'Delete account');
+        deleteBtn.addEventListener('click', async () => {
+            const typed = prompt(
+                `This permanently deletes your account, cancels any active subscription, and removes all your saved canvases. This cannot be undone.\n\nType your email (${user.email}) to confirm:`
+            );
+            if (typed == null) return; // cancelled
+            if (typed.trim().toLowerCase() !== (user.email || '').toLowerCase()) {
+                alert('Email did not match. Account NOT deleted.');
+                return;
+            }
+            deleteBtn.disabled = true;
+            const original = deleteBtn.textContent;
+            deleteBtn.textContent = 'Deleting…';
+            try {
+                await auth.deleteAccount();
+                alert('Account deleted.');
+                window.location.href = '/';
+            } catch (err) {
+                alert(err?.message || 'Could not delete account.');
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = original;
+            }
+        });
+
+        // For Pro: status → Launch editor → Sign out → small Manage subscription link → Delete account
+        // For Free: status → Upgrade → Launch editor → Sign out → Delete account
+        const dangerZone = el('div', {
+            style: 'margin-top:1.25rem; padding-top:1rem; border-top:1px solid rgba(148,163,184,0.12); text-align:center;'
+        }, [deleteBtn]);
         const actions = isPro
-            ? [launchBtn, signOutBtn, el('div', { style: 'margin-top:1rem;' }, [primaryBtn])]
-            : [primaryBtn, launchBtn, el('div', { style: 'margin-top:0.75rem;' }, [signOutBtn])];
+            ? [launchBtn, signOutBtn, el('div', { style: 'margin-top:1rem;' }, [primaryBtn]), dangerZone]
+            : [primaryBtn, launchBtn, el('div', { style: 'margin-top:0.75rem;' }, [signOutBtn]), dangerZone];
 
         return el('div', { style: cardStyle }, [
             el('div', { style: 'display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;' }, [

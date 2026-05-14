@@ -17,7 +17,8 @@ const {
     webhookHandler,
     listGraphsHandler,
     upsertGraphsHandler,
-    deleteGraphHandler
+    deleteGraphHandler,
+    deleteAccountHandler
 } = require('./api/_lib/handlers');
 
 const app = express();
@@ -80,6 +81,7 @@ app.post('/api/stripe/portal', wrap(portalHandler));
 app.get('/api/graphs', wrap(listGraphsHandler));
 app.post('/api/graphs', wrap(upsertGraphsHandler));
 app.post('/api/graphs/delete', wrap(deleteGraphHandler));
+app.post('/api/account/delete', wrap(deleteAccountHandler));
 
 // Legacy public-config endpoint — returns the client-safe keys + the Pro
 // plan's actual price (fetched from Stripe on first call, cached 5 min).

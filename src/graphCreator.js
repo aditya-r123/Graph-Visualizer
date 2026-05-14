@@ -2655,6 +2655,10 @@ export class GraphCreator {
                 routeToAccount();
                 return '⚠️ Upgrade to Pro to use AI features.';
             }
+            if (response.status === 429) {
+                this.updateStatus('AI temporarily unavailable. Try again later.');
+                return '⚠️ AI generation is temporarily unavailable. Please try again later.';
+            }
             if (!response.ok) {
                 const body = await response.json().catch(() => ({}));
                 throw new Error(body.message || `Hierarchy API error: ${response.status}`);
@@ -2791,6 +2795,10 @@ export class GraphCreator {
             if (response.status === 402) {
                 this.updateStatus('Upgrade to Pro for AI');
                 routeToAccount();
+                return;
+            }
+            if (response.status === 429) {
+                this.updateStatus('AI temporarily unavailable. Try again later.');
                 return;
             }
             if (!response.ok) {

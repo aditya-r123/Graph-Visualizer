@@ -6,7 +6,7 @@
 const OpenAI = require('openai');
 const Stripe = require('stripe');
 
-const { getUserFromRequest, getPlan, getAdminClient, ensureProfile } = require('./supabase');
+const { getUserFromRequest, getPlan, getAdminClient, ensureProfile, checkAndIncrementAiUsage } = require('./supabase');
 
 const ORIGIN = process.env.APP_ORIGIN || 'http://localhost:3005';
 const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
@@ -41,6 +41,22 @@ async function requirePro(req, res) {
     return user;
 }
 
+// Wraps requirePro + the daily AI-usage check. On rate-limit, returns 429
+// with a generic message (the cap is intentionally not disclosed).
+async function requireProAndUnderLimit(req, res) {
+    const user = await requirePro(req, res);
+    if (!user) return null;
+    const usage = await checkAndIncrementAiUsage(user.id);
+    if (!usage.allowed) {
+        sendJson(res, 429, {
+            error: 'rate_limited',
+            message: 'AI generation is temporarily unavailable. Please try again later.'
+        });
+        return null;
+    }
+    return user;
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/me  — returns the current user (or null) + plan.
 // ---------------------------------------------------------------------------
@@ -64,7 +80,7 @@ async function meHandler(req, res) {
 // Returns OpenAI's JSON content verbatim for the client to parse.
 // ---------------------------------------------------------------------------
 async function generateGraphHandler(req, res) {
-    const user = await requirePro(req, res);
+    const user = await requireProAndUnderLimit(req, res);
     if (!user) return;
 
     let body = req.body;
@@ -140,7 +156,7 @@ General rules:
 // Body: { imageDataUrl: string }  — vision call that returns a text tree.
 // ---------------------------------------------------------------------------
 async function hierarchyHandler(req, res) {
-    const user = await requirePro(req, res);
+    const user = await requireProAndUnderLimit(req, res);
     if (!user) return;
 
     let body = req.body;
@@ -553,6 +569,57 @@ async function deleteGraphHandler(req, res) {
     }
 }
 
+// ---------------------------------------------------------------------------
+// POST /api/account/delete  — permanently delete the signed-in user.
+//
+// Order matters:
+//   1. Cancel any active Stripe subscription so the user isn't billed again.
+//   2. Call supabase.auth.admin.deleteUser(), which removes the auth row.
+//      That cascades (per schema FKs with `on delete cascade`) to:
+//        - public.profiles
+//        - public.graphs
+//
+// The browser session is invalidated as soon as the auth row is gone; the
+// client should sign out locally too to clear the cached Supabase JWT.
+// ---------------------------------------------------------------------------
+async function deleteAccountHandler(req, res) {
+    const { user } = await getUserFromRequest(req);
+    if (!user) return sendJson(res, 401, { error: 'sign_in_required' });
+
+    const admin = getAdminClient();
+
+    try {
+        // Best-effort Stripe cleanup. We continue even if cancellation fails
+        // (e.g. subscription already canceled) — the user has clearly asked
+        // to leave, and we don't want a Stripe hiccup to block deletion.
+        const { data: profile } = await admin
+            .from('profiles')
+            .select('stripe_subscription_id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profile?.stripe_subscription_id) {
+            try {
+                const stripe = getStripe();
+                await stripe.subscriptions.cancel(profile.stripe_subscription_id);
+                console.log('[account/delete] cancelled subscription', profile.stripe_subscription_id);
+            } catch (e) {
+                console.warn('[account/delete] Stripe cancel failed (continuing):', e?.message || e);
+            }
+        }
+
+        // This is the destructive call. FKs cascade to profiles + graphs.
+        const { error } = await admin.auth.admin.deleteUser(user.id);
+        if (error) throw error;
+
+        console.log('[account/delete] deleted user', user.id);
+        return sendJson(res, 200, { deleted: true });
+    } catch (err) {
+        console.error('[account/delete] failed:', err?.message || err);
+        return sendJson(res, 500, { error: 'delete_failed', message: err?.message });
+    }
+}
+
 module.exports = {
     meHandler,
     generateGraphHandler,
@@ -563,5 +630,6 @@ module.exports = {
     listGraphsHandler,
     upsertGraphsHandler,
     deleteGraphHandler,
+    deleteAccountHandler,
     sendJson
 };

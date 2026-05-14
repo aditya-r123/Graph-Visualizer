@@ -131,6 +131,18 @@ export async function startCheckout() {
     return url;
 }
 
+// Permanently delete the signed-in user's account on the server, then
+// sign them out locally. Cascades to profiles + graphs.
+export async function deleteAccount() {
+    const res = await authedFetch('/api/account/delete', { method: 'POST' });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || body.error || `Delete failed (${res.status})`);
+    }
+    // The server has destroyed the auth row; clear the local session too.
+    await signOut();
+}
+
 // Open the Stripe Customer Portal for self-service cancel/upgrade/etc.
 export async function openPortal() {
     const res = await authedFetch('/api/stripe/portal', { method: 'POST' });

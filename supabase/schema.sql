@@ -15,9 +15,19 @@ create table if not exists public.profiles (
     -- Mirror of Stripe subscription.status for debugging/admin views.
     subscription_status text,
     current_period_end timestamptz,
+    -- Per-day AI usage counter. Server-side rate limit; the user never sees
+    -- the cap. Resets when ai_usage_date != today.
+    ai_usage_date date,
+    ai_usage_count int not null default 0,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
+
+-- If you're upgrading an existing profiles table that doesn't have these
+-- columns yet, the ALTER below adds them idempotently.
+alter table public.profiles
+    add column if not exists ai_usage_date date,
+    add column if not exists ai_usage_count int not null default 0;
 
 -- Touch updated_at on row updates.
 create or replace function public.profiles_set_updated_at()
