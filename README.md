@@ -1,58 +1,47 @@
 # Graph Visualizer
 
-A modern, interactive web application for creating, visualizing, and analyzing graphs with an intuitive interface.
+An interactive, browser-based graph editor with AI-assisted generation and algorithm animations. Sketch graphs by hand, prompt one in plain English, or extract a hierarchy from an image — then export, share, or animate BFS/DFS on it.
 
-## ✨ Key Features
+Live: [graphvisualizer.com](https://graphvisualizer.com)
 
-- **Interactive Graph Creation** - Left-click to add vertices, drag to move them
-- **Smart Edge Creation** - Right-click two vertices to connect them with weights
-- **Search Algorithms** - BFS and DFS with animated visualizations and pathfinding
-- **Advanced Edit Mode** - Hold vertices for 2.5s to edit labels, sizes, colors, and shapes
-- **Delete Mode** - Bulk delete functionality for managing complex graphs
-- **Comprehensive Save & Load** - Auto-save and manual save/load with drag-and-drop support
-- **Export & Sharing** - Screenshot and export graphs in JPG, PNG, and JSON formats
-- **Modern UI** - Dark theme with responsive design, customizable controls, and mouse position tracking
+## Free features
 
-## 🌟 Why Graph Visualizer Fills a Critical Gap
+Available to anyone, no sign-up required:
 
-### **The Problem with Existing Tools**
-Most graph visualization tools fall into two categories:
-- **Complex professional tools** (like Gephi) that are overkill for simple use cases
-- **Basic educational tools** that feel outdated and lack modern UX
+- **Interactive editor** — Left-click to add vertices, drag to move, right-click two vertices to connect them with weights.
+- **Edit mode** — Long-press a vertex (2.5s) to edit labels, sizes, colors, and shapes.
+- **Delete mode** — Bulk delete vertices and edges.
+- **Local-first auto-save** — Work persists in the browser; manual save/load and drag-and-drop JSON files supported.
+- **Export** — Download as PNG, JPG, or JSON.
+- **Share** — Generate a shareable image of the current canvas.
 
-### **Our Solution**
-Graph Visualizer bridges this gap by offering:
+## Pro features
 
-**🎯 Perfect for Students & Educators**
-- No installation required - works instantly in any browser
-- Intuitive interface with concise instructions
-- Built-in algorithm visualizations for learning BFS/DFS
-- Easy sharing for assignments and presentations
+Available with a Pro subscription (managed in the account section on the home page):
 
-**💼 Ideal for Professionals**
-- Quick prototyping and brainstorming
-- Professional-grade UI with consistent color schemes
-- Export capabilities for documentation
-- Session management with auto-save
+- **AI graph generation** — Describe a graph in plain English; the editor builds it.
+- **AI hierarchy export** — Upload an image of a tree/hierarchy and convert it into an editable graph.
+- **BFS & DFS animations** — Run search from any vertex, with frontier/visited/path states animated step by step.
+- **TXT export** — Plaintext edge-list export, in addition to the free formats.
+- **Priority OpenAI access** and a daily usage cap to keep costs predictable.
 
-**🔧 Developer-Friendly**
-- Clean, responsive design with organized control panels
-- Efficient workflows with mouse position tracking
-- Customizable vertex shapes, edge types, and themes
-- Real-time auto-save prevents data loss
+## Tech stack
 
-### **What Sets Us Apart**
-- **Seamless Workflow**: No switching between creation and visualization modes
-- **Modern UX**: Contemporary design with purple-yellow-red color scheme
-- **Accessibility**: Zero barrier to entry - just open and start creating
-- **Comprehensive Features**: Everything you need without the complexity you don't
+- Vanilla JS frontend, bundled with webpack.
+- Express server (`server.js`) for local dev; Vercel serverless functions (`api/`) for production.
+- **Supabase** for auth and the `profiles` table (plan + Stripe IDs).
+- **Stripe** for subscriptions; embedded checkout on the landing page, Customer Portal for management. Webhook at `api/stripe/webhook.js` keeps `profiles.plan` in sync.
+- **OpenAI** for AI generation and hierarchy extraction (server-side only).
 
-## 🎯 Perfect For
+## Local development
 
-- **Computer Science Students** learning graph algorithms
-- **Educators** creating visual aids for lectures
-- **Software Engineers** prototyping system architectures
-- **Researchers** visualizing data relationships
-- **Anyone** who needs to quickly sketch and share graph concepts
+```bash
+npm install
+npm run dev   # starts webpack --watch + nodemon on :3005
+```
 
- 
+Create a `.env` with the keys you need: `OPENAI_API_KEY`, `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`, and the Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`). Auth, billing, and AI features each require their corresponding env vars; the editor itself works without any of them.
+
+## License
+
+MIT.
