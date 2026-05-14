@@ -75,6 +75,10 @@ module.exports = (env, argv) => {
         template: './src/index.html',
         filename: 'editor.html',
         chunks: ['editor'],
+        templateParameters: {
+          adsenseClient,
+          adsenseHomeSlot,
+        },
         minify: {
           removeComments: true,
           collapseWhitespace: true,

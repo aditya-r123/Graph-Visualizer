@@ -8,6 +8,9 @@
     <meta http-equiv="Expires" content="0">
     <meta name="version" content="1.0.0">
     <title>Graph Visualizer</title>
+    <% if (adsenseClient) { %>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= adsenseClient %>" crossorigin="anonymous"></script>
+    <% } %>
     
     <!-- Critical CSS to prevent FOUC -->
     <style>
