@@ -280,21 +280,51 @@ async function webhookHandler(req, res, rawBodyBuffer) {
     }
 
     try {
+        // Stripe does NOT guarantee event delivery order. A late-arriving
+        // `customer.subscription.created` with status=incomplete (the
+        // momentary state before payment confirms) used to overwrite a
+        // correctly-marked Pro user back to free. To make this safe:
+        //
+        //   - "Pro-granting" statuses (active, trialing) always set plan=pro
+        //     and bump current_period_end forward.
+        //   - "Pro-revoking" statuses (canceled, incomplete_expired, unpaid)
+        //     always set plan=free.
+        //   - Anything else (incomplete, past_due, paused, etc.) updates
+        //     status fields but DOES NOT touch the plan column — so a late
+        //     "incomplete" event won't downgrade an already-Pro user.
+
+        const PRO_STATUSES = new Set(['active', 'trialing']);
+        const FREE_STATUSES = new Set(['canceled', 'incomplete_expired', 'unpaid']);
+
+        const subscriptionUpdate = (sub) => {
+            const update = {
+                stripe_subscription_id: sub.id,
+                subscription_status: sub.status,
+                current_period_end: sub.current_period_end
+                    ? new Date(sub.current_period_end * 1000).toISOString()
+                    : null
+            };
+            if (PRO_STATUSES.has(sub.status)) update.plan = 'pro';
+            else if (FREE_STATUSES.has(sub.status)) update.plan = 'free';
+            // else: leave `plan` alone (don't risk demoting a paid user)
+            return update;
+        };
+
+        console.log('[webhook] received', event.type, event.id);
+
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object;
                 const userId = session.client_reference_id || session.metadata?.supabase_user_id;
                 if (userId && session.subscription) {
                     const sub = await stripe.subscriptions.retrieve(session.subscription);
-                    await admin.from('profiles').update({
+                    const update = {
                         stripe_customer_id: session.customer,
-                        stripe_subscription_id: sub.id,
-                        plan: sub.status === 'active' || sub.status === 'trialing' ? 'pro' : 'free',
-                        subscription_status: sub.status,
-                        current_period_end: sub.current_period_end
-                            ? new Date(sub.current_period_end * 1000).toISOString()
-                            : null
-                    }).eq('id', userId);
+                        ...subscriptionUpdate(sub)
+                    };
+                    const { error } = await admin.from('profiles').update(update).eq('id', userId);
+                    if (error) console.error('[webhook] checkout update failed:', error);
+                    else console.log('[webhook] checkout updated profile', userId, 'plan=' + (update.plan || '(unchanged)'));
                 }
                 break;
             }
@@ -303,21 +333,22 @@ async function webhookHandler(req, res, rawBodyBuffer) {
             case 'customer.subscription.deleted': {
                 const sub = event.data.object;
                 // Find the profile by customer id (more reliable than metadata).
-                const { data: profile } = await admin
+                const { data: profile, error: lookupErr } = await admin
                     .from('profiles')
                     .select('id')
                     .eq('stripe_customer_id', sub.customer)
                     .maybeSingle();
+                if (lookupErr) console.error('[webhook] profile lookup failed:', lookupErr);
                 if (profile) {
-                    const isActive = sub.status === 'active' || sub.status === 'trialing';
-                    await admin.from('profiles').update({
-                        stripe_subscription_id: sub.id,
-                        plan: isActive ? 'pro' : 'free',
-                        subscription_status: sub.status,
-                        current_period_end: sub.current_period_end
-                            ? new Date(sub.current_period_end * 1000).toISOString()
-                            : null
-                    }).eq('id', profile.id);
+                    // Delete events explicitly mean canceled — force plan=free
+                    // even if Stripe momentarily reports a different status.
+                    const update = subscriptionUpdate(sub);
+                    if (event.type === 'customer.subscription.deleted') update.plan = 'free';
+                    const { error } = await admin.from('profiles').update(update).eq('id', profile.id);
+                    if (error) console.error('[webhook] sub update failed:', error);
+                    else console.log('[webhook] sub event updated profile', profile.id, 'plan=' + (update.plan || '(unchanged)'));
+                } else {
+                    console.warn('[webhook] no profile found for stripe_customer_id', sub.customer);
                 }
                 break;
             }
